@@ -1,26 +1,61 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff8f9;
+  --foreground: #2d2526;
+  
+  --primary-pink: #ff85a1;
+  --primary-pink-dark: #fb6f92;
+  --primary-pink-light: #ffe5ec;
+  --secondary-yellow: #ffe5b4;
+  --accent-blue: #a2d2ff;
+  --soft-pink-bg: #fff8f9;
+  --cream: #fff0f2;
+  --sand: #faf0e6;
+  --charcoal: #2d2526;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  
+  --color-primary-pink: var(--primary-pink);
+  --color-primary-pink-dark: var(--primary-pink-dark);
+  --color-primary-pink-light: var(--primary-pink-light);
+  --color-secondary-yellow: var(--secondary-yellow);
+  --color-accent-blue: var(--accent-blue);
+  --color-cream: var(--cream);
+  --color-sand: var(--sand);
+  --color-charcoal: var(--charcoal);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1c1416;
+    --foreground: #fff8f9;
+    
+    --primary-pink: #ff85a1;
+    --primary-pink-dark: #ffe5ec;
+    --primary-pink-light: #fb6f92;
+    --secondary-yellow: #ffd166;
+    --accent-blue: #a2d2ff;
+    --soft-pink-bg: #1c1416;
+    --cream: #2b1f22;
+    --sand: #3a2e31;
+    --charcoal: #fff8f9;
   }
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui;
+  overflow-x: hidden;
 }
+
+
