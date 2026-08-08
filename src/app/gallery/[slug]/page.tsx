@@ -12,6 +12,7 @@ import { PhotoCarousel } from "@/features/gallery/components/photo-carousel";
 import { GalleryCard } from "@/features/gallery/components/gallery-card";
 import {
   COLOR_LABELS,
+  DIFFICULTY_LABELS,
   OCCASION_LABELS,
   SHAPE_LABELS,
   STYLE_LABELS,
@@ -66,12 +67,20 @@ export default async function GalleryDesignPage({ params }: PageProps<"/gallery/
             <Badge className="bg-muted text-foreground/80">{COLOR_LABELS[design.color]}</Badge>
             <Badge className="bg-muted text-foreground/80">{OCCASION_LABELS[design.occasion]}</Badge>
             <Badge className="bg-muted text-foreground/80">{SHAPE_LABELS[design.shape]}</Badge>
+            <Badge className="bg-primary/10 text-primary">{DIFFICULTY_LABELS[design.difficulty]}</Badge>
           </div>
 
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             {design.title}
           </h1>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">{design.description}</p>
+
+          <div className="mt-4 flex items-baseline gap-2">
+            <span className="text-2xl font-semibold text-primary">{formatIDR(design.priceFrom)}</span>
+            <span className="text-xs text-muted-foreground">
+              &middot; per set, sesuai tingkat kesulitan {DIFFICULTY_LABELS[design.difficulty].toLowerCase()}
+            </span>
+          </div>
 
           <Button size="lg" className="mt-6 h-12 w-full rounded-full text-base sm:w-auto sm:px-8" render={<Link href={bookingHref} />} nativeButton={false}>
             Booking Desain Ini

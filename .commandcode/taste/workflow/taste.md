@@ -5,3 +5,9 @@
 - Wants tooling set up to be verified end-to-end after install/update ("install or update ... then verify it works") — not just installed and reported as done. Confidence: 0.6
 
 - Prefers the assistant to read the official skill/setup documentation first before executing a task ("Read the BrowserAct skill first"). Confidence: 0.5
+
+- Wants the assistant to commit completed work to git as part of wrapping up a task ("commit current changes") rather than leaving the repo with uncommitted changes; expects the assistant to handle staging and committing, including pre-existing uncommitted work from others. Confidence: 0.7
+
+- Wants project documentation kept in sync with code changes — "update @docs if needed" (e.g., AGENTS.md, docs/PROGRESS.md) should be checked and updated as part of finishing a task. Confidence: 0.8
+
+- Wants competitive/market research grounded in authoritative sources (official studio price lists, reputable articles like Kompas, market-data sites) before deciding whether the current service/feature set is complete and what to add — e.g., "check our services, is it enough? can you do research what service should we add?" Confidence: 0.7

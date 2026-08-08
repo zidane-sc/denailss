@@ -42,6 +42,12 @@ export type DesignOccasion = "daily" | "wedding" | "party" | "festive" | "gradua
 
 export type DesignShape = "almond" | "square" | "coffin" | "round" | "stiletto";
 
+/**
+ * Difficulty tier of a nail-art design, assigned by the studio when the
+ * design is curated — never chosen by the customer. Drives the design price.
+ */
+export type DesignDifficulty = "easy" | "medium" | "complex" | "very-complex";
+
 export type GalleryAspect = "portrait" | "square" | "landscape" | "tall";
 
 export interface GalleryDesign {
@@ -55,6 +61,7 @@ export interface GalleryDesign {
   color: DesignColor;
   occasion: DesignOccasion;
   shape: DesignShape;
+  difficulty: DesignDifficulty;
   priceFrom: number;
   relatedServiceSlugs: string[];
   tags: string[];

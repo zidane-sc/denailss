@@ -4,8 +4,9 @@ import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
-import { STYLE_LABELS, COLOR_LABELS, OCCASION_LABELS } from "@/features/gallery/constants";
+import { STYLE_LABELS, COLOR_LABELS, OCCASION_LABELS, DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import { aspectRatioClass, imageUrl } from "@/lib/images";
+import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function StepDesign({
@@ -161,6 +162,9 @@ export function StepDesign({
                     />
                     <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-black/10 to-transparent p-2.5 text-left">
                       <p className="text-[11px] font-semibold text-white leading-tight">{design.title}</p>
+                      <p className="mt-0.5 text-[10px] text-white/80">
+                        {DIFFICULTY_LABELS[design.difficulty]} &middot; {formatIDR(design.priceFrom)}
+                      </p>
                     </div>
                     {active && (
                       <span className="absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { imageUrl } from "@/lib/images";
+import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
 import type { GalleryDesign } from "@/types";
 
@@ -47,6 +48,9 @@ function DesignTile({ design, className, aspectClass, index }: DesignTileProps) 
           )}
           <span className="absolute right-4 top-4 rounded-full border border-white/25 bg-black/25 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/85 backdrop-blur-sm">
             {label}
+          </span>
+          <span className="absolute left-4 bottom-4 rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm">
+            {DIFFICULTY_LABELS[design.difficulty]}
           </span>
 
           <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-5">

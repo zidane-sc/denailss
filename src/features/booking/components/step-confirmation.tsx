@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatDateId, formatIDR, parseDateKey } from "@/lib/format";
 import { SITE, whatsappLink } from "@/constants/site";
+import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import type { Service, GalleryDesign } from "@/types";
 
 export function StepConfirmation({
@@ -78,9 +79,14 @@ export function StepConfirmation({
             <span className="font-medium text-foreground text-right">{services.map((s) => s.name).join(", ")}</span>
           </div>
           {design && (
-            <div className="mt-1.5 flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Desain</span>
-              <span className="font-medium text-foreground">{design.title}</span>
+            <div className="mt-1.5 flex items-center justify-between gap-4 text-sm">
+              <span className="text-muted-foreground shrink-0">Desain</span>
+              <span className="font-medium text-foreground text-right">
+                {design.title}
+                <span className="block text-[11px] text-muted-foreground">
+                  Kesulitan {DIFFICULTY_LABELS[design.difficulty]}
+                </span>
+              </span>
             </div>
           )}
           <div className="mt-1.5 flex items-center justify-between text-sm">

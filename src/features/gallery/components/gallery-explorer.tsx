@@ -7,21 +7,29 @@ import { GalleryCard } from "@/features/gallery/components/gallery-card";
 import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
 import {
   COLOR_LABELS,
+  DIFFICULTY_LABELS,
   GALLERY_PAGE_SIZE,
   OCCASION_LABELS,
   SHAPE_LABELS,
   STYLE_LABELS,
 } from "@/features/gallery/constants";
 import { cn } from "@/lib/utils";
-import type { DesignColor, DesignOccasion, DesignShape, DesignStyle } from "@/types";
+import type {
+  DesignColor,
+  DesignDifficulty,
+  DesignOccasion,
+  DesignShape,
+  DesignStyle,
+} from "@/types";
 
-type FilterKey = "style" | "color" | "occasion" | "shape";
+type FilterKey = "style" | "color" | "occasion" | "shape" | "difficulty";
 
 const FILTER_GROUPS: { key: FilterKey; label: string; options: Record<string, string> }[] = [
   { key: "style", label: "Style", options: STYLE_LABELS },
   { key: "color", label: "Warna", options: COLOR_LABELS },
   { key: "occasion", label: "Acara", options: OCCASION_LABELS },
   { key: "shape", label: "Bentuk", options: SHAPE_LABELS },
+  { key: "difficulty", label: "Kesulitan", options: DIFFICULTY_LABELS },
 ];
 
 export function GalleryExplorer() {
@@ -41,15 +49,19 @@ export function GalleryExplorer() {
   const [shape, setShape] = useState<DesignShape | null>(
     (searchParams.get("shape") as DesignShape) || null
   );
+  const [difficulty, setDifficulty] = useState<DesignDifficulty | null>(
+    (searchParams.get("difficulty") as DesignDifficulty) || null
+  );
   const [visibleCount, setVisibleCount] = useState(GALLERY_PAGE_SIZE);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const activeValues: Record<FilterKey, string | null> = { style, color, occasion, shape };
+  const activeValues: Record<FilterKey, string | null> = { style, color, occasion, shape, difficulty };
   const setters: Record<FilterKey, (value: never) => void> = {
     style: setStyle as (value: never) => void,
     color: setColor as (value: never) => void,
     occasion: setOccasion as (value: never) => void,
     shape: setShape as (value: never) => void,
+    difficulty: setDifficulty as (value: never) => void,
   };
 
   useEffect(() => {
@@ -59,11 +71,12 @@ export function GalleryExplorer() {
     if (color) params.set("color", color);
     if (occasion) params.set("occasion", occasion);
     if (shape) params.set("shape", shape);
+    if (difficulty) params.set("difficulty", difficulty);
     const query = params.toString();
     router.replace(query ? `/gallery?${query}` : "/gallery", { scroll: false });
-  }, [search, style, color, occasion, shape, router]);
+  }, [search, style, color, occasion, shape, difficulty, router]);
 
-  const filterSignature = JSON.stringify([search, style, color, occasion, shape]);
+  const filterSignature = JSON.stringify([search, style, color, occasion, shape, difficulty]);
   const [appliedSignature, setAppliedSignature] = useState(filterSignature);
   if (filterSignature !== appliedSignature) {
     setAppliedSignature(filterSignature);
@@ -77,13 +90,14 @@ export function GalleryExplorer() {
       if (color && design.color !== color) return false;
       if (occasion && design.occasion !== occasion) return false;
       if (shape && design.shape !== shape) return false;
+      if (difficulty && design.difficulty !== difficulty) return false;
       if (query) {
         const haystack = `${design.title} ${design.tags.join(" ")}`.toLowerCase();
         if (!haystack.includes(query)) return false;
       }
       return true;
     });
-  }, [search, style, color, occasion, shape]);
+  }, [search, style, color, occasion, shape, difficulty]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -105,7 +119,7 @@ export function GalleryExplorer() {
     return () => observer.disconnect();
   }, [hasMore]);
 
-  const activeFilterCount = [style, color, occasion, shape].filter(Boolean).length;
+  const activeFilterCount = [style, color, occasion, shape, difficulty].filter(Boolean).length;
 
   const resetAll = () => {
     setSearch("");
@@ -113,6 +127,7 @@ export function GalleryExplorer() {
     setColor(null);
     setOccasion(null);
     setShape(null);
+    setDifficulty(null);
   };
 
   return (

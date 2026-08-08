@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ClockIcon } from "@phosphor-icons/react/dist/ssr";
 import { formatDateId, formatDuration, formatIDR, parseDateKey } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
+import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import type { GalleryDesign, Service } from "@/types";
 
 export interface SummaryData {
@@ -67,7 +68,11 @@ export function BookingSummary({ data }: { data: SummaryData }) {
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Desain</p>
                 <p className="truncate text-sm font-medium text-foreground">{design.title}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Tingkat kesulitan: {DIFFICULTY_LABELS[design.difficulty]}
+                </p>
               </div>
+              <span className="shrink-0 text-xs font-semibold text-foreground">{formatIDR(design.priceFrom)}</span>
             </div>
           )}
 

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { aspectRatioClass, imageUrl } from "@/lib/images";
+import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import type { GalleryDesign } from "@/types";
 
 export function GalleryCard({ design }: { design: GalleryDesign }) {
@@ -23,6 +24,9 @@ export function GalleryCard({ design }: { design: GalleryDesign }) {
             Lihat Desain
           </span>
         </div>
+        <span className="absolute right-3 top-3 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/90 backdrop-blur-sm">
+          {DIFFICULTY_LABELS[design.difficulty]}
+        </span>
       </div>
     </Link>
   );

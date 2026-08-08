@@ -1,4 +1,10 @@
-import type { DesignColor, DesignOccasion, DesignShape, DesignStyle } from "@/types";
+import type {
+  DesignColor,
+  DesignDifficulty,
+  DesignOccasion,
+  DesignShape,
+  DesignStyle,
+} from "@/types";
 
 export const STYLE_LABELS: Record<DesignStyle, string> = {
   minimalist: "Minimalis",
@@ -7,6 +13,21 @@ export const STYLE_LABELS: Record<DesignStyle, string> = {
   chrome: "Chrome",
   ombre: "Ombre",
   "3d-art": "3D Art",
+};
+
+export const DIFFICULTY_LABELS: Record<DesignDifficulty, string> = {
+  easy: "Mudah",
+  medium: "Sedang",
+  complex: "Rumit",
+  "very-complex": "Sangat Rumit",
+};
+
+/** Studio-set price per difficulty tier (per set, 10 jari) — see Ever Nails price list tiers. */
+export const DIFFICULTY_PRICES: Record<DesignDifficulty, number> = {
+  easy: 100000,
+  medium: 140000,
+  complex: 190000,
+  "very-complex": 240000,
 };
 
 export const COLOR_LABELS: Record<DesignColor, string> = {
