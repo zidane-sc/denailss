@@ -7,9 +7,9 @@
 
 ## Current Phase
 
-**Epic 1 — Public Website, frontend only.** No backend is wired up. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files. Booking submission, deposit upload, and promo validation are simulated client-side (no persistence; state resets on refresh).
+**Epic 1 & 2 — Public Website and Customer Portal, frontend only.** No backend is wired up. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` and `src/features/customer/data/*.mock.ts` files. Booking submission, deposit upload, promo validation, and profile updates are simulated client-side (no persistence; state resets on refresh).
 
-Epics 2-9 (Customer Portal, Appointment Management backoffice, CRM, Gallery Management admin, Promotion admin, Finance, Analytics, Settings) are **not started**.
+Epics 3-9 (Appointment Management backoffice, CRM, Gallery Management admin, Promotion admin, Finance, Analytics, Settings) are **not started**.
 
 ---
 
@@ -38,6 +38,15 @@ Epics 2-9 (Customer Portal, Appointment Management backoffice, CRM, Gallery Mana
 - State lives entirely in `booking-flow.tsx` (client component); no persistence across refresh.
 - Deposit upload is a real file input with local preview (`URL.createObjectURL`), replace/remove, mocked "waiting verification" status. No actual upload to storage.
 
+### Customer portal (`src/features/customer/`)
+- Routes: Dashboard (`/customer`), History (`/customer/bookings`), Details (`/customer/bookings/[id]`), Favorites grid (`/customer/favorites`), and Profile edit form (`/customer/profile`).
+- Responsive layout: standalone portal desktop sidebar nav + mobile bottom navigation tab bar.
+- Global site header/footer context-aware hide logic on `/customer/*` routes.
+- Fully Indonesian copy matching Denailss boutique studio brand guidelines.
+- Dynamic key re-triggering for tab switches in `RevealGroup` to resolve viewport animation freeze.
+- Spacing and color-calibrated button systems with solid backgrounds for action items.
+
+
 ### Verified working (via Playwright, this session)
 - Full booking happy path end-to-end including promo code + deposit upload + confirmation.
 - Availability engine renders correct limited/full/closed days matching the seeded mock config.
@@ -55,10 +64,9 @@ Epics 2-9 (Customer Portal, Appointment Management backoffice, CRM, Gallery Mana
 Roughly in the order the TRD implies:
 
 1. **Backend wiring** — Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions. This is the biggest gap: every `*.mock.ts` file under `src/features/*/data/` is a named seam meant to be swapped for a real repository call without touching components.
-2. **Auth** — Supabase Auth (email + Google-ready). Needed before Epic 2.
-3. **Epic 2 — Customer Portal**: dashboard, booking history, favorite designs, deposit proof status view, profile, post-visit reviews. Explicitly out of scope for the current build.
-4. **Epic 3 — Appointment Management backoffice**: calendar (day/week/month, drag-drop, reschedule), the owner-side availability configuration UI (the engine already exists on the read side; there's no admin UI to edit weekly templates/overrides/vacations yet), manual deposit verification (approve/reject).
-5. **Epic 4-9**: CRM, Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings.
+2. **Auth** — Supabase Auth (email + Google-ready). Needed before Epic 3 (Appointment Management backoffice).
+3. **Epic 3 — Appointment Management backoffice**: calendar (day/week/month, drag-drop, reschedule), the owner-side availability configuration UI (the engine already exists on the read side; there's no admin UI to edit weekly templates/overrides/vacations yet), manual deposit verification (approve/reject).
+4. **Epic 4-9**: CRM, Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings.
 6. **Real imagery** — replace all `picsum.photos` placeholders with actual studio photography once available (user explicitly chose placeholder-only for this phase).
 7. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
 

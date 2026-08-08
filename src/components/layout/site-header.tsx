@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { WhatsappLogoIcon, ListIcon } from "@phosphor-icons/react/dist/ssr";
+import { usePathname } from "next/navigation";
+import { WhatsappLogoIcon, ListIcon, UserCircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { whatsappLink } from "@/constants/site";
@@ -16,6 +17,9 @@ const NAV_LINKS = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/customer")) return null;
 
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center border-b border-border/70 bg-background/85 backdrop-blur-md">
@@ -52,6 +56,16 @@ export function SiteHeader() {
             <WhatsappLogoIcon weight="fill" className="size-4 text-primary" />
           </Button>
           <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
+            nativeButton={false}
+            render={<Link href="/customer" />}
+          >
+            <UserCircleIcon className="size-4" />
+            Portal Saya
+          </Button>
+          <Button
             size="lg"
             className="rounded-full px-5"
             nativeButton={false}
@@ -84,6 +98,14 @@ export function SiteHeader() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href="/customer"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-xl px-3 py-3 text-base font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-primary"
+              >
+                <UserCircleIcon className="size-5" />
+                Portal Saya
+              </Link>
             </nav>
             <div className="mt-6 flex flex-col gap-2 px-4">
               <Button

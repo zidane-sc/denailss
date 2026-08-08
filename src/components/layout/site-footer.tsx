@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   InstagramLogoIcon,
   TiktokLogoIcon,
@@ -22,6 +25,10 @@ const SERVICE_LINKS = [
 ];
 
 export function SiteFooter() {
+  const pathname = usePathname();
+  
+  if (pathname.startsWith("/customer")) return null;
+
   return (
     <footer className="border-t border-border bg-background-tint">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:px-8 lg:py-16">
