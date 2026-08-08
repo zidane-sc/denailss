@@ -1,27 +1,25 @@
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import Hero from "@/features/landing-page/components/Hero";
-import About from "@/features/landing-page/components/About";
-import Services from "@/features/landing-page/components/Services";
-import GalleryPreview from "@/features/landing-page/components/GalleryPreview";
-import ReviewsPreview from "@/features/landing-page/components/ReviewsPreview";
-import FAQ from "@/features/landing-page/components/FAQ";
-import BookingCTA from "@/features/landing-page/components/BookingCTA";
+import { Hero } from "@/features/landing/components/hero";
+import { FeaturedDesigns } from "@/features/landing/components/featured-designs";
+import { ServicesSection } from "@/features/landing/components/services-section";
+import { PromotionBanner } from "@/features/landing/components/promotion-banner";
+import { ReviewsSection } from "@/features/landing/components/reviews-section";
+import { AboutSection } from "@/features/landing/components/about-section";
+import { FaqSection } from "@/features/landing/components/faq-section";
+import { InstagramSection } from "@/features/landing/components/instagram-section";
+import { ContactSection } from "@/features/landing/components/contact-section";
 
 export default function Home() {
   return (
     <>
-      <Navbar />
-      <main className="flex-grow">
-        <Hero />
-        <About />
-        <Services />
-        <GalleryPreview />
-        <ReviewsPreview />
-        <FAQ />
-        <BookingCTA />
-      </main>
-      <Footer />
+      <Hero />
+      <FeaturedDesigns />
+      <ServicesSection />
+      <PromotionBanner />
+      <ReviewsSection />
+      <AboutSection />
+      <FaqSection />
+      <InstagramSection />
+      <ContactSection />
     </>
   );
 }

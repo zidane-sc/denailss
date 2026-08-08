@@ -1,0 +1,121 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  GALLERY_DESIGNS,
+  getDesignBySlug,
+  getRelatedDesigns,
+} from "@/features/gallery/data/designs.mock";
+import { getServiceBySlug } from "@/features/services/data/services.mock";
+import { PhotoCarousel } from "@/features/gallery/components/photo-carousel";
+import { GalleryCard } from "@/features/gallery/components/gallery-card";
+import {
+  COLOR_LABELS,
+  OCCASION_LABELS,
+  SHAPE_LABELS,
+  STYLE_LABELS,
+} from "@/features/gallery/constants";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { formatDuration, formatIDR } from "@/lib/format";
+
+export function generateStaticParams() {
+  return GALLERY_DESIGNS.map((design) => ({ slug: design.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/gallery/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const design = getDesignBySlug(slug);
+  if (!design) return {};
+  return {
+    title: design.title,
+    description: design.description,
+  };
+}
+
+export default async function GalleryDesignPage({ params }: PageProps<"/gallery/[slug]">) {
+  const { slug } = await params;
+  const design = getDesignBySlug(slug);
+  if (!design) notFound();
+
+  const relatedServices = design.relatedServiceSlugs
+    .map((s) => getServiceBySlug(s))
+    .filter((s): s is NonNullable<typeof s> => Boolean(s));
+  const primaryService = relatedServices[0];
+  const relatedDesigns = getRelatedDesigns(design);
+
+  const bookingHref = primaryService
+    ? `/booking?service=${primaryService.slug}&design=${design.slug}`
+    : `/booking?design=${design.slug}`;
+
+  return (
+    <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <Link href="/gallery" className="text-sm font-medium text-muted-foreground hover:text-primary">
+        &larr; Kembali ke Gallery
+      </Link>
+
+      <div className="mt-6 grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+        <PhotoCarousel seeds={design.imageSeeds} aspect={design.aspect} alt={design.title} />
+
+        <div>
+          <div className="flex flex-wrap gap-1.5">
+            <Badge className="bg-muted text-foreground/80">{STYLE_LABELS[design.style]}</Badge>
+            <Badge className="bg-muted text-foreground/80">{COLOR_LABELS[design.color]}</Badge>
+            <Badge className="bg-muted text-foreground/80">{OCCASION_LABELS[design.occasion]}</Badge>
+            <Badge className="bg-muted text-foreground/80">{SHAPE_LABELS[design.shape]}</Badge>
+          </div>
+
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            {design.title}
+          </h1>
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground">{design.description}</p>
+          <p className="mt-4 text-lg font-semibold text-primary">Mulai {formatIDR(design.priceFrom)}</p>
+
+          <Button size="lg" className="mt-6 h-12 w-full rounded-full text-base sm:w-auto sm:px-8" render={<Link href={bookingHref} />} nativeButton={false}>
+            Booking Desain Ini
+            <ArrowRightIcon className="size-4" />
+          </Button>
+
+          {relatedServices.length > 0 && (
+            <div className="mt-8">
+              <p className="text-sm font-semibold text-foreground">Layanan terkait</p>
+              <div className="mt-3 space-y-2">
+                {relatedServices.map((service) => (
+                  <Link
+                    key={service.slug}
+                    href={`/services/${service.slug}`}
+                    className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 transition-colors hover:border-primary/50"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{service.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Mulai {formatIDR(service.priceFrom)} &middot; {formatDuration(service.durationMinutes)}
+                      </p>
+                    </div>
+                    <ArrowRightIcon className="size-4 text-primary" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {relatedDesigns.length > 0 && (
+        <div className="mt-16">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Desain serupa</h2>
+          <div className="no-scrollbar mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+            {relatedDesigns.map((related) => (
+              <div key={related.id} className="w-56 shrink-0 snap-start sm:w-64">
+                <GalleryCard design={related} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
