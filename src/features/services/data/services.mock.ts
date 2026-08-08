@@ -119,6 +119,7 @@ export const SERVICES: Service[] = [
     description:
       "Layanan tambahan di atas manicure/gel base untuk desain hand-painted, ombre, chrome, sampai 3D charm. Setiap desain dikerjakan manual sesuai referensi dari gallery atau ide kamu sendiri.",
     priceFrom: 120000,
+    priceNote: "Estimasi, harga final sesuai desain & tingkat kesulitan — dikonfirmasi via WhatsApp.",
     durationMinutes: 60,
     heroImage: "denailss-nailart-hero",
     gallerySeeds: ["denailss-nailart-1", "denailss-nailart-2", "denailss-nailart-3", "denailss-nailart-4"],

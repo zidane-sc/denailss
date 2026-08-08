@@ -40,7 +40,8 @@ function priceLine(service: Service) {
     service.category === "fake-nail"
       ? "1-2 Hari Pembuatan"
       : formatDuration(service.durationMinutes);
-  return `Mulai ${formatIDR(service.priceFrom)} · ${timing}`;
+  const price = `Mulai ${formatIDR(service.priceFrom)} · ${timing}`;
+  return service.priceNote ? `${price} · estimasi` : price;
 }
 
 function PhotoTile({ slug, className }: { slug: string; className: string }) {

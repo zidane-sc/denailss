@@ -48,6 +48,11 @@ export function StepService({
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Mulai {formatIDR(service.priceFrom)} &middot; {service.category === "fake-nail" ? "1-2 Hari Pembuatan" : formatDuration(service.durationMinutes)}
                 </p>
+                {service.priceNote && (
+                  <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/80">
+                    {service.priceNote}
+                  </p>
+                )}
               </div>
               {active && <CheckCircleIcon weight="fill" className="size-5 shrink-0 text-primary" />}
             </button>

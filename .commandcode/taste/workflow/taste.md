@@ -11,3 +11,5 @@
 - Wants project documentation kept in sync with code changes — "update @docs if needed" (e.g., AGENTS.md, docs/PROGRESS.md) should be checked and updated as part of finishing a task. Confidence: 0.8
 
 - Wants competitive/market research grounded in authoritative sources (official studio price lists, reputable articles like Kompas, market-data sites) before deciding whether the current service/feature set is complete and what to add — e.g., "check our services, is it enough? can you do research what service should we add?" Confidence: 0.7
+
+- Prefers a propose-then-approve workflow for significant features: the assistant researches, presents a concrete plan/recommendation, and waits for explicit go-ahead (e.g., a terse "yeah go!") before implementing — rather than jumping straight to code. Confidence: 0.6

@@ -22,6 +22,8 @@ export function BookingSummary({ data }: { data: SummaryData }) {
   const { services, design, dateKey, time, subtotal, discount, total, depositAmount, depositRequired, promoCode } =
     data;
 
+  const hasEstimate = services.some((s) => s.priceNote && !design);
+
   return (
     <div className="rounded-3xl border border-border bg-card p-5">
       <p className="text-sm font-semibold text-foreground">Ringkasan Booking</p>
@@ -48,8 +50,15 @@ export function BookingSummary({ data }: { data: SummaryData }) {
                     <ClockIcon className="size-3.5" />
                     {formatDuration(service.durationMinutes)}
                   </p>
+                  {service.priceNote && !design && (
+                    <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/80">
+                      {service.priceNote}
+                    </p>
+                  )}
                 </div>
-                <span className="text-xs font-semibold text-foreground shrink-0">{formatIDR(service.priceFrom)}</span>
+                <span className="text-xs font-semibold text-foreground shrink-0">
+                  {service.priceNote && !design ? `± ${formatIDR(service.priceFrom)}` : formatIDR(service.priceFrom)}
+                </span>
               </div>
             ))}
           </div>
@@ -84,8 +93,13 @@ export function BookingSummary({ data }: { data: SummaryData }) {
           )}
 
           <div className="space-y-1.5 border-t border-border pt-4 text-sm">
+            {hasEstimate && (
+              <p className="text-[11px] leading-snug text-muted-foreground">
+                Estimasi harga — final dikonfirmasi via WhatsApp sesuai desain/request.
+              </p>
+            )}
             <div className="flex items-center justify-between text-muted-foreground">
-              <span>Subtotal</span>
+              <span>{hasEstimate ? "Estimasi" : "Subtotal"}</span>
               <span>{formatIDR(subtotal)}</span>
             </div>
             {discount > 0 && (
@@ -95,7 +109,7 @@ export function BookingSummary({ data }: { data: SummaryData }) {
               </div>
             )}
             <div className="flex items-center justify-between pt-1 text-base font-semibold text-foreground">
-              <span>Total</span>
+              <span>{hasEstimate ? "Total estimasi" : "Total"}</span>
               <span>{formatIDR(total)}</span>
             </div>
             {depositRequired && (

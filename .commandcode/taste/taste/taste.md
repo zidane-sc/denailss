@@ -12,4 +12,4 @@
 
 - Expects thorough verification before finalizing a task — typechecking, git status/diff review, and a full picture of what's being committed — even when the user didn't explicitly ask for it. Confidence: 0.6
 
-- Challenges proposed flows when the decision-maker doesn't match reality — e.g., the customer must never self-assess nail-art difficulty/pricing in the booking flow; difficulty is set by the artist/studio on curated designs and quoted by the artist for custom requests. Prefers flows where authority lives with the party who owns it in the real world. Confidence: 0.7
+- Challenges proposed flows when the decision-maker doesn't match reality — e.g., the customer must never self-assess nail-art difficulty/pricing in the booking flow; difficulty is set by the artist/studio on curated designs and quoted by the artist for custom requests. Prefers flows where authority lives with the party who owns it in the real world. Confidence: 0.9

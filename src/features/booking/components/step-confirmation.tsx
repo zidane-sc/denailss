@@ -31,6 +31,8 @@ export function StepConfirmation({
   depositAmount: number;
   depositRequired: boolean;
 }) {
+  const hasEstimate = services.some((s) => s.priceNote && !design);
+
   return (
     <div className="text-center">
       <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-secondary-soft">
@@ -90,9 +92,14 @@ export function StepConfirmation({
             </div>
           )}
           <div className="mt-1.5 flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Total estimasi</span>
+            <span className="text-muted-foreground">Total {hasEstimate ? "estimasi" : ""}</span>
             <span className="font-medium text-foreground">{formatIDR(total)}</span>
           </div>
+          {hasEstimate && (
+            <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+              Harga final sesuai desain yang kamu pilih atau request — dikonfirmasi via WhatsApp sebelum dikerjakan.
+            </p>
+          )}
           {depositRequired && (
             <>
               <div className="mt-1.5 flex items-center justify-between text-sm">

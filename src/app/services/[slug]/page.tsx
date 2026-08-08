@@ -59,6 +59,11 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
 
           <div className="mt-6 flex flex-wrap items-center gap-4">
             <p className="text-2xl font-semibold text-primary">{formatIDR(service.priceFrom)}</p>
+            {service.priceNote && (
+              <span className="rounded-full bg-secondary-soft px-3 py-1.5 text-xs text-foreground/80">
+                {service.priceNote}
+              </span>
+            )}
             <span className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-sm text-foreground/80">
               {service.category === "fake-nail" ? (
                 <>

@@ -14,6 +14,12 @@ export interface Service {
   shortDescription: string;
   description: string;
   priceFrom: number;
+  /**
+   * Optional note shown next to the price when the final price is not
+   * fixed upfront (e.g. nail art depends on the design tier / custom
+   * request, quoted by the artist via WhatsApp).
+   */
+  priceNote?: string;
   durationMinutes: number;
   heroImage: string;
   gallerySeeds: string[];

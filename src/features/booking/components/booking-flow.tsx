@@ -57,6 +57,8 @@ export function BookingFlow({
 
   const design = selections.designSlug ? getDesignBySlug(selections.designSlug) ?? null : null;
 
+  const hasEstimate = selectedServices.some((s) => s.priceNote && !design);
+
   const subtotal = useMemo(() => {
     return selectedServices.reduce((sum, s) => {
       if (design && design.relatedServiceSlugs.includes(s.slug)) {
@@ -289,7 +291,9 @@ export function BookingFlow({
         <div className="flex items-center justify-between gap-3">
           <Sheet>
             <SheetTrigger className="flex min-w-0 flex-1 flex-col items-start text-left">
-              <span className="text-xs text-muted-foreground">Total &middot; lihat detail</span>
+              <span className="text-xs text-muted-foreground">
+                {hasEstimate ? "Estimasi" : "Total"} &middot; lihat detail
+              </span>
               <span className="text-base font-semibold text-foreground">{formatIDR(total || 0)}</span>
             </SheetTrigger>
             <SheetContent side="bottom" className="max-h-[75vh] overflow-y-auto rounded-t-3xl bg-background p-5">

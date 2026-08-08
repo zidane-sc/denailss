@@ -95,6 +95,11 @@ export default function ServicesPage() {
                   <div>
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider block font-medium">Harga Mulai</span>
                     <span className="text-sm font-bold text-foreground">{formatIDR(service.priceFrom)}</span>
+                    {service.priceNote && (
+                      <span className="block max-w-[220px] text-[10px] leading-snug text-muted-foreground">
+                        {service.priceNote}
+                      </span>
+                    )}
                   </div>
                   <div className="ml-auto flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1.5 font-medium text-foreground/80">
                     {isFakeNail ? (
