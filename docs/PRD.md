@@ -42,7 +42,7 @@ Platform ini bertujuan menyelesaikan seluruh permasalahan tersebut.
 ## Persona 1 — Owner (Primary)
 
 Nama:
-Dena
+Dela
 
 Usia:
 20–30 tahun

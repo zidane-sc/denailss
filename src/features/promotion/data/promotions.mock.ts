@@ -15,6 +15,7 @@ export const PROMOTIONS: Promotion[] = [
     minimumSpend: 150000,
     applicableServiceSlugs: ["nail-art", "gel-extension"],
     maximumDiscount: 75000,
+    imageSeed: "promo-17an-nailart",
     active: true,
   },
   {
@@ -28,6 +29,7 @@ export const PROMOTIONS: Promotion[] = [
     endDate: "2026-09-30",
     usageLimit: 200,
     usedCount: 128,
+    imageSeed: "promo-newclient-presson",
     active: true,
   },
   {
@@ -41,17 +43,22 @@ export const PROMOTIONS: Promotion[] = [
     endDate: "2026-05-31",
     usageLimit: 50,
     usedCount: 50,
+    imageSeed: "promo-mayday-flowers",
     active: false,
   },
 ];
 
-export function getActivePromotion(referenceDate: Date = new Date()) {
-  return PROMOTIONS.find(
+export function getActivePromotions(referenceDate: Date = new Date()) {
+  return PROMOTIONS.filter(
     (promo) =>
       promo.active &&
       new Date(promo.startDate) <= referenceDate &&
       referenceDate <= new Date(`${promo.endDate}T23:59:59`)
   );
+}
+
+export function getActivePromotion(referenceDate: Date = new Date()) {
+  return getActivePromotions(referenceDate)[0];
 }
 
 export function findPromotionByCode(code: string) {

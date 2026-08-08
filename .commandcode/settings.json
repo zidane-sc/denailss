@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(curl -sL -A Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36 -o /tmp/ig-profile.html -w HTTP %{http_code}, %{size_download} bytes\\n https://www.instagram.com/denailss_9/)",
+      "Shell(grep:*)",
+      "Shell(curl -s -A Mozilla/5.0 https://api.instagram.com/oembed?url=https://www.instagram.com/p/Cq9Q7L0oN0R/)",
+      "Shell(curl -s -o /dev/null -w %{http_code} -A Mozilla/5.0 https://api.instagram.com/oembed?url=https://www.instagram.com/p/Cq9Q7L0oN0R/)",
+      "Shell(curl -sL -A Mozilla/5.0 https://api.instagram.com/oembed?url=https://www.instagram.com/p/Cq9Q7L0oN0R/ -w \\nfinal HTTP %{http_code}\\n)",
+      "Shell(curl -sL -A Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36 -o /tmp/ig-embed.html -w HTTP %{http_code}, %{size_download} bytes\\n https://www.instagram.com/denailss_9/embed/)",
+      "Shell(curl -s -o /dev/null -w %{http_code} https://platform.instagram.com/embed.js)",
+      "Shell(curl -sL -A Mozilla/5.0 https://graph.facebook.com/v19.0/instagram_oembed?url=https://www.instagram.com/p/Cq9Q7L0oN0R/ -w \\nHTTP %{http_code}\\n)",
+      "Shell(curl -sL -A Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36 https://www.instagram.com/p/DFpGuzRSa0a/embed/captioned/ -o /tmp/real-embed.html -w HTTP %{http_code}, %{size_download} bytes\\n)",
+      "Shell(curl -s -o /dev/null -w HTTP %{http_code}, %{size_download} bytes\\n https://platform.instagram.com/embed.js)",
+      "Shell(curl -s -o /dev/null -w HTTP %{http_code}, %{size_download} bytes\\n https://www.instagram.com/embed.js)",
+      "Shell(echo:*)",
+      "Shell(curl -s -o /dev/null -w HTTP %{http_code}, %{size_download} bytes\\n https://platform.instagram.com/embeds.js)",
+      "Shell(curl -s -o /dev/null -w HTTP %{http_code}, %{size_download} bytes\\n https://www.instagram.com/embeds.js)",
+      "Shell(curl -s https://www.instagram.com/embed.js -o /tmp/embedjs.txt -w HTTP %{http_code}, %{size_download} bytes\\n)",
+      "Shell(npx tsc --noEmit 2 >& 1)",
+      "Shell(npm:*)",
+      "Shell(npx eslint src/features/landing/components/instagram-feed.tsx src/features/landing/components/instagram-section.tsx src/features/landing/data/instagram-posts.mock.ts src/types/index.ts 2 >& 1)",
+      "Shell(curl -s http://localhost:3199/ -o /tmp/landing.html -w HTTP %{http_code}\\n)",
+      "Shell(curl -s http://localhost:3001/ -o /tmp/landing.html -w HTTP %{http_code}\\n)",
+      "Shell(curl -sI -A Mozilla/5.0 https://www.instagram.com/p/Dbu1XBck4up/media/?size=l)",
+      "Shell(curl -sI -A Mozilla/5.0 https://www.instagram.com/p/Dbu1XBck4up/media/?size=m)",
+      "Shell(curl -s -o /dev/null -w %{http_code} -> %{redirect_url}\\n -A Mozilla/5.0 https://www.instagram.com/p/Dbu1XBck4up/media/?size=l)",
+      "Shell(curl -s -o /dev/null -w %{http_code} -> %{redirect_url}\\n -A Mozilla/5.0 https://www.instagram.com/p/Dbu1XBck4up/media/?size=m)",
+      "Shell(curl -sL -A Mozilla/5.0 https://www.instagram.com/p/Dbu1XBck4up/media/?size=l -o /tmp/ig1.jpg -w HTTP %{http_code}, %{size_download} bytes, content-type %{content_type}\\n)",
+      "Shell(for code in Dbu1XBck4up Dbu1FShk7lj Dbpbb8EE_hT DbpbQa0k0lz DbD0iUDE5mm DbAvYO6k4g5; do ct=$(curl -sL -A \"Mozilla/5.0\" \"https://www.instagram.com/p/$code/media/?size=l\" -o /tmp/test-$code.jpg -w \"%{content_type}\") sz=$(stat -c%s /tmp/test-$code.jpg 2>/dev/null) echo \"$code -> $ct ($sz bytes)\" done)",
+      "Shell(npx eslint src/features/landing/components/instagram-feed.tsx src/app/api/instagram/[shortcode]/route.ts src/types/index.ts 2 >& 1)",
+      "Shell(npx eslint src/features/landing/components/instagram-feed.tsx src/app/api/instagram/[shortcode]/route.ts 2 >& 1)",
+      "Shell(curl -s -o /tmp/proxy.jpg -w HTTP %{http_code}, %{size_download} bytes, type %{content_type}\\n http://localhost:3001/api/instagram/Dbu1XBck4up)",
+      "Shell(curl -s -o /dev/null -w HTTP %{http_code}\\n http://localhost:3001/api/instagram/../../etc/passwd)",
+      "Shell(curl -s http://localhost:3001/ -o /tmp/landing2.html -w HTTP %{http_code}\\n)",
+      "Shell(curl -s \"http://localhost:3001/api/instagram/Dbpbb8EE_hT\" -o /tmp/verify.jpg; echo \"HTTP check done, $(stat -c%s /tmp/verify.jpg) bytes\"; file /tmp/verify.jpg)",
+      "Shell(browser-act:*)",
+      "Shell(uv:*)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

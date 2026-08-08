@@ -5,7 +5,7 @@ import { picsumUrl } from "@/lib/images";
 import type { GalleryDesign, Service } from "@/types";
 
 export interface SummaryData {
-  service: Service | null;
+  services: Service[];
   design: GalleryDesign | null;
   dateKey: string | null;
   time: string | null;
@@ -18,38 +18,43 @@ export interface SummaryData {
 }
 
 export function BookingSummary({ data }: { data: SummaryData }) {
-  const { service, design, dateKey, time, subtotal, discount, total, depositAmount, depositRequired, promoCode } =
+  const { services, design, dateKey, time, subtotal, discount, total, depositAmount, depositRequired, promoCode } =
     data;
 
   return (
     <div className="rounded-3xl border border-border bg-card p-5">
       <p className="text-sm font-semibold text-foreground">Ringkasan Booking</p>
 
-      {!service ? (
+      {services.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">Pilih layanan untuk melihat ringkasan.</p>
       ) : (
         <div className="mt-4 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="relative size-12 shrink-0 overflow-hidden rounded-xl">
-              <Image
-                src={picsumUrl(service.heroImage, "square", 0.4)}
-                alt={service.name}
-                fill
-                sizes="3rem"
-                className="object-cover"
-              />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">{service.name}</p>
-              <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                <ClockIcon className="size-3.5" />
-                {formatDuration(service.durationMinutes)}
-              </p>
-            </div>
+          <div className="space-y-3">
+            {services.map((service) => (
+              <div key={service.slug} className="flex items-center gap-3 border-b border-border/40 pb-3 last:border-b-0 last:pb-0">
+                <div className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-muted">
+                  <Image
+                    src={picsumUrl(service.heroImage, "square", 0.4)}
+                    alt={service.name}
+                    fill
+                    sizes="3rem"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{service.name}</p>
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                    <ClockIcon className="size-3.5" />
+                    {formatDuration(service.durationMinutes)}
+                  </p>
+                </div>
+                <span className="text-xs font-semibold text-foreground shrink-0">{formatIDR(service.priceFrom)}</span>
+              </div>
+            ))}
           </div>
 
           {design && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 border-t border-border pt-4">
               <div className="relative size-12 shrink-0 overflow-hidden rounded-xl">
                 <Image
                   src={picsumUrl(design.imageSeeds[0], "square", 0.4)}

@@ -7,9 +7,9 @@
 
 ## Current Phase
 
-**Epic 1 & 2 — Public Website and Customer Portal, frontend only.** No backend is wired up. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` and `src/features/customer/data/*.mock.ts` files. Booking submission, deposit upload, promo validation, and profile updates are simulated client-side (no persistence; state resets on refresh).
+Epic 1, 2, and 3 are implemented. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files, with client-side state hooks (BackofficeProvider) managing dashboard, calendar, and availability configuration.
 
-Epics 3-9 (Appointment Management backoffice, CRM, Gallery Management admin, Promotion admin, Finance, Analytics, Settings) are **not started**.
+Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, Settings) are **not started**.
 
 ---
 
@@ -22,13 +22,24 @@ Epics 3-9 (Appointment Management backoffice, CRM, Gallery Management admin, Pro
 - Color tokens in `src/app/globals.css`: dusty rose primary, honey-yellow secondary, periwinkle-blue accent, warm blush background. Light-mode only (deliberate brand decision, no dark: variants anywhere in custom code).
 - Motion: `motion/react` for scroll reveals (`src/components/motion/reveal.tsx`) and micro-interactions. No GSAP.
 - Images: all placeholder via `picsum.photos/seed/...` (see `src/lib/images.ts`). No real studio photography yet.
+- **Brand logo**: real logo assets in `public/images/` — `logo-icon.png` (portrait icon) and `logo-horizontal.png` (icon + wordmark). Used via `next/image` in the site header, site footer, customer portal header, and both backoffice sidebar + mobile drawer. No text/emoji "denailss" logos anywhere anymore.
+- **Copywriting**: Removed all commercial "studio" terminology (changed to "nail art rumahan", "lokasi treatment", "operasional aktif") to accurately represent the home-based setting of the service.
+- **Header Navigation**: Active link styling automatically highlights `/gallery`, `/services`, `/reviews`, and `/contact` menus based on dynamic path matching (supporting details like `/services/[slug]` or `/gallery/[slug]`).
 
 ### Routes built
 - `/` — full landing page (`src/features/landing/components/*`): hero, featured designs, services bento, promotion banner, reviews, about, FAQ, Instagram grid, contact. Composed in `src/app/page.tsx`.
+- **Instagram section** — real post photos, no embed iframe. Shortcodes live in `src/features/landing/data/instagram-posts.mock.ts`; the section renders square cards that pull each post's image through the `src/app/api/instagram/[shortcode]/route.ts` proxy (follows Instagram's public `/media/?size=l` 302 redirect, cached 24h) and link to the original post. No `next/image` optimization needed (already 1080×1080). Update by swapping shortcodes from new embed codes (post → ⋯ → Embed → Copy embed code).
 - `/gallery` — masonry grid, search, style/color/occasion/shape filters, price range, IntersectionObserver infinite scroll (`src/features/gallery/components/gallery-explorer.tsx`).
 - `/gallery/[slug]` — design detail with photo carousel, related services, related designs.
+- `/services` — **New dedicated page** listing all treatments in a premium grid layout with custom category icons, pricing starting indicators, and packaging duration indicators for fake nails.
 - `/services/[slug]` — service detail with price/duration, example results, FAQ.
+- `/reviews` — **New dedicated page** containing overall rating cards, dynamic star distribution bars, and composite filters (rating stars and treatment types) for customer testimonials.
+- `/contact` — **New dedicated page** featuring detailed address directions, integrated Google Maps iframe, contact channels (WhatsApp, Instagram, TikTok, Email), and feedback form.
 - `/booking` — multi-step booking flow, the core deliverable (see below).
+- `/backoffice` — dashboard for operational command, summary pulse metrics, manual deposit verifications. Also features the **Master Database of appointments** with text search, service/status filters, pagination, and interactive column sorting indicators.
+- `/backoffice/calendar` — day, week, and month view scheduling calendar.
+- `/backoffice/appointments/[id]` — appointment detail page with actions for confirming, completing, canceling, and rescheduling.
+- `/backoffice/availability` — availability and operating rules editor.
 
 ### Booking flow (`src/features/booking/`)
 - Dynamic step list: Layanan → Desain (optional) → Tanggal → Waktu → Data Diri → Promo (optional) → Deposit (**only if** the selected service's `depositApplicable` is true and the global mock deposit config is enabled) → Confirmation.
@@ -45,6 +56,13 @@ Epics 3-9 (Appointment Management backoffice, CRM, Gallery Management admin, Pro
 - Fully Indonesian copy matching Denailss boutique studio brand guidelines.
 - Dynamic key re-triggering for tab switches in `RevealGroup` to resolve viewport animation freeze.
 - Spacing and color-calibrated button systems with solid backgrounds for action items.
+
+### Backoffice Command Center (`src/features/appointment/` & `src/features/availability/`)
+- Unified Backoffice state context (`BackofficeProvider`) coordinates data updates reactively between dashboard list, calendar blocks, detail drawer, overrides lists, and booking rules inputs.
+- Beautiful, non-generic boutique operating interface built on top of Outfit heading and Plus Jakarta Sans body typography, utilizing light blush card styling and deliberate primary accent coloring.
+- Interactive calendar rendering day agenda lists, week columns, and month blocks, displaying closed templates, vacation ranges, and striped blocked periods. Supporting dynamic click-reschedule inline forms and drawer edits.
+- Complete deposit verification screen to view proof receipts, reject with optional reasons, or approve deposit confirmation instantly.
+- Availability setting manager allowing multi-session template editing, override entries, custom vacation range scheduling, and booking rule inputs.
 
 
 ### Verified working (via Playwright, this session)
@@ -64,11 +82,10 @@ Epics 3-9 (Appointment Management backoffice, CRM, Gallery Management admin, Pro
 Roughly in the order the TRD implies:
 
 1. **Backend wiring** — Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions. This is the biggest gap: every `*.mock.ts` file under `src/features/*/data/` is a named seam meant to be swapped for a real repository call without touching components.
-2. **Auth** — Supabase Auth (email + Google-ready). Needed before Epic 3 (Appointment Management backoffice).
-3. **Epic 3 — Appointment Management backoffice**: calendar (day/week/month, drag-drop, reschedule), the owner-side availability configuration UI (the engine already exists on the read side; there's no admin UI to edit weekly templates/overrides/vacations yet), manual deposit verification (approve/reject).
-4. **Epic 4-9**: CRM, Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings.
-6. **Real imagery** — replace all `picsum.photos` placeholders with actual studio photography once available (user explicitly chose placeholder-only for this phase).
-7. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
+2. **Auth** — Supabase Auth (email + Google-ready).
+3. **Epic 4-9**: CRM, Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings.
+4. **Real imagery** — replace all `picsum.photos` placeholders with actual studio photography once available (user explicitly chose placeholder-only for this phase).
+5. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
 
 ## File Map (where to look)
 

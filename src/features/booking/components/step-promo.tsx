@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/format";
 
 export function StepPromo({
-  serviceSlug,
+  serviceSlugs,
   subtotal,
   appliedCode,
   onApply,
 }: {
-  serviceSlug: string;
+  serviceSlugs: string[];
   subtotal: number;
   appliedCode: string | null;
   onApply: (code: string | null) => void;
@@ -24,7 +24,7 @@ export function StepPromo({
 
   const appliedPromotion = appliedCode ? findPromotionByCode(appliedCode) : undefined;
   const appliedResult =
-    appliedPromotion && checkPromotion(appliedPromotion, { serviceSlug, subtotal });
+    appliedPromotion && checkPromotion(appliedPromotion, { serviceSlugs, subtotal });
 
   const handleApply = () => {
     const promotion = findPromotionByCode(input);
@@ -32,7 +32,7 @@ export function StepPromo({
       setError("Kode promo tidak ditemukan.");
       return;
     }
-    const result = checkPromotion(promotion, { serviceSlug, subtotal });
+    const result = checkPromotion(promotion, { serviceSlugs, subtotal });
     if (!result.valid) {
       setError(result.reason ?? "Kode promo tidak berlaku.");
       return;

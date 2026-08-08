@@ -8,7 +8,7 @@ export interface PromotionCheckResult {
 
 export function checkPromotion(
   promotion: Promotion,
-  params: { serviceSlug: string; subtotal: number; now?: Date }
+  params: { serviceSlugs: string[]; subtotal: number; now?: Date }
 ): PromotionCheckResult {
   const now = params.now ?? new Date();
 
@@ -23,7 +23,7 @@ export function checkPromotion(
   }
   if (
     promotion.applicableServiceSlugs &&
-    !promotion.applicableServiceSlugs.includes(params.serviceSlug)
+    !promotion.applicableServiceSlugs.some((slug) => params.serviceSlugs.includes(slug))
   ) {
     return {
       valid: false,

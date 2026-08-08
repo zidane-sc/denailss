@@ -1,61 +1,121 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
-import { Reveal } from "@/components/motion/reveal";
-import { aspectRatioClass, picsumUrl } from "@/lib/images";
+import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { picsumUrl } from "@/lib/images";
 import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
+import type { GalleryDesign } from "@/types";
+
+const STYLE_LABELS: Record<GalleryDesign["style"], string> = {
+  korean: "Korean Look",
+  french: "French Tip",
+  chrome: "Chrome",
+  ombre: "Ombre",
+  "3d-art": "3D Art Nail",
+  minimalist: "Minimalis",
+};
+
+interface DesignTileProps {
+  design: GalleryDesign;
+  className?: string;
+  aspectClass: string;
+  index?: number;
+}
+
+function DesignTile({ design, className, aspectClass, index }: DesignTileProps) {
+  const label = STYLE_LABELS[design.style] ?? "Nail Art";
+  return (
+    <RevealItem className={className}>
+      <Link
+        href={`/gallery/${design.slug}`}
+        className="group relative block w-full overflow-hidden rounded-[1.75rem] border border-border/40 bg-card"
+      >
+        <div className={`relative w-full overflow-hidden ${aspectClass}`}>
+          <Image
+            src={picsumUrl(design.imageSeeds[0], design.aspect, 1.1)}
+            alt={design.title}
+            fill
+            sizes="(min-width: 1024px) 50vw, (min-width: 640px) 50vw, 90vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+          />
+
+          <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-black/5" />
+          {index !== undefined && (
+            <span className="absolute left-4 top-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/85 tabular-nums">
+              {String(index).padStart(2, "0")}
+            </span>
+          )}
+          <span className="absolute right-4 top-4 rounded-full border border-white/25 bg-black/25 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/85 backdrop-blur-sm">
+            {label}
+          </span>
+
+          <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-5">
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold text-white sm:text-lg">{design.title}</p>
+            </div>
+            <span className="flex size-9 shrink-0 translate-y-1 items-center justify-center rounded-full bg-primary text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+              <ArrowUpRightIcon className="size-4" />
+            </span>
+          </div>
+        </div>
+      </Link>
+    </RevealItem>
+  );
+}
 
 export function FeaturedDesigns() {
   const featured = [...GALLERY_DESIGNS]
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
-    .slice(0, 8);
+    .slice(0, 6);
+
+  const [hero, ...rest] = featured;
 
   return (
-    <section className="py-16 sm:py-20 lg:py-24">
+    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">
+      <div className="absolute inset-0 -z-10 pattern-hatch opacity-[0.16] [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)]" />
+      <div className="absolute right-[-8rem] top-1/3 -z-10 size-96 rounded-full bg-primary/5 blur-3xl" />
+
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Gallery</p>
+        <Reveal className="flex flex-wrap items-end justify-between gap-4 border-b border-border/60 pb-6 sm:pb-7">
+          <div className="max-w-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Pilihan editor
+            </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Desain terbaru dari studio kami
+              Desain yang lagi banyak dipakai
             </h2>
+            <p className="mt-3 text-base text-muted-foreground sm:text-base">
+              Kumpulan hasil kuku favorit pelanggan — dari tren Korea sampai aksen 3D, semuanya
+              dikerjakan satu-satu.
+            </p>
           </div>
           <Link
             href="/gallery"
-            className="flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+            className="group inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary"
           >
             Lihat semua desain
-            <ArrowRightIcon className="size-4" />
+            <ArrowUpRightIcon className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
         </Reveal>
-      </div>
 
-      <Reveal delay={0.08} className="mt-8">
-        <div className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:px-6 lg:px-8">
-          {featured.map((design) => (
-            <Link
-              key={design.id}
-              href={`/gallery/${design.slug}`}
-              className="group relative shrink-0 snap-start overflow-hidden rounded-3xl"
-              style={{ width: design.aspect === "portrait" || design.aspect === "tall" ? "15rem" : "19rem" }}
-            >
-              <div className={`relative w-full ${aspectRatioClass(design.aspect)}`}>
-                <Image
-                  src={picsumUrl(design.imageSeeds[0], design.aspect, 1)}
-                  alt={design.title}
-                  fill
-                  sizes="19rem"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <p className="absolute bottom-3 left-3 text-sm font-medium text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  {design.title}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </Reveal>
+        <RevealGroup className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-5">
+          <DesignTile
+            design={hero}
+            className="sm:col-span-2 lg:col-span-8"
+            aspectClass="aspect-[4/3] sm:aspect-[2/1]"
+          />
+          <DesignTile
+            design={rest[0]}
+            index={2}
+            className="lg:col-span-4"
+            aspectClass="aspect-square"
+          />
+          <DesignTile design={rest[1]} index={3} className="lg:col-span-3" aspectClass="aspect-[4/3]" />
+          <DesignTile design={rest[2]} index={4} className="lg:col-span-3" aspectClass="aspect-[4/3]" />
+          <DesignTile design={rest[3]} index={5} className="lg:col-span-3" aspectClass="aspect-[4/3]" />
+          <DesignTile design={rest[4]} index={6} className="sm:col-span-2 lg:col-span-3" aspectClass="aspect-[4/3]" />
+        </RevealGroup>
+      </div>
     </section>
   );
 }

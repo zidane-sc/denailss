@@ -21,6 +21,7 @@ import { StepDeposit } from "@/features/booking/components/step-deposit";
 import { StepConfirmation } from "@/features/booking/components/step-confirmation";
 import { INITIAL_SELECTIONS, type BookingSelections } from "@/features/booking/types";
 import { formatIDR } from "@/lib/format";
+import type { Service } from "@/types";
 
 export function BookingFlow({
   initialServiceSlug,
@@ -33,7 +34,7 @@ export function BookingFlow({
 }) {
   const [selections, setSelections] = useState<BookingSelections>({
     ...INITIAL_SELECTIONS,
-    serviceSlug: initialServiceSlug,
+    serviceSlugs: initialServiceSlug ? [initialServiceSlug] : [],
     designSlug: initialDesignSlug,
     promoCode: initialPromoCode,
   });
@@ -44,38 +45,76 @@ export function BookingFlow({
 
   const customerFormRef = useRef<{ submit: () => Promise<boolean> }>(null);
 
-  const service = selections.serviceSlug ? getServiceBySlug(selections.serviceSlug) ?? null : null;
+  const selectedServices = useMemo(() => {
+    return selections.serviceSlugs
+      .map((slug) => getServiceBySlug(slug))
+      .filter(Boolean) as Service[];
+  }, [selections.serviceSlugs]);
+
+  const totalDuration = useMemo(() => {
+    return selectedServices.reduce((sum, s) => sum + s.durationMinutes, 0);
+  }, [selectedServices]);
+
   const design = selections.designSlug ? getDesignBySlug(selections.designSlug) ?? null : null;
 
-  const subtotal = design?.priceFrom ?? service?.priceFrom ?? 0;
+  const subtotal = useMemo(() => {
+    return selectedServices.reduce((sum, s) => {
+      if (design && design.relatedServiceSlugs.includes(s.slug)) {
+        return sum + design.priceFrom;
+      }
+      return sum + s.priceFrom;
+    }, 0);
+  }, [selectedServices, design]);
+
   const promotion = selections.promoCode ? findPromotionByCode(selections.promoCode) : undefined;
-  const promoResult =
-    promotion && service ? checkPromotion(promotion, { serviceSlug: service.slug, subtotal }) : null;
+  
+  const promoResult = useMemo(() => {
+    if (!promotion || selectedServices.length === 0) return null;
+    return checkPromotion(promotion, {
+      serviceSlugs: selections.serviceSlugs,
+      subtotal,
+    });
+  }, [promotion, selections.serviceSlugs, subtotal]);
+
   const discount = promoResult?.valid ? promoResult.discount : 0;
   const total = Math.max(subtotal - discount, 0);
-  const depositRequired = Boolean(service?.depositApplicable && DEPOSIT_CONFIG.enabled);
+
+  const depositRequired = useMemo(() => {
+    return DEPOSIT_CONFIG.enabled && selectedServices.some((s) => s.depositApplicable);
+  }, [selectedServices]);
+
   const depositAmount = depositRequired ? calculateDeposit(total, DEPOSIT_CONFIG) : 0;
+
+  const isOnlyFakeNails = useMemo(() => {
+    return selectedServices.length > 0 && selectedServices.every((s) => s.slug === "fake-nail");
+  }, [selectedServices]);
 
   const steps: StepMeta[] = useMemo(() => {
     const base: StepMeta[] = [
       { id: "service", label: "Layanan" },
       { id: "design", label: "Desain" },
-      { id: "date", label: "Tanggal" },
-      { id: "time", label: "Waktu" },
-      { id: "customer", label: "Data Diri" },
-      { id: "promo", label: "Promo" },
     ];
+    if (!isOnlyFakeNails) {
+      base.push(
+        { id: "date", label: "Tanggal" },
+        { id: "time", label: "Waktu" }
+      );
+    }
+    base.push(
+      { id: "customer", label: "Data Diri" },
+      { id: "promo", label: "Promo" }
+    );
     if (depositRequired) base.push({ id: "deposit", label: "Deposit" });
     base.push({ id: "confirmation", label: "Selesai" });
     return base;
-  }, [depositRequired]);
+  }, [depositRequired, isOnlyFakeNails]);
 
   const currentStep = steps[stepIndex]?.id ?? "service";
 
   const canProceed = useMemo(() => {
     switch (currentStep) {
       case "service":
-        return Boolean(selections.serviceSlug);
+        return selections.serviceSlugs.length > 0;
       case "date":
         return Boolean(selections.dateKey);
       case "time":
@@ -117,15 +156,15 @@ export function BookingFlow({
     setStepIndex(index);
   };
 
-  if (currentStep === "confirmation" && service && bookingCode) {
+  if (currentStep === "confirmation" && selectedServices.length > 0 && bookingCode) {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-14 sm:px-6">
         <StepConfirmation
           bookingCode={bookingCode}
-          service={service}
+          services={selectedServices}
           design={design}
-          dateKey={selections.dateKey!}
-          time={selections.time!}
+          dateKey={selections.dateKey}
+          time={selections.time}
           total={total}
           depositAmount={depositAmount}
           depositRequired={depositRequired}
@@ -135,7 +174,7 @@ export function BookingFlow({
   }
 
   const summaryData = {
-    service,
+    services: selectedServices,
     design,
     dateKey: selections.dateKey,
     time: selections.time,
@@ -160,28 +199,36 @@ export function BookingFlow({
         <div>
           {currentStep === "service" && (
             <StepService
-              selectedSlug={selections.serviceSlug}
-              onSelect={(slug) => setSelections((s) => ({ ...s, serviceSlug: slug }))}
+              selectedSlugs={selections.serviceSlugs}
+              onToggle={(slug) =>
+                setSelections((s) => {
+                  const isSelected = s.serviceSlugs.includes(slug);
+                  const updatedSlugs = isSelected
+                    ? s.serviceSlugs.filter((x) => x !== slug)
+                    : [...s.serviceSlugs, slug];
+                  return { ...s, serviceSlugs: updatedSlugs };
+                })
+              }
             />
           )}
           {currentStep === "design" && (
             <StepDesign
-              serviceSlug={selections.serviceSlug}
+              serviceSlugs={selections.serviceSlugs}
               selectedSlug={selections.designSlug}
               onSelect={(slug) => setSelections((s) => ({ ...s, designSlug: slug }))}
             />
           )}
-          {currentStep === "date" && service && (
+          {currentStep === "date" && selectedServices.length > 0 && (
             <StepDate
-              durationMinutes={service.durationMinutes}
+              durationMinutes={totalDuration}
               selectedDateKey={selections.dateKey}
               onSelect={(dateKey) => setSelections((s) => ({ ...s, dateKey, time: null }))}
             />
           )}
-          {currentStep === "time" && service && selections.dateKey && (
+          {currentStep === "time" && selectedServices.length > 0 && selections.dateKey && (
             <StepTime
               dateKey={selections.dateKey}
-              durationMinutes={service.durationMinutes}
+              durationMinutes={totalDuration}
               selectedTime={selections.time}
               onSelect={(time) => setSelections((s) => ({ ...s, time }))}
             />
@@ -193,9 +240,9 @@ export function BookingFlow({
               formRef={customerFormRef}
             />
           )}
-          {currentStep === "promo" && service && (
+          {currentStep === "promo" && selectedServices.length > 0 && (
             <StepPromo
-              serviceSlug={service.slug}
+              serviceSlugs={selections.serviceSlugs}
               subtotal={subtotal}
               appliedCode={selections.promoCode}
               onApply={(code) => setSelections((s) => ({ ...s, promoCode: code }))}

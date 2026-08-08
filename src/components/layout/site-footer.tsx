@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   InstagramLogoIcon,
@@ -12,8 +13,8 @@ import { SITE, whatsappLink } from "@/constants/site";
 
 const EXPLORE_LINKS = [
   { href: "/gallery", label: "Gallery" },
-  { href: "/#layanan", label: "Layanan" },
-  { href: "/#ulasan", label: "Ulasan" },
+  { href: "/services", label: "Layanan" },
+  { href: "/reviews", label: "Ulasan" },
   { href: "/booking", label: "Booking Sekarang" },
 ];
 
@@ -27,13 +28,19 @@ const SERVICE_LINKS = [
 export function SiteFooter() {
   const pathname = usePathname();
   
-  if (pathname.startsWith("/customer")) return null;
+  if (pathname.startsWith("/customer") || pathname.startsWith("/backoffice")) return null;
 
   return (
     <footer className="border-t border-border bg-background-tint">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:px-8 lg:py-16">
         <div className="max-w-sm">
-          <p className="font-heading text-2xl font-semibold text-primary">denailss</p>
+          <Image
+            src="/images/logo-horizontal.png"
+            alt="Denailss"
+            width={130}
+            height={52}
+            className="h-9.5 w-auto object-contain"
+          />
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {SITE.description}
           </p>
@@ -101,7 +108,7 @@ export function SiteFooter() {
         </div>
 
         <div>
-          <p className="text-sm font-semibold text-foreground">Kunjungi Studio</p>
+          <p className="text-sm font-semibold text-foreground">Lokasi Kami</p>
           <div className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
             <MapPinIcon className="mt-0.5 size-4 shrink-0 text-primary" />
             <span>{SITE.address}</span>

@@ -43,7 +43,7 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
   return (
     <div>
       <div className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
-        <Link href="/#layanan" className="text-sm font-medium text-muted-foreground hover:text-primary">
+        <Link href="/services" className="text-sm font-medium text-muted-foreground hover:text-primary">
           &larr; Kembali ke Layanan
         </Link>
       </div>
@@ -60,8 +60,17 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
           <div className="mt-6 flex flex-wrap items-center gap-4">
             <p className="text-2xl font-semibold text-primary">{formatIDR(service.priceFrom)}</p>
             <span className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-sm text-foreground/80">
-              <ClockIcon className="size-4" />
-              {formatDuration(service.durationMinutes)}
+              {service.category === "fake-nail" ? (
+                <>
+                  <span className="text-xs">📦</span>
+                  <span>Estimasi 1-2 Hari Pembuatan</span>
+                </>
+              ) : (
+                <>
+                  <ClockIcon className="size-4" />
+                  <span>{formatDuration(service.durationMinutes)}</span>
+                </>
+              )}
             </span>
             {service.depositApplicable && (
               <span className="rounded-full bg-secondary-soft px-3 py-1.5 text-sm text-foreground/80">

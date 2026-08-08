@@ -1,20 +1,51 @@
+"use client";
+
+import React, { useState, use } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Reveal } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { CUSTOMER_BOOKINGS } from "@/features/customer/data/customer.mock";
 import { formatIDR, formatDateId, parseDateKey } from "@/lib/format";
-import { ArrowLeftIcon, ClockIcon, MapPinIcon, WarningCircleIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArrowLeftIcon,
+  ClockIcon,
+  MapPinIcon,
+  WarningCircleIcon,
+  StarIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { SITE, whatsappLink } from "@/constants/site";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
-export default async function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const booking = CUSTOMER_BOOKINGS.find((b) => b.id === id);
 
   if (!booking) {
     notFound();
   }
+
+  const [hasReview, setHasReview] = useState(booking.hasReview);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [rating, setRating] = useState<number>(5);
+  const [comment, setComment] = useState("");
+
+  const handleSendReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    setHasReview(true);
+    setDialogOpen(false);
+    toast.success("Ulasan Kakak berhasil dikirim! Terima kasih banyak! 💖");
+  };
 
   function getStatusBadge() {
     if (booking?.status === "cancelled") return <Badge variant="destructive">Dibatalkan</Badge>;
@@ -26,7 +57,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto">
+    <div className="space-y-8 max-w-2xl mx-auto px-1 animate-in fade-in duration-300">
       <Reveal>
         <Link 
           href="/customer/bookings" 
@@ -79,7 +110,7 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
                 <span className="text-primary">{formatIDR(booking.totalPrice)}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2 text-right">
-                *Total harga final mungkin disesuaikan di studio jika ada penambahan layanan.
+                *Total harga final mungkin disesuaikan di lokasi jika ada penambahan layanan.
               </p>
             </div>
           </div>
@@ -101,22 +132,13 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
                       ? "Harap segera mengunggah bukti transfer deposit agar jadwalmu tidak otomatis dibatalkan." 
                       : "Bukti transfer telah diterima dan sedang kami verifikasi. Status akan diperbarui segera."}
                   </p>
-                  
-                  {booking.status === "pending_deposit" && (
-                    <Button
-                      size="lg"
-                      className="mt-5 w-full sm:w-auto"
-                    >
-                      Upload Bukti Transfer
-                    </Button>
-                  )}
                 </div>
               </div>
             </div>
           )}
           
           <div className="border-t border-border/50 p-6">
-            <h3 className="font-semibold mb-4">Lokasi Studio</h3>
+            <h3 className="font-semibold mb-4">Lokasi Treatment</h3>
             <div className="flex items-start gap-3 text-sm text-muted-foreground">
               <MapPinIcon className="mt-0.5 size-5 shrink-0 text-primary" />
               <div>
@@ -138,10 +160,15 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
       
       <Reveal delay={0.2}>
         <div className="flex flex-col gap-3">
-          {booking.status === "completed" && !booking.hasReview && (
-            <Button size="lg" className="w-full">
+          {booking.status === "completed" && !hasReview && (
+            <Button size="lg" className="w-full" onClick={() => setDialogOpen(true)}>
               Beri Ulasan
             </Button>
+          )}
+          {booking.status === "completed" && hasReview && (
+            <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 p-4 rounded-3xl text-sm text-center font-medium">
+              ✨ Terima kasih! Ulasan Kakak sudah tersimpan untuk booking ini.
+            </div>
           )}
           {(booking.status === "confirmed" || booking.status === "waiting_verification") && (
             <Button
@@ -165,6 +192,56 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
           </Button>
         </div>
       </Reveal>
+
+      {/* Review Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-lg font-semibold text-primary">
+              Bagikan Pengalamanmu 💅
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSendReview} className="space-y-5 py-3">
+            {/* Stars rating selection */}
+            <div className="flex flex-col items-center justify-center gap-2 border-b border-border/40 pb-4">
+              <span className="text-xs font-semibold text-muted-foreground">Bagaimana kualitas layanan kami?</span>
+              <div className="flex items-center gap-1.5 mt-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    className="transition-transform duration-200 hover:scale-125 focus:outline-hidden"
+                    onClick={() => setRating(star)}
+                    aria-label={`Beri bintang ${star}`}
+                  >
+                    <StarIcon
+                      weight={star <= rating ? "fill" : "regular"}
+                      className={`size-8 ${star <= rating ? "text-secondary" : "text-muted-foreground/30"}`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Comment area */}
+            <div className="grid gap-2">
+              <Label htmlFor="reviewComment" className="text-xs font-bold text-foreground/80">Tulis Ulasan Kakak</Label>
+              <Textarea
+                id="reviewComment"
+                placeholder="Bagikan kepuasanmu tentang nail art, kenyamanan tempat, atau pelayanan kami..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={4}
+                required
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="submit" className="w-full">Kirim Ulasan</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

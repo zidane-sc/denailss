@@ -87,10 +87,19 @@ export interface Promotion {
   minimumSpend?: number;
   applicableServiceSlugs?: string[];
   maximumDiscount?: number;
+  imageSeed?: string;
   active: boolean;
 }
 
 export type DepositType = "fixed" | "percentage";
+
+export interface PaymentMethod {
+  id: string;
+  type: "bank" | "ewallet" | "other";
+  name: string;
+  accountNumber: string;
+  accountName: string;
+}
 
 export interface DepositConfig {
   enabled: boolean;
@@ -98,6 +107,7 @@ export interface DepositConfig {
   value: number;
   bankAccount: { bank: string; accountNumber: string; accountName: string };
   eWallet: { provider: string; number: string; accountName: string };
+  paymentMethods: PaymentMethod[];
   notes: string;
 }
 

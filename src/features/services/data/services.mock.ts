@@ -13,7 +13,7 @@ export const SERVICES: Service[] = [
     category: "gel-extension",
     shortDescription: "Extension gel tahan lama dengan bentuk custom sesuai request kamu.",
     description:
-      "Gel extension jadi andalan buat kamu yang mau kuku panjang instan tanpa nunggu proses tumbuh alami. Kami sculpting satu-satu di studio pakai gel premium yang ringan dan tahan chip sampai 3-4 minggu, lalu kamu bisa lanjut nail art di atasnya.",
+      "Gel extension jadi andalan buat kamu yang mau kuku panjang instan tanpa nunggu proses tumbuh alami. Kami sculpting satu-satu secara presisi pakai gel premium yang ringan dan tahan chip sampai 3-4 minggu, lalu kamu bisa lanjut nail art di atasnya.",
     priceFrom: 250000,
     durationMinutes: 120,
     heroImage: "denailss-gel-extension-hero",

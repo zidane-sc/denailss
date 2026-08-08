@@ -21,7 +21,7 @@ export interface DepositUpload {
 }
 
 export interface BookingSelections {
-  serviceSlug: string | null;
+  serviceSlugs: string[];
   designSlug: string | null;
   dateKey: string | null;
   time: string | null;
@@ -31,7 +31,7 @@ export interface BookingSelections {
 }
 
 export const INITIAL_SELECTIONS: BookingSelections = {
-  serviceSlug: null,
+  serviceSlugs: [],
   designSlug: null,
   dateKey: null,
   time: null,

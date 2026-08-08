@@ -11,13 +11,29 @@ export const DEPOSIT_CONFIG: DepositConfig = {
   bankAccount: {
     bank: "BCA",
     accountNumber: "1234567890",
-    accountName: "Denailss Studio",
+    accountName: "Dela Denailss",
   },
   eWallet: {
     provider: "DANA",
     number: "0812-3456-7890",
-    accountName: "Denailss Studio",
+    accountName: "Dela Denailss",
   },
+  paymentMethods: [
+    {
+      id: "pm-1",
+      type: "bank",
+      name: "Mandiri",
+      accountNumber: "987-654-3210",
+      accountName: "Dela Denailss",
+    },
+    {
+      id: "pm-2",
+      type: "ewallet",
+      name: "DANA",
+      accountNumber: "0812-3456-7890",
+      accountName: "Dela Denailss",
+    },
+  ],
   notes:
-    "Deposit wajib ditransfer dalam 1 jam setelah booking untuk mengamankan slot. Deposit akan dipotong dari total pembayaran di studio.",
+    "Deposit wajib ditransfer dalam 1 jam setelah booking untuk mengamankan slot. Deposit akan dipotong dari total pembayaran setelah treatment selesai.",
 };

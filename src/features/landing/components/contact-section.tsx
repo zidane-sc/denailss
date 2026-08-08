@@ -46,7 +46,7 @@ export function ContactSection() {
             Ngobrol dulu atau langsung datang
           </h2>
           <p className="mt-3 max-w-md text-base text-muted-foreground">
-            Ada pertanyaan sebelum booking? Sapa kami lewat channel favoritmu, atau langsung mampir ke studio.
+            Ada pertanyaan sebelum booking? Sapa kami lewat channel favoritmu, atau langsung datang ke lokasi.
           </p>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
@@ -79,7 +79,7 @@ export function ContactSection() {
           <div className="relative aspect-[5/4] w-full overflow-hidden rounded-[2.5rem]">
             <Image
               src={picsumUrl("denailss-contact-studio", "landscape", 1.3)}
-              alt="Interior studio Denailss"
+              alt="Interior ruang kuku Denailss"
               fill
               sizes="(min-width: 1024px) 32rem, 100vw"
               className="object-cover"

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { aspectRatioClass, picsumUrl } from "@/lib/images";
-import { formatIDR } from "@/lib/format";
 import type { GalleryDesign } from "@/types";
 
 export function GalleryCard({ design }: { design: GalleryDesign }) {
@@ -20,7 +19,6 @@ export function GalleryCard({ design }: { design: GalleryDesign }) {
         />
         <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/0 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           <p className="text-sm font-semibold text-white">{design.title}</p>
-          <p className="mt-0.5 text-xs text-white/85">Mulai {formatIDR(design.priceFrom)}</p>
           <span className="mt-2 inline-flex w-fit items-center rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-primary">
             Lihat Desain
           </span>

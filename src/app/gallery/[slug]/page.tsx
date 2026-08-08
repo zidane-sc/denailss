@@ -72,7 +72,6 @@ export default async function GalleryDesignPage({ params }: PageProps<"/gallery/
             {design.title}
           </h1>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">{design.description}</p>
-          <p className="mt-4 text-lg font-semibold text-primary">Mulai {formatIDR(design.priceFrom)}</p>
 
           <Button size="lg" className="mt-6 h-12 w-full rounded-full text-base sm:w-auto sm:px-8" render={<Link href={bookingHref} />} nativeButton={false}>
             Booking Desain Ini

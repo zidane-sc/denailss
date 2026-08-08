@@ -13,7 +13,7 @@ import type { Service, GalleryDesign } from "@/types";
 
 export function StepConfirmation({
   bookingCode,
-  service,
+  services,
   design,
   dateKey,
   time,
@@ -22,10 +22,10 @@ export function StepConfirmation({
   depositRequired,
 }: {
   bookingCode: string;
-  service: Service;
+  services: Service[];
   design: GalleryDesign | null;
-  dateKey: string;
-  time: string;
+  dateKey: string | null;
+  time: string | null;
   total: number;
   depositAmount: number;
   depositRequired: boolean;
@@ -43,25 +43,39 @@ export function StepConfirmation({
       </p>
 
       <div className="mx-auto mt-6 max-w-md rounded-2xl border border-border bg-card p-5 text-left">
-        <div className="flex items-center gap-2.5">
-          <CalendarCheckIcon className="size-4.5 text-primary" />
-          <span className="text-sm text-foreground">
-            {formatDateId(parseDateKey(dateKey), { withWeekday: true })}
-          </span>
-        </div>
-        <div className="mt-2.5 flex items-center gap-2.5">
-          <ClockIcon className="size-4.5 text-primary" />
-          <span className="text-sm text-foreground">{time} WIB</span>
-        </div>
-        <div className="mt-2.5 flex items-center gap-2.5">
-          <MapPinIcon className="size-4.5 text-primary" />
-          <span className="text-sm text-foreground">{SITE.address}</span>
-        </div>
+        {dateKey && (
+          <div className="flex items-center gap-2.5">
+            <CalendarCheckIcon className="size-4.5 text-primary" />
+            <span className="text-sm text-foreground">
+              {formatDateId(parseDateKey(dateKey), { withWeekday: true })}
+            </span>
+          </div>
+        )}
+        {time && (
+          <div className="mt-2.5 flex items-center gap-2.5">
+            <ClockIcon className="size-4.5 text-primary" />
+            <span className="text-sm text-foreground">{time} WIB</span>
+          </div>
+        )}
+        {dateKey ? (
+          <div className="mt-2.5 flex items-center gap-2.5">
+            <MapPinIcon className="size-4.5 text-primary" />
+            <span className="text-sm text-foreground">{SITE.address}</span>
+          </div>
+        ) : (
+          <div className="flex items-start gap-2.5">
+            <span className="text-sm">📦</span>
+            <div>
+              <p className="text-sm font-semibold text-emerald-600">Pesanan Kuku Palsu (Custom Press-On)</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Bisa diambil langsung ke lokasi atau opsi pengiriman paket.</p>
+            </div>
+          </div>
+        )}
 
         <div className="mt-4 border-t border-border pt-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Layanan</span>
-            <span className="font-medium text-foreground">{service.name}</span>
+          <div className="flex items-start justify-between gap-4 text-sm">
+            <span className="text-muted-foreground shrink-0">Layanan</span>
+            <span className="font-medium text-foreground text-right">{services.map((s) => s.name).join(", ")}</span>
           </div>
           {design && (
             <div className="mt-1.5 flex items-center justify-between text-sm">
@@ -89,7 +103,9 @@ export function StepConfirmation({
       </div>
 
       <p className="mx-auto mt-5 max-w-md text-sm text-muted-foreground">
-        {depositRequired
+        {!dateKey
+          ? "Tim kami akan menghubungi Kakak lewat WhatsApp untuk konfirmasi ukuran kuku palsu (custom sizing) dan detail pengiriman/penjemputan."
+          : depositRequired
           ? "Tim kami akan verifikasi bukti transfer deposit-mu dan mengonfirmasi jadwal lewat WhatsApp dalam 1 jam."
           : "Simpan kode booking ini. Kami akan kirim pengingat lewat WhatsApp sehari sebelum jadwalmu."}
       </p>

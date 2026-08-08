@@ -9,12 +9,9 @@ import {
   COLOR_LABELS,
   GALLERY_PAGE_SIZE,
   OCCASION_LABELS,
-  PRICE_RANGE_BOUNDS,
   SHAPE_LABELS,
   STYLE_LABELS,
 } from "@/features/gallery/constants";
-import { Slider } from "@/components/ui/slider";
-import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { DesignColor, DesignOccasion, DesignShape, DesignStyle } from "@/types";
 
@@ -44,7 +41,6 @@ export function GalleryExplorer() {
   const [shape, setShape] = useState<DesignShape | null>(
     (searchParams.get("shape") as DesignShape) || null
   );
-  const [priceRange, setPriceRange] = useState<[number, number]>(PRICE_RANGE_BOUNDS);
   const [visibleCount, setVisibleCount] = useState(GALLERY_PAGE_SIZE);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -67,7 +63,7 @@ export function GalleryExplorer() {
     router.replace(query ? `/gallery?${query}` : "/gallery", { scroll: false });
   }, [search, style, color, occasion, shape, router]);
 
-  const filterSignature = JSON.stringify([search, style, color, occasion, shape, priceRange]);
+  const filterSignature = JSON.stringify([search, style, color, occasion, shape]);
   const [appliedSignature, setAppliedSignature] = useState(filterSignature);
   if (filterSignature !== appliedSignature) {
     setAppliedSignature(filterSignature);
@@ -81,14 +77,13 @@ export function GalleryExplorer() {
       if (color && design.color !== color) return false;
       if (occasion && design.occasion !== occasion) return false;
       if (shape && design.shape !== shape) return false;
-      if (design.priceFrom < priceRange[0] || design.priceFrom > priceRange[1]) return false;
       if (query) {
         const haystack = `${design.title} ${design.tags.join(" ")}`.toLowerCase();
         if (!haystack.includes(query)) return false;
       }
       return true;
     });
-  }, [search, style, color, occasion, shape, priceRange]);
+  }, [search, style, color, occasion, shape]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -118,7 +113,6 @@ export function GalleryExplorer() {
     setColor(null);
     setOccasion(null);
     setShape(null);
-    setPriceRange(PRICE_RANGE_BOUNDS);
   };
 
   return (
@@ -180,25 +174,6 @@ export function GalleryExplorer() {
               </div>
             </div>
           ))}
-
-          <div>
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                Rentang Harga
-              </p>
-              <p className="text-sm font-medium text-foreground">
-                {formatIDR(priceRange[0])} - {formatIDR(priceRange[1])}
-              </p>
-            </div>
-            <Slider
-              className="mt-3"
-              min={PRICE_RANGE_BOUNDS[0]}
-              max={PRICE_RANGE_BOUNDS[1]}
-              step={5000}
-              value={priceRange}
-              onValueChange={(value) => setPriceRange(value as [number, number])}
-            />
-          </div>
 
           {(activeFilterCount > 0 || search) && (
             <button

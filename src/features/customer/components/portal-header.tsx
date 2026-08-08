@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { UserCircleIcon, ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
@@ -22,9 +23,16 @@ export function PortalHeader() {
           </Button>
           <Link
             href="/customer"
-            className="font-heading text-xl font-semibold tracking-tight text-primary"
+            className="flex items-center shrink-0"
           >
-            denailss <span className="text-muted-foreground font-medium text-sm ml-1 hidden md:inline-block">Portal</span>
+            <Image
+              src="/images/logo-horizontal.png"
+              alt="Denailss"
+              width={120}
+              height={48}
+              className="h-8 w-auto object-contain"
+              priority
+            />
           </Link>
         </div>
         

@@ -18,7 +18,7 @@ export const REVIEWS: Review[] = [
     serviceSlug: "nail-art",
     visitDate: "2026-07-22",
     comment:
-      "Request desain dari Pinterest langsung dibuatin mirip banget sama referensinya. Kak Dena teliti banget sama detail kecil.",
+      "Request desain dari Pinterest langsung dibuatin mirip banget sama referensinya. Kak Dela teliti banget sama detail kecil.",
   },
   {
     id: "rev-03",

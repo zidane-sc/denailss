@@ -145,7 +145,7 @@ const STATUS_LABEL: Record<DayAvailabilityStatus, string> = {
   available: "Tersedia",
   limited: "Sisa sedikit slot",
   full: "Penuh, coba tanggal lain",
-  closed: "Studio tutup",
+  closed: "Tutup (Libur)",
   past: "Tanggal sudah lewat",
   "outside-window": "Di luar jangka booking",
 };

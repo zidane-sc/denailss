@@ -43,20 +43,35 @@ export function StepDeposit({
 
       <div className="mt-5 space-y-3 rounded-2xl border border-border bg-card p-5">
         <p className="text-sm font-semibold text-foreground">Instruksi Pembayaran</p>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Transfer Bank</span>
-          <span className="font-medium text-foreground">
-            {DEPOSIT_CONFIG.bankAccount.bank} {DEPOSIT_CONFIG.bankAccount.accountNumber} a.n{" "}
-            {DEPOSIT_CONFIG.bankAccount.accountName}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">E-Wallet</span>
-          <span className="font-medium text-foreground">
-            {DEPOSIT_CONFIG.eWallet.provider} {DEPOSIT_CONFIG.eWallet.number}
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground">{DEPOSIT_CONFIG.notes}</p>
+        {DEPOSIT_CONFIG.paymentMethods && DEPOSIT_CONFIG.paymentMethods.length > 0 ? (
+          DEPOSIT_CONFIG.paymentMethods.map((method) => (
+            <div key={method.id} className="flex items-start justify-between gap-4 text-sm border-b border-border/40 pb-2.5 last:border-b-0 last:pb-0">
+              <span className="text-muted-foreground shrink-0 capitalize">
+                {method.type === "bank" ? `Transfer Bank (${method.name})` : `${method.name}`}
+              </span>
+              <span className="font-medium text-foreground text-right">
+                {method.accountNumber} <span className="text-xs text-muted-foreground block font-normal mt-0.5">a.n {method.accountName}</span>
+              </span>
+            </div>
+          ))
+        ) : (
+          <>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Transfer Bank</span>
+              <span className="font-medium text-foreground">
+                {DEPOSIT_CONFIG.bankAccount.bank} {DEPOSIT_CONFIG.bankAccount.accountNumber} a.n{" "}
+                {DEPOSIT_CONFIG.bankAccount.accountName}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">E-Wallet</span>
+              <span className="font-medium text-foreground">
+                {DEPOSIT_CONFIG.eWallet.provider} {DEPOSIT_CONFIG.eWallet.number}
+              </span>
+            </div>
+          </>
+        )}
+        <p className="text-xs text-muted-foreground pt-1">{DEPOSIT_CONFIG.notes}</p>
       </div>
 
       <div className="mt-5">
