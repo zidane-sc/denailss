@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { formatDuration, formatIDR } from "@/lib/format";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 
 export function generateStaticParams() {
   return SERVICES.map((service) => ({ slug: service.slug }));
@@ -92,7 +92,7 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
 
         <div className="relative aspect-[5/4] w-full overflow-hidden rounded-[2.5rem]">
           <Image
-            src={picsumUrl(service.heroImage, "landscape", 1.4)}
+            src={imageUrl(service.heroImage)}
             alt={service.name}
             fill
             priority

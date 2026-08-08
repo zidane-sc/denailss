@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { aspectRatioClass, picsumUrl } from "@/lib/images";
+import { aspectRatioClass, imageUrl } from "@/lib/images";
 import type { GalleryDesign } from "@/types";
 
 export function GalleryCard({ design }: { design: GalleryDesign }) {
@@ -11,7 +11,7 @@ export function GalleryCard({ design }: { design: GalleryDesign }) {
     >
       <div className={`relative w-full ${aspectRatioClass(design.aspect)}`}>
         <Image
-          src={picsumUrl(design.imageSeeds[0], design.aspect, 1)}
+          src={imageUrl(design.imageSeeds[0])}
           alt={design.title}
           fill
           sizes="(min-width: 1024px) 24rem, (min-width: 640px) 40vw, 90vw"

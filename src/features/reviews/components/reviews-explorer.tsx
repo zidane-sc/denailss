@@ -7,7 +7,7 @@ import { StarIcon } from "@phosphor-icons/react/dist/ssr";
 import { REVIEWS } from "@/features/reviews/data/reviews.mock";
 import { SERVICES } from "@/features/services/data/services.mock";
 import { formatDateId } from "@/lib/format";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -158,7 +158,7 @@ export function ReviewsExplorer() {
                     {review.photoSeed ? (
                       <div className="relative size-10 overflow-hidden rounded-full border border-border bg-muted shrink-0">
                         <Image
-                          src={picsumUrl(review.photoSeed, "square", 0.4)}
+                          src={imageUrl(review.photoSeed)}
                           alt={review.customerName}
                           fill
                           sizes="2.5rem"

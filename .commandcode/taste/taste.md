@@ -1,11 +1,2 @@
 # Taste
-
-- Prefers real, live data from the original/official source over static mocks or placeholders — even when it means extra setup work (e.g., asked to fetch real Instagram images and embed the latest post rather than keeping seeded placeholder images). Confidence: 0.8
-
-- Prefers lightweight, officially-sanctioned integration paths (e.g., pasting Instagram's "Copy embed code" into a component) over unofficial scraping or building heavy backend/Graph API infrastructure — favors no-backend, low-friction solutions that still deliver real content. Confidence: 0.7
-
-- Doesn't accept "that's not possible" at face value — will research and paste official documentation to push a feature forward, and expects the assistant to verify feasibility before declaring something impossible. Confidence: 0.6
-
-- Comfortable with a manual content-maintenance workflow for third-party embeds: will copy official embed codes (e.g., Instagram "Copy embed code") and paste the raw HTML into chat for the assistant to wire into the codebase, accepting paste-to-update maintenance (swapping shortcodes/data values) over building automated fetch-and-cache infrastructure. Confidence: 0.8
-
-- Communicates in Indonesian with terse, direct feedback (e.g., "kurang 1 data" — "missing 1 data"), checking the delivered result against the expected dataset and pasting the exact raw embed/data needed to fill any gap. Confidence: 0.6
+See [taste/taste.md](taste/taste.md)

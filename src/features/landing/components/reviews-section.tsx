@@ -6,7 +6,7 @@ import { StarIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { REVIEWS, getReviewSummary } from "@/features/reviews/data/reviews.mock";
 import { SERVICES } from "@/features/services/data/services.mock";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { formatDateId } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -88,7 +88,7 @@ export function ReviewsSection() {
                 {review.photoSeed ? (
                   <div className="relative size-11 shrink-0 overflow-hidden rounded-full">
                     <Image
-                      src={picsumUrl(review.photoSeed, "square", 0.4)}
+                      src={imageUrl(review.photoSeed)}
                       alt={review.customerName}
                       fill
                       sizes="2.75rem"

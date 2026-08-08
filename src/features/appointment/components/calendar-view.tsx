@@ -10,7 +10,7 @@ import {
   dayNamesId,
   monthNamesId,
 } from "@/lib/format";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

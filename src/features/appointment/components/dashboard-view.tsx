@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useBackoffice } from "../context/backoffice-context";
 import { formatIDR, formatDateId, toDateKey } from "@/lib/format";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -185,7 +185,7 @@ export function DashboardView() {
       depositRequired: newDepositRequired,
       depositAmount: newDepositRequired ? Number(newDepositAmount) : undefined,
       depositStatus: newDepositRequired ? "waiting_verification" : undefined,
-      depositProofUrl: newDepositRequired ? "https://picsum.photos/seed/newproof/400/600" : undefined,
+      depositProofUrl: newDepositRequired ? "/images/instagram/grid-11.jpg" : undefined,
       status: newDepositRequired ? "waiting_verification" : "confirmed",
       notes: newNotes || undefined,
     });
@@ -613,11 +613,11 @@ export function DashboardView() {
                       <div className="relative aspect-[3/4] w-full max-w-[140px] rounded-lg overflow-hidden border border-border bg-muted/30">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={appt.depositProofUrl || picsumUrl("transfer-proof", "portrait")}
+                          src={appt.depositProofUrl || imageUrl("transfer-proof")}
                           alt="Bukti Transfer"
                           className="object-cover w-full h-full hover:scale-110 transition-transform duration-300 cursor-zoom-in"
                           onClick={() => {
-                            window.open(appt.depositProofUrl || picsumUrl("transfer-proof", "portrait"), "_blank");
+                            window.open(appt.depositProofUrl || imageUrl("transfer-proof"), "_blank");
                           }}
                         />
                       </div>

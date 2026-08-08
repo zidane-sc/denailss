@@ -12,7 +12,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { formatDuration, formatIDR } from "@/lib/format";
 import { SERVICES } from "@/features/services/data/services.mock";
 import type { Service, ServiceCategory } from "@/types";
@@ -52,7 +52,7 @@ function PhotoTile({ slug, className }: { slug: string; className: string }) {
         className="group relative flex h-full flex-col justify-end overflow-hidden rounded-3xl p-5 text-white sm:p-6"
       >
         <Image
-          src={picsumUrl(service.heroImage, "landscape", 1.2)}
+          src={imageUrl(service.heroImage)}
           alt={service.name}
           fill
           sizes="(min-width: 1024px) 40rem, 100vw"

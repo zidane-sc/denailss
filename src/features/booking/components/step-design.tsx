@@ -5,7 +5,7 @@ import Image from "next/image";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
 import { STYLE_LABELS, COLOR_LABELS, OCCASION_LABELS } from "@/features/gallery/constants";
-import { aspectRatioClass, picsumUrl } from "@/lib/images";
+import { aspectRatioClass, imageUrl } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
 export function StepDesign({
@@ -153,7 +153,7 @@ export function StepDesign({
                 >
                   <div className={cn("relative w-full", aspectRatioClass(design.aspect))}>
                     <Image
-                      src={picsumUrl(design.imageSeeds[0], design.aspect, 0.7)}
+                      src={imageUrl(design.imageSeeds[0])}
                       alt={design.title}
                       fill
                       sizes="16rem"

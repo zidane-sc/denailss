@@ -8,7 +8,7 @@ import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/r
 import { Reveal } from "@/components/motion/reveal";
 import { getActivePromotions } from "@/features/promotion/data/promotions.mock";
 import { formatDateId, formatIDR } from "@/lib/format";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import type { ReactNode } from "react";
 import type { Promotion } from "@/types";
 
@@ -34,13 +34,13 @@ function PromotionSlide({ promotion }: { promotion: Promotion }) {
 
   return (
     <div className="grid w-full shrink-0 md:grid-cols-2">
-      <div className="flex flex-col gap-2.5 p-6 sm:p-10 md:p-12">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+      <div className="flex flex-col gap-2.5 p-5 sm:p-10 md:p-12">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary sm:text-xs">
           Promo bulan ini
         </p>
 
-        <div className="mt-2 flex items-baseline gap-2.5">
-          <p className="font-heading text-5xl font-semibold leading-[1.05] tracking-tight text-foreground tabular-nums sm:text-6xl">
+        <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:gap-x-2.5">
+          <p className="font-heading text-4xl font-semibold leading-[1.05] tracking-tight text-foreground tabular-nums sm:text-6xl sm:leading-[1.05]">
             {discountLabel(promotion)}
           </p>
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -48,15 +48,15 @@ function PromotionSlide({ promotion }: { promotion: Promotion }) {
           </p>
         </div>
 
-        <h3 className="mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+        <h3 className="mt-2 text-xl font-semibold tracking-tight text-foreground [text-wrap:balance] sm:text-2xl">
           {promotion.title}
         </h3>
-        <p className="mt-1 max-w-[46ch] text-sm leading-relaxed text-muted-foreground sm:text-base">
+        <p className="mt-1 max-w-[46ch] text-sm leading-relaxed text-muted-foreground [text-wrap:pretty] sm:text-base">
           {promotion.description}
         </p>
 
-        <div className="mt-auto flex flex-col gap-5 pt-6">
-          <dl className="flex flex-wrap gap-x-6 gap-y-2 border-t border-border/70 pt-4 font-mono text-xs tabular-nums">
+        <div className="mt-auto flex flex-col gap-4 pt-6 sm:gap-5">
+          <dl className="flex flex-wrap gap-x-4 gap-y-2 border-t border-border/70 pt-4 font-mono text-[11px] tabular-nums sm:gap-x-6 sm:text-xs">
             <MetaItem label="kode">{promotion.code}</MetaItem>
             <MetaItem label="berlaku s.d.">{formatDateId(new Date(promotion.endDate))}</MetaItem>
             <MetaItem label="sisa kuota">
@@ -78,7 +78,7 @@ function PromotionSlide({ promotion }: { promotion: Promotion }) {
 
       <div className="relative min-h-52 h-full md:min-h-[22rem]">
         <Image
-          src={picsumUrl(promotion.imageSeed ?? "promo-default", "landscape", 1.2)}
+          src={imageUrl(promotion.imageSeed ?? "promo-default")}
           alt={`Hasil nail art untuk promo ${promotion.title}`}
           fill
           sizes="(min-width: 768px) 50vw, 100vw"
@@ -120,7 +120,18 @@ export function PromotionBanner() {
           >
             <div className="flex overflow-hidden">
               <motion.div
-                className="flex"
+                className="flex touch-pan-y cursor-grab select-none active:cursor-grabbing"
+                drag={reduce || count <= 1 ? false : "x"}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.12}
+                dragMomentum={false}
+                dragSnapToOrigin
+                onDragStart={() => setPaused(true)}
+                onDragEnd={(_, info) => {
+                  setPaused(false);
+                  if (info.offset.x <= -60 || info.velocity.x <= -500) goTo(index + 1);
+                  else if (info.offset.x >= 60 || info.velocity.x >= 500) goTo(index - 1);
+                }}
                 animate={{ x: reduce ? 0 : `-${index * 100}%` }}
                 transition={{ type: "spring", stiffness: 100, damping: 20 }}
               >

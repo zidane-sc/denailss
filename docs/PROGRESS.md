@@ -21,7 +21,7 @@ Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, S
 - Fonts: `Outfit` (headings, `--font-outfit`) + `Plus Jakarta Sans` (body, `--font-jakarta`) via `next/font/google`. No Inter, no serif.
 - Color tokens in `src/app/globals.css`: dusty rose primary, honey-yellow secondary, periwinkle-blue accent, warm blush background. Light-mode only (deliberate brand decision, no dark: variants anywhere in custom code).
 - Motion: `motion/react` for scroll reveals (`src/components/motion/reveal.tsx`) and micro-interactions. No GSAP.
-- Images: all placeholder via `picsum.photos/seed/...` (see `src/lib/images.ts`). No real studio photography yet.
+- Images: real nail-art photos from the Denailss Instagram (`@denailss_9`) — 6 full-res posts + 12 grid shots downloaded into `public/images/instagram/`. `src/lib/images.ts` exposes `imageUrl(seed)` which maps every mock seed name to these local assets (with a branded fallback); the old `picsum.photos` placeholder helper is gone, and `next.config.ts` has no remote image hosts.
 - **Brand logo**: real logo assets in `public/images/` — `logo-icon.png` (portrait icon) and `logo-horizontal.png` (icon + wordmark). Used via `next/image` in the site header, site footer, customer portal header, and both backoffice sidebar + mobile drawer. No text/emoji "denailss" logos anywhere anymore.
 - **Copywriting**: Removed all commercial "studio" terminology (changed to "nail art rumahan", "lokasi treatment", "operasional aktif") to accurately represent the home-based setting of the service.
 - **Header Navigation**: Active link styling automatically highlights `/gallery`, `/services`, `/reviews`, and `/contact` menus based on dynamic path matching (supporting details like `/services/[slug]` or `/gallery/[slug]`).
@@ -84,8 +84,7 @@ Roughly in the order the TRD implies:
 1. **Backend wiring** — Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions. This is the biggest gap: every `*.mock.ts` file under `src/features/*/data/` is a named seam meant to be swapped for a real repository call without touching components.
 2. **Auth** — Supabase Auth (email + Google-ready).
 3. **Epic 4-9**: CRM, Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings.
-4. **Real imagery** — replace all `picsum.photos` placeholders with actual studio photography once available (user explicitly chose placeholder-only for this phase).
-5. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
+4. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
 
 ## File Map (where to look)
 
@@ -97,6 +96,6 @@ src/features/<domain>/
   validators/   zod schemas (booking only, so far)
 src/components/ui/     shadcn primitives (Base UI, not Radix — see note above)
 src/components/layout/ site-header, site-footer
-src/lib/                cn, format (IDR/date), images (picsum helper)
+src/lib/                cn, format (IDR/date), images (imageUrl seed→asset map)
 src/constants/site.ts   business profile, single source for contact info
 ```

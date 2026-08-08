@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRightIcon, CheckCircleIcon, StarIcon, WhatsappLogoIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/motion/reveal";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { whatsappLink } from "@/constants/site";
 import { getReviewSummary } from "@/features/reviews/data/reviews.mock";
 
@@ -93,7 +93,7 @@ export function Hero() {
             {/* Main Image Frame */}
             <div className="absolute inset-0 -rotate-2 overflow-hidden rounded-[2.5rem] shadow-[0_35px_65px_-30px_rgba(46,36,48,0.5)] border border-border/70 bg-card">
               <Image
-                src={picsumUrl("denailss-hero-main", "portrait", 1.4)}
+                src={imageUrl("denailss-hero-main")}
                 alt="Hasil nail art Denailss dengan detail French tip dan chrome finish"
                 fill
                 priority
@@ -105,7 +105,7 @@ export function Hero() {
             {/* Small Floating Detail Frame */}
             <div className="absolute -right-6 -top-6 aspect-square w-36 rotate-6 overflow-hidden rounded-[1.75rem] border-4 border-background shadow-xl sm:w-44 transition-all duration-300 hover:scale-105 hover:rotate-12">
               <Image
-                src={picsumUrl("denailss-hero-detail", "square", 1.2)}
+                src={imageUrl("denailss-hero-detail")}
                 alt="Detail close-up nail art bunga sakura"
                 fill
                 sizes="11rem"
@@ -117,13 +117,13 @@ export function Hero() {
             <div className="absolute -bottom-5 -left-4 flex items-center gap-3 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur-sm sm:-left-8 transition-transform duration-300 hover:scale-105">
               <div className="flex -space-x-2 shrink-0">
                 <div className="relative size-6 overflow-hidden rounded-full ring-2 ring-background">
-                  <Image src={picsumUrl("review-aulia", "square", 0.1)} alt="Client 1" fill className="object-cover" />
+                  <Image src={imageUrl("review-aulia")} alt="Client 1" fill className="object-cover" />
                 </div>
                 <div className="relative size-6 overflow-hidden rounded-full ring-2 ring-background">
-                  <Image src={picsumUrl("review-salsa", "square", 0.1)} alt="Client 2" fill className="object-cover" />
+                  <Image src={imageUrl("review-salsa")} alt="Client 2" fill className="object-cover" />
                 </div>
                 <div className="relative size-6 overflow-hidden rounded-full ring-2 ring-background">
-                  <Image src={picsumUrl("review-farah", "square", 0.1)} alt="Client 3" fill className="object-cover" />
+                  <Image src={imageUrl("review-farah")} alt="Client 3" fill className="object-cover" />
                 </div>
               </div>
               <div className="leading-tight">

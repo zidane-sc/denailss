@@ -14,7 +14,7 @@ import {
 import type { Icon } from "@phosphor-icons/react";
 import { SERVICES } from "@/features/services/data/services.mock";
 import { formatDuration, formatIDR } from "@/lib/format";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { ServiceCategory } from "@/types";
@@ -62,7 +62,7 @@ export default function ServicesPage() {
                 {/* Hero Photo */}
                 <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-muted">
                   <Image
-                    src={picsumUrl(service.heroImage, "landscape", 1.2)}
+                    src={imageUrl(service.heroImage)}
                     alt={service.name}
                     fill
                     sizes="(min-width: 1024px) 24rem, (min-width: 640px) 45vw, 95vw"

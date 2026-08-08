@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/dist/ssr";
-import { aspectRatioClass, picsumUrl } from "@/lib/images";
+import { aspectRatioClass, imageUrl } from "@/lib/images";
 import { cn } from "@/lib/utils";
 import type { GalleryAspect } from "@/types";
 
@@ -24,7 +24,7 @@ export function PhotoCarousel({
       <div className={cn("relative w-full overflow-hidden rounded-[2rem]", aspectRatioClass(aspect))}>
         <Image
           key={photos[active]}
-          src={picsumUrl(photos[active], aspect, 1.3)}
+          src={imageUrl(photos[active])}
           alt={`${alt} - foto ${active + 1}`}
           fill
           priority
@@ -63,7 +63,7 @@ export function PhotoCarousel({
                 active === i ? "border-primary" : "border-transparent"
               )}
             >
-              <Image src={picsumUrl(seed, "square", 0.3)} alt="" fill sizes="4rem" className="object-cover" />
+              <Image src={imageUrl(seed)} alt="" fill sizes="4rem" className="object-cover" />
             </button>
           ))}
         </div>

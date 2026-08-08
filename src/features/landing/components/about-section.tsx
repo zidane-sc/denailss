@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Reveal } from "@/components/motion/reveal";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 
 const STATS = [
   { value: "4+", label: "tahun melayani nail art di Jakarta Pusat" },
@@ -14,7 +14,7 @@ export function AboutSection() {
         <Reveal className="relative order-2 lg:order-1">
           <div className="relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-[2.5rem] lg:max-w-none">
             <Image
-              src={picsumUrl("denailss-about-studio", "portrait", 1.3)}
+              src={imageUrl("denailss-about-studio")}
               alt="Dela, owner dan nail artist Denailss, sedang mengerjakan nail art"
               fill
               sizes="(min-width: 1024px) 28rem, 22rem"

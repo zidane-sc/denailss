@@ -7,7 +7,7 @@ import {
   ClockIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/motion/reveal";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { SITE, whatsappLink } from "@/constants/site";
 
 const CHANNELS = [
@@ -78,7 +78,7 @@ export function ContactSection() {
         <Reveal delay={0.1} className="relative order-first lg:order-last">
           <div className="relative aspect-[5/4] w-full overflow-hidden rounded-[2.5rem]">
             <Image
-              src={picsumUrl("denailss-contact-studio", "landscape", 1.3)}
+              src={imageUrl("denailss-contact-studio")}
               alt="Interior ruang kuku Denailss"
               fill
               sizes="(min-width: 1024px) 32rem, 100vw"

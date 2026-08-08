@@ -22,7 +22,7 @@ Indonesian nail-art studio booking platform. Next.js 16 (App Router, Turbopack) 
 - **Icons are `@phosphor-icons/react`**, imported from `@phosphor-icons/react/dist/ssr` in server components. lucide-react was uninstalled; `components.json`'s `iconLibrary: "lucide"` is stale metadata.
 - **No backend.** Everything runs on local mocks under `src/features/*/data/*.mock.ts`, which are the named seams to swap for a real Supabase/Drizzle repo layer later (Epics 4-9 not started). Exception: `src/features/booking/logic/availability.ts` and `pricing.ts` are real business logic, not mocks.
 - **Fonts:** Outfit (headings) + Plus Jakarta Sans (body) via `next/font/google`. No Inter/serif.
-- **Images:** all placeholders `https://picsum.photos/seed/<seed>/...` via `src/lib/images.ts`; `next.config.ts` only allows picsum.photos as a remote image source.
+- **Images:** real nail-art photos from the Denailss Instagram (`@denailss_9`) live in `public/images/instagram/`. `src/lib/images.ts`'s `imageUrl(seed)` maps the mock-data seed names to these local assets (unknown seeds fall back to the default); no remote image hosts are configured in `next.config.ts`. The Instagram grid section still proxies live posts via `/api/instagram/[shortcode]`.
 - **Design tokens** live in `src/app/globals.css` (dusty rose primary, honey-yellow secondary, periwinkle accent, blush background). Light-mode only in custom code — don't add `dark:` variants.
 - Path alias `@/*` → `./src/*`. Business contact info is single-sourced in `src/constants/site.ts` — update there, not per-page.
 

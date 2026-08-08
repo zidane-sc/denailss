@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ClockIcon } from "@phosphor-icons/react/dist/ssr";
 import { formatDateId, formatDuration, formatIDR, parseDateKey } from "@/lib/format";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import type { GalleryDesign, Service } from "@/types";
 
 export interface SummaryData {
@@ -34,7 +34,7 @@ export function BookingSummary({ data }: { data: SummaryData }) {
               <div key={service.slug} className="flex items-center gap-3 border-b border-border/40 pb-3 last:border-b-0 last:pb-0">
                 <div className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-muted">
                   <Image
-                    src={picsumUrl(service.heroImage, "square", 0.4)}
+                    src={imageUrl(service.heroImage)}
                     alt={service.name}
                     fill
                     sizes="3rem"
@@ -57,7 +57,7 @@ export function BookingSummary({ data }: { data: SummaryData }) {
             <div className="flex items-center gap-3 border-t border-border pt-4">
               <div className="relative size-12 shrink-0 overflow-hidden rounded-xl">
                 <Image
-                  src={picsumUrl(design.imageSeeds[0], "square", 0.4)}
+                  src={imageUrl(design.imageSeeds[0])}
                   alt={design.title}
                   fill
                   sizes="3rem"

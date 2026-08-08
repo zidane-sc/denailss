@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
 import type { GalleryDesign } from "@/types";
 
@@ -32,7 +32,7 @@ function DesignTile({ design, className, aspectClass, index }: DesignTileProps) 
       >
         <div className={`relative w-full overflow-hidden ${aspectClass}`}>
           <Image
-            src={picsumUrl(design.imageSeeds[0], design.aspect, 1.1)}
+            src={imageUrl(design.imageSeeds[0])}
             alt={design.title}
             fill
             sizes="(min-width: 1024px) 50vw, (min-width: 640px) 50vw, 90vw"

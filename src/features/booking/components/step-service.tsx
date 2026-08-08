@@ -4,7 +4,7 @@ import Image from "next/image";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { SERVICES } from "@/features/services/data/services.mock";
 import { formatDuration, formatIDR } from "@/lib/format";
-import { picsumUrl } from "@/lib/images";
+import { imageUrl } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
 export function StepService({
@@ -36,7 +36,7 @@ export function StepService({
             >
               <div className="relative size-16 shrink-0 overflow-hidden rounded-xl">
                 <Image
-                  src={picsumUrl(service.heroImage, "square", 0.5)}
+                  src={imageUrl(service.heroImage)}
                   alt={service.name}
                   fill
                   sizes="4rem"
