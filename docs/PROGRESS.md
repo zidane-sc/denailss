@@ -7,11 +7,11 @@
 
 ## Current Phase
 
-Epics 1, 2, 3, 4 (CRM), and 5 (Gallery Management) are implemented. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files, with client-side state hooks (BackofficeProvider) managing dashboard, calendar, and availability configuration.
+Epics 1, 2, 3, 4 (CRM), 5 (Gallery Management), 6 (Promotion admin), 7 (Finance), and 8 (Analytics) are implemented. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files, with client-side state hooks (BackofficeProvider) managing dashboard, calendar, and availability configuration.
 
 **Backend wiring and Auth are deliberately skipped for now.** In-progress decision: this period is FE-first. All new work is built against mock data (extending the existing `*.mock.ts` seam pattern so it can be swapped for a real repository layer later without touching components). No Supabase project, no Drizzle schema, no `/api/v1/*` route handlers will be created until FE scope is further along.
 
-Epics 6-9 (Promotion admin, Finance, Analytics, Settings) are **not started**; when they are, they will also be built FE-first on mocks.
+Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on mocks. SEO polish (sitemap, robots, JSON-LD, canonical/OG metadata) is done.
 
 ---
 
@@ -45,6 +45,13 @@ Epics 6-9 (Promotion admin, Finance, Analytics, Settings) are **not started**; w
 - `/backoffice/calendar` — day, week, and month view scheduling calendar.
 - `/backoffice/appointments/[id]` — appointment detail page with actions for confirming, completing, canceling, and rescheduling.
 - `/backoffice/availability` — availability and operating rules editor.
+- `/backoffice/promotions` — **New: promotion admin** (Epic 6), see below.
+- `/backoffice/finance` — **New: finance dashboard** (Epic 7), see below.
+- `/backoffice/finance/expenses/new` — **New: expense create/edit form** (Epic 7).
+- `/backoffice/analytics` — **New: analytics overview** (Epic 8), see below.
+- `/backoffice/services` — **New: service management** (see below).
+- `/backoffice/instagram` — **New: Instagram grid management** (see below).
+- `/backoffice/settings` — **New: settings workspace** (Epic 9), see below.
 
 ### Booking flow (`src/features/booking/`)
 - Dynamic step list built from the selected services:
@@ -96,6 +103,65 @@ Epics 6-9 (Promotion admin, Finance, Analytics, Settings) are **not started**; w
 - **Removed at the owner's request**: tags (search uses title + description), published date (no date-driven sorting anywhere), the "reset catalog" action, **related services** (`relatedServiceSlugs` dropped from the type; `/gallery/[slug]` no longer shows "Layanan terkait" and books via `/booking?design=...` directly; `/services/[slug]` no longer lists example designs), and the difficulty-derived price tier.
 
 
+### Promotion admin (`src/features/promotion/`) — Epic 6
+- **One source of truth for promotions.** The booking flow and landing banner now read promotions through `src/features/promotion/data/promotion-booking.ts`, which delegates to the same localStorage-backed store the admin edits (`promotions.mock.ts`). Discount math stays in `booking/logic/pricing.ts` (`checkPromotion`) — admin rules and booking validation can never drift apart. A promo created in the backoffice is immediately usable in `/booking` and shown on the landing banner.
+- **Store split for SSR safety** — seed data lives in the plain module `data/promotions.seed.ts` (no `"use client"`), so the server-rendered detail page can read it; the client store `data/promotions.mock.ts` (`denailss.promotion.admin` in localStorage) imports the seed as fallback until the first edit. Same seam pattern as the gallery admin store.
+- **No delete feature, by design** — deactivating a promo already blocks new usage while keeping its usage history (`usedCount`) for future finance reporting. A `deletePromotion` helper was written during the epic then removed as dead code; the detail page only offers Aktifkan/Nonaktifkan + Edit.
+- `/backoffice/promotions` — "Promosi" list: subtle status chips (Aktif / Terjadwal / Berakhir / Nonaktif, derived via `getPromotionStatus` against the seeded "today" 2026-08-09), status filter pills + title/code search, compact summary band (aktif + terjadwal counts), desktop table and mobile cards, one primary action **Buat Promo**. Rows navigate to the detail page.
+- `/backoffice/promotions/new` — focused single-page create form: Informasi Dasar (title, description, normalized uppercase promo code with a Generate action), Diskon (persen vs nominal toggle, maks. diskon only for percentages), Periode (start/end date with cross-validation "Tanggal berakhir harus setelah tanggal mulai."), Batasan Pemakaian (empty = unlimited), Aturan (minimum transaksi + applicable services from `SERVICES`, all services when none selected). Indonesian validation messages; **live preview card** (`promotion-live-preview.tsx`) updates as the form changes and shows the exact customer-facing treatment. Save persists to localStorage and routes to the detail page.
+- `/backoffice/promotions/[id]` — detail: status header, Aktifkan/Nonaktifkan with a concise confirmation dialog, Edit mode reusing the same form (keeps `usedCount` — no destructive reset), Penawaran/Aturan/Info Pemakaian sections, and a "Tampilan untuk customer" card. Server-rendered from the seed with a not-found state.
+- Mock seeds cover every state (active, scheduled, expired, inactive) and configuration (percentage + fixed, max discount, min spend, service-scoped, usage-limited and unlimited): `WEEKEND20`, `NEWSET30`, `PROMO17`, `PAGI20`, `HARITANI`, `MAYDAY10`, `NEWCLIENT`.
+- Wired up: "Promosi" (`TicketIcon`) nav item in desktop sidebar + mobile sheet; header title maps to "Promosi".
+
+### Finance (`src/features/finance/`) — Epic 7
+- **Simple business bookkeeping, FE-first on mocks.** Not accounting software: no tax, invoices, payroll, AR/AP, double-entry, forecasting, or AI insights. Income derives from completed appointments; expenses are owner-recorded; profit = income - expense.
+- `/backoffice/finance` — "Keuangan" dashboard: period selector (prev/next month + native month picker), a balanced **financial summary** (Pemasukan / Pengeluaran / Profit with a visible relationship and a "+N% vs bulan lalu" comparison when the previous month's profit is non-zero), income list (date, customer, service, appointment time, amount — derived from `status: "completed"` appointments only), expense list (add/edit/delete with a concise confirmation dialog), a **monthly report** (income, expense, profit, completed appointments, average transaction), and one minimal dependency-free SVG **trend chart** (income/expense/profit over 6 months).
+- `/backoffice/finance/expenses/new` — create + edit in one route (`?edit=<id>`); fields: deskripsi, nominal (Rp), kategori (supplies/equipment/studio/marketing/other), tanggal, catatan. Indonesian validation messages ("Nominal harus lebih besar dari Rp0."), no technical errors. Wrapped in a Suspense boundary (the page reads `useSearchParams`).
+- **Data & logic** (`types/index.ts`, `data/expenses.mock.ts`, `data/finance-appointments.mock.ts`, `logic/finance.ts`, `validators/expense.schema.ts`): income is never stored — `getAllAppointments()` merges the live backoffice appointments (deduped by id) with a historical `FINANCE_SEED_APPOINTMENTS` (June/July/August 2026 completed appointments reusing existing services/prices) so monthly navigation and the month-over-month comparison feel real. `getMonthlyIncomeEntries` / `calculateMonthlyExpense` / `getMonthlyReport` / `getRecentMonthTrend` / `profitChangeVsPreviousMonth` are pure functions. Expenses persist to localStorage (`denailss.finance.expenses`), seed fallback = 13 realistic entries across June-August.
+- **Empty states**: "Belum ada pengeluaran bulan ini." + "Catat pengeluaran kecil sekalipun supaya profitmu tetap akurat."; "Belum ada pemasukan bulan ini." Motion kept to the month label transition in the period selector (`motion/react`, honors `prefers-reduced-motion`).
+- Wired up: "Keuangan" (`WalletIcon`) nav item in desktop sidebar + mobile sheet; header title maps to "Keuangan".
+
+### Analytics (`src/features/analytics/`) — Epic 8
+- `/backoffice/analytics` — "Analytics" business overview answering "apa yang sebenarnya terjadi di bisnis Denailss?". Period selector with five presets (7 Hari / 30 Hari / 3 Bulan / 6 Bulan / 1 Tahun) as a segmented pill control (spring layout animation, honors `prefers-reduced-motion`, horizontally scrollable on mobile). All metrics update with the period.
+- **Sections**: Pemasukan (total + one minimal dependency-free SVG revenue area chart), Ringkasan Booking (total/selesai/dibatalkan/no-show counts), Kesehatan Booking (cancellation rate and no-show rate **computed separately**, never combined), Customer Berulang (unique customers, repeat customers, repeat rate — repeat = more than one completed appointment in the period), Layanan Terpopuler (horizontal ranking bars), Desain Terpopuler (ranked list with real gallery thumbnails), Jam Booking Favorit (Pagi/Siang/Malam bars reusing the availability engine's time-of-day definitions + most popular slot), and one Tren Booking chart (daily/weekly/monthly buckets sized to the period).
+- **Data consistency is guaranteed by construction**: analytics reads `getAllAnalyticsAppointments()` (in `data/appointments-analytics.mock.ts`) which merges the live backoffice list + the Finance seed (Epic 7) + an analytics-only seed, deduped by id — so a completed appointment produces exactly one income row in Finance and one revenue figure here, and a cancelled appointment is the same event in both. No separate analytics dataset, no duplicated domain models.
+- **Logic** (`logic/analytics.ts`): pure deterministic functions — `calculateRevenue`, `getRevenueTrend`, `calculateBookingStats`, `calculateCancellationRate`, `calculateNoShowRate`, `calculateRepeatCustomerRate`, `getPopularServices`, `getPopularDesigns`, `getPeakBookingTimes`, `getBookingTrend`. Reference "today" is the same mock anchor as the backoffice/CRM seeds (2026-08-09) so period boundaries are stable. No AI insights, no forecasting, no invented benchmarks.
+- **Mock data**: `data/appointments-analytics.mock.ts` adds ~32 records (cancellations, no-shows, and 2nd+ completed visits for repeat customers across May-August 2026) reusing existing services/designs/prices/customers; `data/designs-analytics.mock.ts` resolves design slugs through the shared gallery seed so popular-design thumbnails always exist (unknown/uploaded-only slugs are skipped).
+- **Empty states** for every metric ("Belum ada booking untuk periode ini.", "Belum ada pemasukan pada periode ini.", "Belum ada customer yang melakukan kunjungan kedua.", "Belum cukup data untuk melihat desain terpopuler.") — never a fake zero-looking chart.
+- Charts are minimal SVG with `<title>` hover/touch tooltips and accessible `aria-label` summaries; sections mix card figures with plain typographic content blocks (no KPI card wall). Motion limited to the period pill transition (`motion/react`).
+- Wired up: "Analytics" (`ChartLineUpIcon`) nav item in desktop sidebar + mobile sheet; header title maps to "Analytics".
+
+### Service management (`src/features/services/`)
+- `/backoffice/services` — "Kelola Layanan": owner **edits and (de)activates** the treatment catalog that drives the public `/services` pages, the booking service step, review filters, and promotion rules. No add and no delete by design — a service is deactivated instead, keeping its context for existing appointments/history.
+- **No category field** — removed from `Service`; each service is identified by slug. The fake-nail fulfillment behavior is now an explicit `requiresPickup` flag (replaces the old `category === "fake-nail"` checks) so the booking flow's pickup/delivery step stays correct.
+- **Difficulty tiers** — `Service.tiers: ServiceTier[]` (label + harga mulai + durasi per tingkat). Fake Nail and Nail Art are seeded tiered (Simple/Complex); other services stay flat. The edit form has a "Bertingkat sesuai tingkat kesulitan" toggle that swaps price/duration inputs for a per-tier editor; the admin list shows a "Tingkat" column (Simple/Complex or "Flat"); public surfaces show "Mulai RpX · sesuai tingkat kesulitan" plus a per-tier price/duration legend (card, detail tier table, booking step).
+- **Form** (`service-form.tsx`): edit-only dialog (nama, deskripsi singkat + lengkap, harga/durasi flat or bertingkat, catatan harga, foto utama via `/api/upload`, FAQ rows, "wajib deposit" + "pengerjaan dikirim" toggles); slug is fixed.
+- **List** (`service-admin-list-view.tsx`): summary band (total layanan + layanan aktif), search + status filter pills (Semua/Aktif/Nonaktif), desktop table + mobile cards with status badge, pagination (TRD backoffice standard), row actions Edit + Nonaktifkan/Aktifkan (with toast).
+- **`Service.active` flag** — public consumers read `getActiveServices()` (services list page, landing tiles, booking service step, review filters/pills, promo applicability pickers) so a deactivated service disappears from booking and the site; the backoffice add-booking form keeps showing all services for historical appointments, and the service detail page still resolves by slug (old links keep working) but shows a "Layanan ini sedang nonaktif" notice and a disabled booking CTA. Persisted records are migrated (`active` defaults to true; legacy `tiers`/`requiresPickup` backfilled, fake-nail defaults to pickup).
+- **Live seam** — `data/services-admin.mock.ts` (`denailss.services.admin` in localStorage) is the source of truth (`getLiveServices` / `getActiveServices` / `updateService` / `setActiveService`); seed stays in `services.seed.ts` for the swap-in seam. Shared display helpers in `logic/service.ts` (`serviceMinPrice`, `servicePriceLine`).
+- Wired up: "Layanan" (`SparkleIcon`) nav item in desktop sidebar + mobile sheet; header title maps to "Kelola Layanan".
+
+### Instagram grid management (`src/features/landing/`)
+- `/backoffice/instagram` — "Grid Instagram": the owner pastes a post URL or embed code (post → ⋯ → Embed → Copy embed code); `parseInstagramShortcode` extracts the shortcode from URLs, `/reel/` links, raw embed HTML (incl. `data-instgrm-permalink`), or a bare shortcode. Added posts render immediately in the landing grid via the existing `/api/instagram/[shortcode]` proxy, with a "Shortcode terdeteksi / Link tidak dikenali" inline hint, per-card delete, and an empty state.
+- **Live seam** — `data/instagram-posts.mock.ts` is now the admin store (`denailss.instagram.posts` in localStorage, seed fallback, subscribe support); `getLiveInstagramPosts()` is SSR-safe. The landing `InstagramFeed` reads it, so owner edits show up live.
+- Wired up: "Grid Instagram" (`InstagramLogoIcon`) nav item in desktop sidebar + mobile sheet; header title maps to "Grid Instagram".
+
+### SEO polish (TRD §9 NFR)
+- **JSON-LD structured data** — `src/lib/seo.tsx` builds `LocalBusiness` (NailSalon/BeautySalon with geo, address, sameAs, priceRange), `WebSite`, `FAQPage` (landing FAQ + per-service FAQs, copy extracted to `src/features/landing/data/faq.mock.ts` so UI and structured data never drift), `Service` + `BreadcrumbList` on service details, and `BreadcrumbList` on gallery design details. All payloads escape `<` (`\u003c`) against XSS.
+- **Sitemap** — `src/app/sitemap.ts` (`/sitemap.xml`): 6 static public routes + all service and gallery-design detail routes from the seed catalogs, with priority/change-frequency. Backoffice/customer excluded.
+- **robots.txt** — `src/app/robots.ts`: public site crawlable; `/backoffice`, `/customer`, `/api/` disallowed; sitemap advertised.
+- **Metadata** — root layout now ships OpenGraph + Twitter image (logo-horizontal), `metadataBase` canonical base, and `robots: index/follow`. Every public page has `alternates.canonical`; gallery-design and service detail pages get per-item canonical, `og:type: article`, and a real photo as `og:image`.
+- Future swap note: values in `seo.tsx` read from `@/constants/site` today; they will flow from the Settings (Epic 9) model once backend integration lands.
+
+### Settings (`src/features/settings/`) — Epic 9
+- `/backoffice/settings` — "Pengaturan": a single focused workspace, not a settings maze. Compact header ("Atur informasi dan kebijakan yang digunakan Denailss."), no KPI cards. Three quiet sections: **Profil Bisnis** (nama bisnis required, logo, deskripsi, alamat), **Social Media** (Instagram, TikTok, WhatsApp), **Kebijakan** (kebijakan pembatalan + kebijakan deposit as informational policy text — NOT the deposit calculation engine, which stays in the booking flow).
+- **Logo** — local preview only: `URL.createObjectURL` (cleaned up on replace/remove), "Belum ada logo" empty state, accessible file input. No upload, no fake logo.
+- **Mock seam** — `data/settings.mock.ts` persists to localStorage (`denailss.settings`), seed fallback derived from the single-source business constants (`SITE` in `@/constants/site`) and `DEPOSIT_CONFIG.notes`, so no duplicate hardcoded values. Swap for a real settings repository later without touching the UI.
+- **Validation** — `validators/settings.ts` manual checks with Indonesian messages ("Nama bisnis wajib diisi."); social values validated lightly (username/URL plausible, WhatsApp format reasonable) so the owner never fights the form. `logic/normalize.ts` strips `@`/trailing slashes and phone noise on save.
+- **Save** — one primary "Simpan Perubahan" action; success toast "Pengaturan berhasil disimpan." plus a transient inline saved state in the save bar (motion, honors `prefers-reduced-motion`). Unsaved-changes guard via `beforeunload` only (no router interception).
+- **Empty states** — "Belum ada logo", "Tambahkan deskripsi singkat tentang Denailss.", "Belum diatur" (social), "Belum ada kebijakan." — no broken links or undefined values.
+- Wired up: "Pengaturan" (`GearIcon`) nav item in desktop sidebar + mobile sheet; header title maps to "Pengaturan".
+
 ### Verified working (via Playwright, this session)
 - Full booking happy path end-to-end including promo code + deposit upload + confirmation.
 - Availability engine renders correct limited/full/closed days matching the seeded mock config.
@@ -112,9 +178,7 @@ Epics 6-9 (Promotion admin, Finance, Analytics, Settings) are **not started**; w
 
 FE-first only. Backend wiring and Auth are out of scope for now (see Current Phase).
 
-1. **Epics 6-9, built FE-first on mocks** — Promotion admin, Finance, Analytics, Settings (Backoffice). Each still goes through `src/features/*/data/*.mock.ts` seams, extending the mock-first pattern already used for Epics 1-5.
-2. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
-3. **Deferred (post-FE period)** — Backend wiring (Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions) and Auth (Supabase Auth, email + Google-ready). Every `*.mock.ts` file under `src/features/*/data/` is a named seam for that swap.
+1. **Deferred (post-FE period)** — Backend wiring (Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions) and Auth (Supabase Auth, email + Google-ready). Every `*.mock.ts` file under `src/features/*/data/` is a named seam for that swap.
 
 ## File Map (where to look)
 

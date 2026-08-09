@@ -4,6 +4,9 @@ import { BookingFlow } from "@/features/booking/components/booking-flow";
 export const metadata: Metadata = {
   title: "Booking",
   description: "Booking appointment nail art di Denailss dalam beberapa langkah mudah.",
+  alternates: {
+    canonical: "/booking",
+  },
 };
 
 export default async function BookingPage({ searchParams }: PageProps<"/booking">) {

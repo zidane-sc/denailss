@@ -55,12 +55,22 @@ export function BookingSummary({ data }: { data: SummaryData }) {
                   <p className="truncate text-sm font-semibold text-foreground">{service.name}</p>
                   <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                     <ClockIcon className="size-3.5" />
-                    {formatDuration(service.durationMinutes)}
+                    {service.tiers.length > 0
+                      ? "Harga sesuai tingkat kesulitan"
+                      : service.requiresPickup
+                        ? "1-2 Hari Pembuatan"
+                        : formatDuration(service.durationMinutes)}
                   </p>
-                  {service.priceNote && (
+                  {service.tiers.length > 0 ? (
                     <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/80">
-                      {service.priceNote}
+                      {service.tiers.map((t) => `${t.label} ${formatIDR(t.priceFrom)}`).join(" · ")}
                     </p>
+                  ) : (
+                    service.priceNote && (
+                      <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/80">
+                        {service.priceNote}
+                      </p>
+                    )
                   )}
                 </div>
                 <span className="text-xs font-semibold text-foreground shrink-0">

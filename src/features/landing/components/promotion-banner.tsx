@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/motion/reveal";
-import { getActivePromotions } from "@/features/promotion/data/promotions.mock";
+import { getActivePromotions } from "@/features/promotion/data/promotion-booking";
 import { formatDateId, formatIDR } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import type { ReactNode } from "react";

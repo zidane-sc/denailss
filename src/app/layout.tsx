@@ -37,11 +37,24 @@ export const metadata: Metadata = {
     siteName: SITE.name,
     locale: "id_ID",
     type: "website",
+    images: [
+      {
+        url: "/images/logo-horizontal.png",
+        width: 800,
+        height: 320,
+        alt: SITE.name,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE.name} · ${SITE.tagline}`,
     description: SITE.description,
+    images: ["/images/logo-horizontal.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

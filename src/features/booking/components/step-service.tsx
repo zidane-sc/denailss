@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr";
-import { SERVICES } from "@/features/services/data/services.mock";
-import { formatDuration, formatIDR } from "@/lib/format";
+import { getActiveServices } from "@/features/services/data/services-admin.mock";
+import { formatIDR, formatDuration } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +22,9 @@ export function StepService({
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {SERVICES.map((service) => {
+        {getActiveServices().map((service) => {
           const active = selectedSlugs.includes(service.slug);
+          const isTiered = service.tiers.length > 0;
           return (
             <button
               key={service.slug}
@@ -46,8 +47,22 @@ export function StepService({
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-foreground">{service.name}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Mulai {formatIDR(service.priceFrom)} &middot; {service.category === "fake-nail" ? "1-2 Hari Pembuatan" : formatDuration(service.durationMinutes)}
+                  {isTiered ? (
+                    <>Mulai {formatIDR(service.priceFrom)} &middot; sesuai tingkat kesulitan</>
+                  ) : (
+                    <>
+                      Mulai {formatIDR(service.priceFrom)} &middot;{" "}
+                      {service.requiresPickup
+                        ? "1-2 Hari Pembuatan"
+                        : formatDuration(service.durationMinutes)}
+                    </>
+                  )}
                 </p>
+                {isTiered && (
+                  <p className="mt-0.5 text-[11px] text-muted-foreground/80">
+                    {service.tiers.map((t) => `${t.label} ${formatIDR(t.priceFrom)}`).join(" · ")}
+                  </p>
+                )}
                 {service.priceNote && (
                   <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/80">
                     {service.priceNote}

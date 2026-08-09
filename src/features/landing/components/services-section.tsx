@@ -2,31 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   SparkleIcon,
-  MagicWandIcon,
-  PaintBrushIcon,
-  HeartIcon,
-  FootprintsIcon,
-  EraserIcon,
   ArrowRightIcon,
   ArrowUpRightIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import type { Icon } from "@phosphor-icons/react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { imageUrl } from "@/lib/images";
-import { formatDuration, formatIDR } from "@/lib/format";
-import { SERVICES } from "@/features/services/data/services.mock";
-import type { Service, ServiceCategory } from "@/types";
+import { getActiveServices } from "@/features/services/data/services-admin.mock";
+import { servicePriceLine } from "@/features/services/logic/service";
 
-const ICONS: Record<ServiceCategory, Icon> = {
-  "gel-extension": SparkleIcon,
-  "nail-art": MagicWandIcon,
-  "fake-nail": PaintBrushIcon,
-  manicure: HeartIcon,
-  pedicure: FootprintsIcon,
-  removal: EraserIcon,
-};
-
-const CATEGORY_LABELS: Record<ServiceCategory, string> = {
+const TILE_LABELS: Record<string, string> = {
   "gel-extension": "Gel Extension",
   "nail-art": "Nail Art",
   "fake-nail": "Press-On",
@@ -35,17 +19,9 @@ const CATEGORY_LABELS: Record<ServiceCategory, string> = {
   removal: "Removal",
 };
 
-function priceLine(service: Service) {
-  const timing =
-    service.category === "fake-nail"
-      ? "1-2 Hari Pembuatan"
-      : formatDuration(service.durationMinutes);
-  const price = `Mulai ${formatIDR(service.priceFrom)} · ${timing}`;
-  return service.priceNote ? `${price} · estimasi` : price;
-}
-
 function PhotoTile({ slug, className }: { slug: string; className: string }) {
-  const service = SERVICES.find((s) => s.slug === slug)!;
+  const service = getActiveServices().find((s) => s.slug === slug);
+  if (!service) return null;
   return (
     <RevealItem className={className}>
       <Link
@@ -62,13 +38,13 @@ function PhotoTile({ slug, className }: { slug: string; className: string }) {
         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
         <span className="absolute right-4 top-4 rounded-full border border-white/25 bg-black/25 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/85 backdrop-blur-sm transition-colors duration-300 group-hover:border-primary/40 group-hover:bg-primary/30">
-          {CATEGORY_LABELS[service.category]}
+          {TILE_LABELS[service.slug] ?? "Layanan"}
         </span>
 
         <div className="relative">
           <p className="text-lg font-semibold sm:text-xl">{service.name}</p>
           <p className="mt-1 text-sm font-medium text-white/80 tabular-nums">
-            {priceLine(service)}
+            {servicePriceLine(service)}
           </p>
         </div>
 
@@ -89,8 +65,8 @@ const TILE_SURFACES: Record<TileTint, string> = {
 };
 
 function TintedTile({ slug, tint, className }: { slug: string; tint: TileTint; className?: string }) {
-  const service = SERVICES.find((s) => s.slug === slug)!;
-  const Icon = ICONS[service.category];
+  const service = getActiveServices().find((s) => s.slug === slug);
+  if (!service) return null;
   return (
     <RevealItem className={className}>
       <Link
@@ -100,11 +76,11 @@ function TintedTile({ slug, tint, className }: { slug: string; tint: TileTint; c
         }`}
       >
         <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-          <Icon weight="duotone" className="size-6" />
+          <SparkleIcon weight="duotone" className="size-6" />
         </span>
         <div>
           <p className="text-base font-semibold text-foreground">{service.name}</p>
-          <p className="mt-1 text-sm text-muted-foreground tabular-nums">{priceLine(service)}</p>
+          <p className="mt-1 text-sm text-muted-foreground tabular-nums">{servicePriceLine(service)}</p>
           <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
             Lihat detail
             <ArrowRightIcon className="size-4 transition-transform duration-300 group-hover:translate-x-1" />

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircleIcon, TicketIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
-import { findPromotionByCode } from "@/features/promotion/data/promotions.mock";
+import { findPromotionByCode } from "@/features/promotion/data/promotion-booking";
 import { checkPromotion } from "@/features/booking/logic/pricing";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

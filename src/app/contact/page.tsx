@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "Hubungi Kami & Lokasi Kami | Denailss",
   description:
     "Lokasi Denailss, peta petunjuk arah, kontak WhatsApp resmi, profil Instagram, dan formulir hubungi kami.",
+  alternates: {
+    canonical: "/contact",
+  },
 };
 
 export default function ContactPage() {

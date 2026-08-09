@@ -1,16 +1,17 @@
-export type ServiceCategory =
-  | "gel-extension"
-  | "removal"
-  | "manicure"
-  | "pedicure"
-  | "fake-nail"
-  | "nail-art";
+export type ServiceTierKey = "simple" | "complex";
+
+/** A price/duration tier within a service (e.g. nail art simple vs complex). */
+export interface ServiceTier {
+  key: ServiceTierKey;
+  label: string;
+  priceFrom: number;
+  durationMinutes: number;
+}
 
 export interface Service {
   id: string;
   slug: string;
   name: string;
-  category: ServiceCategory;
   shortDescription: string;
   description: string;
   priceFrom: number;
@@ -21,10 +22,22 @@ export interface Service {
    */
   priceNote?: string;
   durationMinutes: number;
+  /**
+   * Difficulty tiers (harga mulai + durasi per tingkat kesulitan) for
+   * services like fake-nail and nail art. Empty for flat-priced services.
+   */
+  tiers: ServiceTier[];
+  /** Whether the service is fulfilled via pickup/delivery instead of an appointment slot. */
+  requiresPickup: boolean;
   heroImage: string;
   gallerySeeds: string[];
   faq: { question: string; answer: string }[];
   depositApplicable: boolean;
+  /**
+   * Whether the service is bookable and shown publicly. Owner deactivates
+   * instead of deleting so existing appointments keep their context.
+   */
+  active: boolean;
 }
 
 export type DesignStyle =
@@ -84,6 +97,9 @@ export interface Review {
 
 export type DiscountType = "percentage" | "fixed";
 
+/** Derivable state of a promotion (Epic 6 admin status). */
+export type PromotionStatus = "active" | "scheduled" | "expired" | "inactive";
+
 export interface Promotion {
   id: string;
   code: string;
@@ -91,12 +107,15 @@ export interface Promotion {
   description: string;
   discountType: DiscountType;
   discountValue: number;
-  startDate: string;
-  endDate: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  /** 0 or negative = unlimited usage. */
   usageLimit: number;
   usedCount: number;
   minimumSpend?: number;
+  /** Omit (or empty array) = applies to all services. */
   applicableServiceSlugs?: string[];
+  /** Cap applied only when discountType is "percentage". */
   maximumDiscount?: number;
   imageSeed?: string;
   active: boolean;

@@ -343,6 +343,7 @@ Core Entities:
 * availability_overrides
 * blocked_times
 * deposit_proofs
+* settings
 
 ---
 
@@ -369,6 +370,12 @@ Gallery
  │
  ├── Gallery Images
  └── Service
+
+Settings
+ │
+ ├── Business Profile
+ ├── Social Media
+ └── Policies
 ```
 
 ---
@@ -459,6 +466,46 @@ File disimpan di Supabase Storage.
 
 ---
 
+### Settings Data Model (Epic 9)
+
+Settings adalah single source of truth untuk informasi bisnis yang tampil di public website (profil, social media) dan kebijakan yang disampaikan ke customer (pembatalan, deposit).
+
+```sql
+-- business_profile (satu baris, berelasi ke business)
+id UUID PRIMARY KEY
+business_id UUID NOT NULL
+name TEXT NOT NULL
+logo_url TEXT            -- Supabase Storage path
+description TEXT
+address TEXT
+created_at timestamptz
+updated_at timestamptz
+
+-- social_media
+id UUID PRIMARY KEY
+business_id UUID NOT NULL
+platform TEXT NOT NULL   -- instagram | tiktok | whatsapp
+handle TEXT NOT NULL
+created_at timestamptz
+updated_at timestamptz
+
+-- policies
+id UUID PRIMARY KEY
+business_id UUID NOT NULL
+type TEXT NOT NULL       -- cancellation | deposit
+content TEXT NOT NULL
+created_at timestamptz
+updated_at timestamptz
+```
+
+Aturan:
+
+* Business name wajib diisi.
+* Social media value disimpan sebagai username (Instagram/TikTok) atau nomor (WhatsApp) setelah dinormalisasi; validasi ringan agar owner tidak berdebat dengan form.
+* Policies adalah **teks kebijakan** (informational), bukan engine konfigurasi deposit. Deposit calculation tetap berada di availability/deposit config (Epic 3) dan alur booking.
+
+---
+
 # 5. API Standard
 
 ## API Style
@@ -483,6 +530,10 @@ POST   /api/v1/bookings
 PATCH  /api/v1/bookings/:id
 
 DELETE /api/v1/gallery/:id
+
+GET    /api/v1/settings
+
+PATCH  /api/v1/settings
 ```
 
 ---
@@ -846,6 +897,33 @@ End-to-End Test dapat ditambahkan setelah MVP stabil.
 
 ---
 
+## Backoffice UI Standard
+
+### Table & Pagination
+
+Setiap tabel data di Backoffice **wajib** memiliki pagination.
+
+Tidak ada pengecualian untuk tabel berisi sedikit data — daftar data bisa bertambah sewaktu-waktu, sehingga pagination harus disertakan sejak fitur pertama dibuat.
+
+Requirement wajib:
+
+| Requirement | Nilai |
+| ----------- | ----- |
+| Default item per halaman | 10 |
+| Opsi item per halaman | 5, 10, 15, 25, 50 |
+| Kontrol | Dropdown "Tampilkan N per halaman" + label jumlah data |
+| Navigasi | Tombol "Sebelumnya"/"Berikutnya" + indikator halaman |
+| Reset halaman | Kembali ke halaman 1 saat search/filter/sort/ganti ukuran halaman |
+
+Checklist saat membuat fitur baru yang menampilkan tabel:
+
+* Tambahkan state `currentPage` dan `itemsPerPage` (default 10).
+* Terapkan slice data sesuai `itemsPerPage`.
+* Tampilkan footer pagination konsisten dengan tabel lain (gallery, customers, dashboard).
+* Ganti ukuran halaman harus mereset `currentPage` ke 1.
+
+---
+
 ## Documentation
 
 Setiap feature baru harus memperbarui:
@@ -967,6 +1045,26 @@ Seluruh data menggunakan UUID sebagai Primary Key.
 * Aman untuk public API
 * Mudah untuk migrasi ke arsitektur multi-tenant di masa depan
 * Mengurangi risiko ID enumeration
+
+---
+
+## ADR-009
+
+### Decision
+
+Seluruh Epic (termasuk Settings) dibangun **FE-first menggunakan mock data** (`*.mock.ts` di `src/features/<domain>/data/`) dengan state client-side (localStorage), sebelum backend Supabase/Drizzle/Route Handler dibuat.
+
+### Reason
+
+* Fase pengembangan saat ini fokus pada cakupan FE dan validasi produk.
+* Setiap modul mock adalah seam bernama: dapat diganti repository/API nyata tanpa mengubah komponen.
+* Menghindari biaya pembangunan backend sebelum scope FE stabil.
+
+### Implikasi
+
+* Settings disimpan sementara di localStorage (`denailss.settings`), seed berasal dari `@/constants/site` dan deposit config (tidak ada duplikasi hardcode).
+* Logo hanya pratinjau lokal (`URL.createObjectURL`), belum diunggah ke Supabase Storage.
+* Saat backend diaktifkan, `src/features/settings/data/settings.mock.ts` diganti repository/API tanpa mengubah UI.
 
 ---
 

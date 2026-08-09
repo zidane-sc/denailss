@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr";
 import { REVIEWS } from "@/features/reviews/data/reviews.mock";
-import { SERVICES } from "@/features/services/data/services.mock";
+import { getActiveServices } from "@/features/services/data/services-admin.mock";
 import { formatDateId } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import { Badge } from "@/components/ui/badge";
@@ -127,7 +127,7 @@ export function ReviewsExplorer() {
             className="flex h-9 rounded-xl border border-input bg-card px-3 py-1 text-xs shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-primary cursor-pointer"
           >
             <option value="all">Semua Layanan</option>
-            {SERVICES.map((s) => (
+            {getActiveServices().map((s) => (
               <option key={s.slug} value={s.slug}>
                 {s.name}
               </option>
@@ -146,7 +146,7 @@ export function ReviewsExplorer() {
           </div>
         ) : (
           filteredReviews.map((review) => {
-            const service = SERVICES.find((s) => s.slug === review.serviceSlug);
+            const service = getActiveServices().find((s) => s.slug === review.serviceSlug);
             return (
               <div
                 key={review.id}

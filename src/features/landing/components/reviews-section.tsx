@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { REVIEWS, getReviewSummary } from "@/features/reviews/data/reviews.mock";
-import { SERVICES } from "@/features/services/data/services.mock";
+import { getActiveServices } from "@/features/services/data/services-admin.mock";
 import { imageUrl } from "@/lib/images";
 import { formatDateId } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -56,7 +56,7 @@ export function ReviewsSection() {
             Semua
           </button>
           {usedServiceSlugs.map((slug) => {
-            const service = SERVICES.find((s) => s.slug === slug);
+            const service = getActiveServices().find((s) => s.slug === slug);
             if (!service) return null;
             return (
               <button

@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "Ulasan Pelanggan | Denailss",
   description:
     "Lihat testimoni jujur dan rating kepuasan dari pelanggan setia yang telah merasakan treatment kuku premium di Denailss.",
+  alternates: {
+    canonical: "/reviews",
+  },
 };
 
 export default function ReviewsPage() {

@@ -4,9 +4,9 @@ import { useMemo, useRef, useState } from "react";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { getServiceBySlug } from "@/features/services/data/services.mock";
+import { getServiceBySlug } from "@/features/services/data/services-admin.mock";
 import { getDesignBySlug } from "@/features/gallery/data/designs.mock";
-import { findPromotionByCode } from "@/features/promotion/data/promotions.mock";
+import { findPromotionByCode } from "@/features/promotion/data/promotion-booking";
 import { DEPOSIT_CONFIG } from "@/features/booking/data/deposit-config.mock";
 import { addBooking } from "@/features/booking/store/bookings-store";
 import { checkPromotion, calculateDeposit } from "@/features/booking/logic/pricing";
@@ -50,7 +50,7 @@ export function BookingFlow({
   const selectedServices = useMemo(() => {
     return selections.serviceSlugs
       .map((slug) => getServiceBySlug(slug))
-      .filter(Boolean) as Service[];
+      .filter((s): s is Service => Boolean(s && s.active));
   }, [selections.serviceSlugs]);
 
   const totalDuration = useMemo(() => {

@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Gallery",
   description:
     "Jelajahi koleksi nail art Denailss, cari berdasarkan style, warna, acara, bentuk, sampai rentang harga.",
+  alternates: {
+    canonical: "/gallery",
+  },
 };
 
 export default function GalleryPage() {

@@ -10,8 +10,14 @@ import {
   ClockIcon,
   UsersThreeIcon,
   ImagesIcon,
+  TicketIcon,
   ArrowLeftIcon,
   ListIcon,
+  WalletIcon,
+  ChartLineUpIcon,
+  GearIcon,
+  SparkleIcon,
+  InstagramLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +29,12 @@ const NAV_ITEMS = [
   { href: "/backoffice/calendar", label: "Kalender", icon: CalendarBlankIcon },
   { href: "/backoffice/availability", label: "Pengaturan Jadwal", icon: ClockIcon },
   { href: "/backoffice/gallery", label: "Katalog Galeri", icon: ImagesIcon },
+  { href: "/backoffice/services", label: "Layanan", icon: SparkleIcon },
+  { href: "/backoffice/instagram", label: "Grid Instagram", icon: InstagramLogoIcon },
+  { href: "/backoffice/promotions", label: "Promosi", icon: TicketIcon },
+  { href: "/backoffice/finance", label: "Keuangan", icon: WalletIcon },
+  { href: "/backoffice/analytics", label: "Analytics", icon: ChartLineUpIcon },
+  { href: "/backoffice/settings", label: "Pengaturan", icon: GearIcon },
   { href: "/backoffice/customers", label: "Pelanggan", icon: UsersThreeIcon },
 ];
 
@@ -98,6 +110,12 @@ export function BackofficeLayoutContent({ children }: { children: React.ReactNod
     if (pathname.startsWith("/backoffice/availability")) return "Pengaturan Jadwal";
     if (pathname.startsWith("/backoffice/appointments")) return "Detail Appointment";
     if (pathname.startsWith("/backoffice/gallery")) return "Katalog Galeri";
+    if (pathname.startsWith("/backoffice/services")) return "Kelola Layanan";
+    if (pathname.startsWith("/backoffice/instagram")) return "Grid Instagram";
+    if (pathname.startsWith("/backoffice/promotions")) return "Promosi";
+    if (pathname.startsWith("/backoffice/finance")) return "Keuangan";
+    if (pathname.startsWith("/backoffice/analytics")) return "Analytics";
+    if (pathname.startsWith("/backoffice/settings")) return "Pengaturan";
     if (pathname.startsWith("/backoffice/customers")) return "Buku Pelanggan";
     return "Backoffice";
   };

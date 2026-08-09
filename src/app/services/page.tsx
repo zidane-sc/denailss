@@ -12,20 +12,22 @@ import {
   ClockIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react";
-import { SERVICES } from "@/features/services/data/services.mock";
-import { formatDuration, formatIDR } from "@/lib/format";
+import { getActiveServices } from "@/features/services/data/services-admin.mock";
+import { formatIDR, formatDuration } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { ServiceCategory } from "@/types";
 
 export const metadata: Metadata = {
   title: "Layanan Treatment & Kuku Palsu | Denailss",
   description:
     "Pilihan lengkap layanan manicure, pedicure, gel extension, nail art, removal, dan custom press-on kuku palsu berkualitas premium di Denailss.",
+  alternates: {
+    canonical: "/services",
+  },
 };
 
-const ICONS: Record<ServiceCategory, Icon> = {
+const ICONS: Record<string, Icon> = {
   "gel-extension": SparkleIcon,
   "nail-art": MagicWandIcon,
   "fake-nail": PaintBrushIcon,
@@ -34,7 +36,13 @@ const ICONS: Record<ServiceCategory, Icon> = {
   removal: EraserIcon,
 };
 
+/** Fallback icon keyed by slug so unknown services still render a mark. */
+function serviceIcon(slug: string): Icon {
+  return ICONS[slug] ?? SparkleIcon;
+}
+
 export default function ServicesPage() {
+  const services = getActiveServices();
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       {/* Header */}
@@ -49,9 +57,9 @@ export default function ServicesPage() {
 
       {/* Services Grid */}
       <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {SERVICES.map((service) => {
-          const Icon = ICONS[service.category];
-          const isFakeNail = service.category === "fake-nail";
+        {services.map((service) => {
+          const Icon = serviceIcon(service.slug);
+          const isTiered = service.tiers.length > 0;
 
           return (
             <div
@@ -95,14 +103,20 @@ export default function ServicesPage() {
                   <div>
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider block font-medium">Harga Mulai</span>
                     <span className="text-sm font-bold text-foreground">{formatIDR(service.priceFrom)}</span>
-                    {service.priceNote && (
+                    {isTiered ? (
                       <span className="block max-w-[220px] text-[10px] leading-snug text-muted-foreground">
-                        {service.priceNote}
+                        {service.tiers.map((t) => `${t.label} ${formatIDR(t.priceFrom)} · ${formatDuration(t.durationMinutes)}`).join(" · ")}
                       </span>
+                    ) : (
+                      service.priceNote && (
+                        <span className="block max-w-[220px] text-[10px] leading-snug text-muted-foreground">
+                          {service.priceNote}
+                        </span>
+                      )
                     )}
                   </div>
                   <div className="ml-auto flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1.5 font-medium text-foreground/80">
-                    {isFakeNail ? (
+                    {service.requiresPickup ? (
                       <>
                         <span className="text-[11px]">📦</span>
                         <span>1-2 Hari Pembuatan</span>
@@ -110,7 +124,7 @@ export default function ServicesPage() {
                     ) : (
                       <>
                         <ClockIcon className="size-3.5 text-muted-foreground" />
-                        <span>{formatDuration(service.durationMinutes)}</span>
+                        <span>{isTiered ? "sesuai tingkat" : formatDuration(service.durationMinutes)}</span>
                       </>
                     )}
                   </div>

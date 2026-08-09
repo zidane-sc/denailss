@@ -141,7 +141,7 @@ export function AvailabilityView() {
       return;
     }
     addVacation({ start: vacationStart, end: vacationEnd, reason: vacationReason });
-    toast.success("Periode cuti studio berhasil ditambahkan! 🏖️");
+    toast.success("Periode cuti berhasil ditambahkan! 🏖️");
     setVacationReason("");
   };
 
@@ -172,7 +172,7 @@ export function AvailabilityView() {
       maxBookingsPerDay: Number(rulesMaxBookings),
       bufferMinutes: Number(rulesBuffer),
     });
-    toast.success("Aturan booking studio berhasil diperbarui! 💅");
+    toast.success("Aturan booking berhasil diperbarui! 💅");
   };
 
   const handleSaveDepositConfig = (e: React.FormEvent) => {
@@ -220,7 +220,7 @@ export function AvailabilityView() {
       <div className="border-b border-border/50 pb-4">
         <p className="text-xs text-muted-foreground font-medium">Pengaturan Command Center</p>
         <h2 className="font-heading text-xl font-bold text-foreground/90 mt-1">
-          Ketersediaan Jam Kerja &amp; Aturan Studio
+          Ketersediaan Jam Kerja &amp; Aturan Operasional
         </h2>
         <p className="text-xs text-muted-foreground mt-0.5">
           Atur jadwal mingguan, tandai hari cuti, override tanggal merah, dan buat pemblokiran waktu.
@@ -271,7 +271,7 @@ export function AvailabilityView() {
                       <span className="font-heading text-sm font-bold text-foreground">{name}</span>
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         {ranges.length === 0 ? (
-                          <span className="text-xs font-medium text-muted-foreground italic">Libur / Tutup Studio</span>
+                          <span className="text-xs font-medium text-muted-foreground italic">Libur / Tidak Buka</span>
                         ) : (
                           ranges.map((range, rIdx) => (
                             <Badge key={rIdx} variant="outline" className="bg-background font-medium text-[10px]">
@@ -310,7 +310,7 @@ export function AvailabilityView() {
 
                 {tempRanges.length === 0 ? (
                   <div className="py-6 text-center border border-dashed rounded-xl text-muted-foreground italic text-xs">
-                    Tidak ada sesi kerja. Studio tutup pada hari ini.
+                    Tidak ada sesi kerja. Rumah tidak beroperasi pada hari ini.
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -386,7 +386,7 @@ export function AvailabilityView() {
           <div className="space-y-6">
             <section className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs space-y-4">
               <h3 className="font-heading text-sm font-semibold text-foreground/90 flex items-center gap-1.5">
-                <span className="text-base">🏖️</span> Jadwal Cuti Studio
+                <span className="text-base">🏖️</span> Jadwal Cuti
               </h3>
 
               {availabilityConfig.vacations.length === 0 ? (
@@ -670,7 +670,7 @@ export function AvailabilityView() {
                   onChange={(e) => setRulesWindow(Number(e.target.value))}
                   required
                 />
-                <p className="text-[10px] text-muted-foreground">Berapa hari ke depan customer bisa memesan jadwal sesi di studio.</p>
+                <p className="text-[10px] text-muted-foreground">Berapa hari ke depan customer bisa memesan jadwal sesi.</p>
               </div>
 
               <div className="grid gap-1.5">
@@ -682,7 +682,7 @@ export function AvailabilityView() {
                   onChange={(e) => setRulesMaxBookings(Number(e.target.value))}
                   required
                 />
-                <p className="text-[10px] text-muted-foreground">Batas jumlah janji temu maksimum yang bisa dilayani oleh seluruh tim studio dalam satu hari.</p>
+                <p className="text-[10px] text-muted-foreground">Batas jumlah janji temu maksimum yang bisa dilayani dalam satu hari.</p>
               </div>
 
               <div className="grid gap-1.5">

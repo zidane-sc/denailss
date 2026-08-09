@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useBackoffice } from "../context/backoffice-context";
 import { formatIDR, formatDateId, toDateKey, formatDuration } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
-import { SERVICES } from "@/features/services/data/services.mock";
+import { getLiveServices } from "@/features/services/data/services-admin.mock";
 import { serviceNamesLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -332,7 +332,7 @@ export function DashboardView() {
                 <div className="grid gap-2">
                   <Label className="font-medium text-foreground/90">Layanan (bisa pilih lebih dari satu)</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {SERVICES.map((svc) => {
+                    {getLiveServices().map((svc) => {
                       const active = newServiceSlugs.includes(svc.slug);
                       return (
                         <button

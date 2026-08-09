@@ -4,6 +4,8 @@ import React, { useMemo, useState } from "react";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  CameraIcon,
+  CoinsIcon,
   ImagesIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
@@ -83,7 +85,9 @@ export function GalleryAdminListView() {
     const complexCount = designs.filter(
       (d) => d.difficulty === "complex" || d.difficulty === "very-complex"
     ).length;
-    return { total, complexCount };
+    const premiumCount = designs.filter((d) => d.price >= 200000).length;
+    const totalPhotos = designs.reduce((sum, d) => sum + d.imageSeeds.length, 0);
+    return { total, complexCount, premiumCount, totalPhotos };
   }, [designs]);
 
   const filtered = useMemo(() => {
@@ -175,7 +179,7 @@ export function GalleryAdminListView() {
       </div>
 
       {/* Summary band */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-xs">
           <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <ImagesIcon weight="fill" className="size-5" />
@@ -192,6 +196,24 @@ export function GalleryAdminListView() {
           <div>
             <p className="font-heading text-xl font-semibold text-foreground/90">{stats.complexCount}</p>
             <p className="text-[11px] text-muted-foreground">Kesulitan Tinggi</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-xs">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-secondary-soft text-secondary">
+            <CoinsIcon weight="fill" className="size-5" />
+          </span>
+          <div>
+            <p className="font-heading text-xl font-semibold text-foreground/90">{stats.premiumCount}</p>
+            <p className="text-[11px] text-muted-foreground">Desain Premium</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-xs">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-primary-foreground text-primary border border-primary/20">
+            <CameraIcon weight="fill" className="size-5" />
+          </span>
+          <div>
+            <p className="font-heading text-xl font-semibold text-foreground/90">{stats.totalPhotos}</p>
+            <p className="text-[11px] text-muted-foreground">Total Foto</p>
           </div>
         </div>
       </div>

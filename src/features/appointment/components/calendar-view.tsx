@@ -44,6 +44,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { BookingStatus, DepositVerificationStatus, TimeRange } from "@/types";
 import type { Appointment } from "../types";
+import { getCrmCustomers } from "@/features/crm/data/customers.mock";
 import {
   waCustomerChatLink,
   depositApprovedWaMessage,
@@ -51,6 +52,16 @@ import {
 } from "../lib/whatsapp";
 
 type ViewMode = "day" | "week" | "month";
+
+function normalizePhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  return digits.startsWith("0") ? `62${digits.slice(1)}` : digits;
+}
+
+function findCrmCustomerByPhone(phone: string) {
+  const target = normalizePhone(phone);
+  return getCrmCustomers().find((c) => normalizePhone(c.phone) === target);
+}
 
 export function CalendarView() {
   const {
@@ -77,6 +88,11 @@ export function CalendarView() {
 
   // WhatsApp notify panel after approve / reschedule
   const [notifWa, setNotifWa] = useState<{ type: "approved" | "rescheduled"; oldDate?: string; oldTime?: string } | null>(null);
+
+  // CRM customer matching the selected appointment's phone (if any)
+  const selectedCrmCustomer = selectedAppointment
+    ? findCrmCustomerByPhone(selectedAppointment.customer.phone)
+    : undefined;
 
   const todayKey = toDateKey(new Date()); // real today
 
@@ -391,7 +407,7 @@ export function CalendarView() {
               Agenda Hari Ini
             </h3>
             <span className="text-xs font-medium text-muted-foreground">
-              {checkIsWeeklyClosed(currentDate) ? "🌸 Hari Libur Studio" : "📅 Hari Kerja"}
+              {checkIsWeeklyClosed(currentDate) ? "🌸 Hari Libur" : "📅 Hari Kerja"}
             </span>
           </div>
 
@@ -409,7 +425,7 @@ export function CalendarView() {
               return (
                 <div className="py-16 text-center">
                   <span className="text-4xl">🏖️</span>
-                  <p className="text-sm font-semibold text-rose-600 mt-2">Studio Tutup (Cuti)</p>
+                  <p className="text-sm font-semibold text-rose-600 mt-2">Tutup (Cuti)</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{vacation.reason}</p>
                 </div>
               );
@@ -419,7 +435,7 @@ export function CalendarView() {
               return (
                 <div className="py-16 text-center">
                   <span className="text-4xl">🌸</span>
-                  <p className="text-sm font-semibold text-muted-foreground mt-2">Studio Tutup</p>
+                  <p className="text-sm font-semibold text-muted-foreground mt-2">Tidak Buka</p>
                   <p className="text-xs text-muted-foreground mt-0.5">Sesuai template operasional mingguan.</p>
                 </div>
               );
@@ -658,6 +674,18 @@ export function CalendarView() {
                     <ArrowRightIcon className="size-3.5" />
                     Lihat Detail
                   </Button>
+                  {selectedCrmCustomer && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="gap-1.5 rounded-full px-3.5 text-muted-foreground"
+                      nativeButton={false}
+                      render={<Link href={`/backoffice/customers/${selectedCrmCustomer.id}`} />}
+                    >
+                      <UserIcon className="size-3.5" />
+                      Lihat Customer
+                    </Button>
+                  )}
                 </div>
               </div>
 
