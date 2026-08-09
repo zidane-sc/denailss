@@ -7,7 +7,6 @@ import {
   getDesignBySlug,
   getRelatedDesigns,
 } from "@/features/gallery/data/designs.mock";
-import { getServiceBySlug } from "@/features/services/data/services.mock";
 import { PhotoCarousel } from "@/features/gallery/components/photo-carousel";
 import { GalleryCard } from "@/features/gallery/components/gallery-card";
 import {
@@ -19,7 +18,7 @@ import {
 } from "@/features/gallery/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDuration, formatIDR } from "@/lib/format";
+import { formatIDR } from "@/lib/format";
 
 export function generateStaticParams() {
   return GALLERY_DESIGNS.map((design) => ({ slug: design.slug }));
@@ -42,15 +41,9 @@ export default async function GalleryDesignPage({ params }: PageProps<"/gallery/
   const design = getDesignBySlug(slug);
   if (!design) notFound();
 
-  const relatedServices = design.relatedServiceSlugs
-    .map((s) => getServiceBySlug(s))
-    .filter((s): s is NonNullable<typeof s> => Boolean(s));
-  const primaryService = relatedServices[0];
   const relatedDesigns = getRelatedDesigns(design);
 
-  const bookingHref = primaryService
-    ? `/booking?service=${primaryService.slug}&design=${design.slug}`
-    : `/booking?design=${design.slug}`;
+  const bookingHref = `/booking?design=${design.slug}`;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
@@ -75,40 +68,15 @@ export default async function GalleryDesignPage({ params }: PageProps<"/gallery/
           </h1>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">{design.description}</p>
 
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-2xl font-semibold text-primary">{formatIDR(design.priceFrom)}</span>
-            <span className="text-xs text-muted-foreground">
-              &middot; per set, sesuai tingkat kesulitan {DIFFICULTY_LABELS[design.difficulty].toLowerCase()}
-            </span>
+          <div className="mt-5 flex items-baseline gap-2">
+            <span className="text-2xl font-semibold text-primary">{formatIDR(design.price)}</span>
+            <span className="text-xs text-muted-foreground">per set, 10 jari</span>
           </div>
 
           <Button size="lg" className="mt-6 h-12 w-full rounded-full text-base sm:w-auto sm:px-8" render={<Link href={bookingHref} />} nativeButton={false}>
             Booking Desain Ini
             <ArrowRightIcon className="size-4" />
           </Button>
-
-          {relatedServices.length > 0 && (
-            <div className="mt-8">
-              <p className="text-sm font-semibold text-foreground">Layanan terkait</p>
-              <div className="mt-3 space-y-2">
-                {relatedServices.map((service) => (
-                  <Link
-                    key={service.slug}
-                    href={`/services/${service.slug}`}
-                    className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 transition-colors hover:border-primary/50"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{service.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Mulai {formatIDR(service.priceFrom)} &middot; {formatDuration(service.durationMinutes)}
-                      </p>
-                    </div>
-                    <ArrowRightIcon className="size-4 text-primary" />
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

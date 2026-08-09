@@ -7,11 +7,11 @@
 
 ## Current Phase
 
-Epics 1, 2, 3, and 4 (CRM) are implemented. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files, with client-side state hooks (BackofficeProvider) managing dashboard, calendar, and availability configuration.
+Epics 1, 2, 3, 4 (CRM), and 5 (Gallery Management) are implemented. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files, with client-side state hooks (BackofficeProvider) managing dashboard, calendar, and availability configuration.
 
 **Backend wiring and Auth are deliberately skipped for now.** In-progress decision: this period is FE-first. All new work is built against mock data (extending the existing `*.mock.ts` seam pattern so it can be swapped for a real repository layer later without touching components). No Supabase project, no Drizzle schema, no `/api/v1/*` route handlers will be created until FE scope is further along.
 
-Epics 5-9 (Gallery Management admin, Promotion admin, Finance, Analytics, Settings) are **not started**; when they are, they will also be built FE-first on mocks.
+Epics 6-9 (Promotion admin, Finance, Analytics, Settings) are **not started**; when they are, they will also be built FE-first on mocks.
 
 ---
 
@@ -24,7 +24,7 @@ Epics 5-9 (Gallery Management admin, Promotion admin, Finance, Analytics, Settin
 - Color tokens in `src/app/globals.css`: dusty rose primary, honey-yellow secondary, periwinkle-blue accent, warm blush background. Light-mode only (deliberate brand decision, no dark: variants anywhere in custom code).
 - Motion: `motion/react` for scroll reveals (`src/components/motion/reveal.tsx`) and micro-interactions. No GSAP.
 - Images: real nail-art photos from the Denailss Instagram (`@denailss_9`) — 6 full-res posts + 12 grid shots downloaded into `public/images/instagram/`. `src/lib/images.ts` exposes `imageUrl(seed)` which maps every mock seed name to these local assets (with a branded fallback); the old `picsum.photos` placeholder helper is gone, and `next.config.ts` has no remote image hosts.
-- **Nail-art difficulty tiers** — every gallery design carries a studio-assigned `difficulty` (`easy | medium | complex | very-complex`, see `DesignDifficulty` in `src/types` and `DIFFICULTY_LABELS`/`DIFFICULTY_PRICES` in `src/features/gallery/constants.ts`). The tier drives the design's `priceFrom` (Rp100k/140k/190k/240k per set), so customers never self-assess difficulty — they see the tier + price on cards, detail, and booking summary. Gallery has a "Kesulitan" filter.
+- **Nail-art difficulty tiers** — every gallery design carries a studio-assigned `difficulty` (`easy | medium | complex | very-complex`, see `DesignDifficulty` in `src/types` and `DIFFICULTY_LABELS` in `src/features/gallery/constants.ts`). Customers never self-assess difficulty — they see the tier on cards, detail, and booking design step. Gallery has a "Kesulitan" filter. Note: since Epic 5, the tier no longer drives the price — each design carries a **custom owner-set `price`** (`GalleryDesign.price`, Rp per set).
 - **Estimate pricing for nail art** — the Nail Art service carries a `priceNote` ("Estimasi, harga final sesuai desain & tingkat kesulitan — dikonfirmasi via WhatsApp"). Its price stays an estimate regardless of design selection; selecting a catalog design never changes the subtotal (design is a preference shown as info, not a price override). Fixed-price services (removal/manicure/pedicure/gel) are unaffected.
 - **Fake-nail fulfillment step** — whenever Fake Nail (Press-On) is in the selected services (alone or with others), the booking flow replaces Tanggal/Waktu with a "Pengambilan" step (`StepPickup`, choices: ambil di lokasi / dikirim via kurir). The choice is stored on `BookingSelections.fulfillment` and shown in the booking summary and confirmation. Promo step is present for every service (not conditional).
 - **Brand logo**: real logo assets in `public/images/` — `logo-icon.png` (portrait icon) and `logo-horizontal.png` (icon + wordmark). Used via `next/image` in the site header, site footer, customer portal header, and both backoffice sidebar + mobile drawer. No text/emoji "denailss" logos anywhere anymore.
@@ -34,8 +34,8 @@ Epics 5-9 (Gallery Management admin, Promotion admin, Finance, Analytics, Settin
 ### Routes built
 - `/` — full landing page (`src/features/landing/components/*`): hero, featured designs, services bento, promotion banner, reviews, about, FAQ, Instagram grid, contact. Composed in `src/app/page.tsx`.
 - **Instagram section** — real post photos, no embed iframe. Shortcodes live in `src/features/landing/data/instagram-posts.mock.ts`; the section renders square cards that pull each post's image through the `src/app/api/instagram/[shortcode]/route.ts` proxy (follows Instagram's public `/media/?size=l` 302 redirect, cached 24h) and link to the original post. No `next/image` optimization needed (already 1080×1080). Update by swapping shortcodes from new embed codes (post → ⋯ → Embed → Copy embed code).
-- `/gallery` — masonry grid, search, style/color/occasion/shape/**difficulty** filters, price range, IntersectionObserver infinite scroll (`src/features/gallery/components/gallery-explorer.tsx`).
-- `/gallery/[slug]` — design detail with photo carousel, related services, related designs. Shows difficulty badge + price derived from the tier.
+- `/gallery` — masonry grid, search (judul/deskripsi), style/color/occasion/shape/**difficulty** filters, IntersectionObserver infinite scroll (`src/features/gallery/components/gallery-explorer.tsx`). Reads the **live admin catalog** via `GalleryDesignsProvider`.
+- `/gallery/[slug]` — design detail with photo carousel, custom price, difficulty badge, related designs, booking CTA. (Server-rendered from the seed catalog — uploaded-only designs don't get a detail page yet.)
 - `/services` — **New dedicated page** listing all treatments in a premium grid layout with custom category icons, pricing starting indicators, and packaging duration indicators for fake nails.
 - `/services/[slug]` — service detail with price/duration, example results, FAQ.
 - `/reviews` — **New dedicated page** containing overall rating cards, dynamic star distribution bars, and composite filters (rating stars and treatment types) for customer testimonials.
@@ -48,7 +48,7 @@ Epics 5-9 (Gallery Management admin, Promotion admin, Finance, Analytics, Settin
 
 ### Booking flow (`src/features/booking/`)
 - Dynamic step list built from the selected services:
-  - **Desain** appears only when the selection includes nail-art, fake-nail, or gel-extension (skipped for manicure/pedicure/removal-only bookings). The step lists the full gallery catalog — no `relatedServiceSlugs` filtering — since any design can be applied to any eligible service (including press-on).
+  - **Desain** appears only when the selection includes nail-art, fake-nail, or gel-extension (skipped for manicure/pedicure/removal-only bookings). The step lists the **live admin catalog** (via `useLiveGalleryDesigns`) — no service filtering, since any design can be applied to any eligible service (including press-on).
   - **Pengambilan** (fulfillment) appears when fake-nail is selected (even alongside other services); otherwise Tanggal/Waktu are used.
   - **Promo** is always present for every service combination; **Deposit** only when the selected service requires it.
   - Step index/max-reached are clamped for rendering when the step list changes (services toggled) so navigation never lands out of range.
@@ -88,6 +88,14 @@ Epics 5-9 (Gallery Management admin, Promotion admin, Finance, Analytics, Settin
 - Wired up: "Pelanggan" (`UsersThree`) nav item in desktop sidebar + mobile sheet; page title maps to "Buku Pelanggan".
 
 
+### Gallery Management admin (`src/features/gallery/`) — Epic 5
+- `/backoffice/gallery` — "Kelola Katalog" admin: summary stats (total desain, kesulitan tinggi), search, style/color/occasion/shape/difficulty filters, A-Z sort on title, pagination, desktop table + mobile cards. Create/edit via a dialog form; delete with confirmation toast.
+- **Upload-only photo flow** — a design's photos come **only** from owner uploads (no picking from the Instagram seed set). Upload hits `POST /api/upload` (saves to `public/images/uploads/`, gitignored, max 6 MB image); the seed is stored as `upload:<filename>` and `imageUrl()` resolves it to `/images/uploads/<file>`. Photos render as a compact thumbnail grid with **drag-and-drop reordering** (first photo = "Utama" = the cover used everywhere) and **click-to-preview lightbox** (with delete inside preview).
+- **Custom price per design** — the form has a free-text "Harga (Rp)" input (required, > 0) instead of a difficulty-derived price. `GalleryDesign.price` replaces the old `priceFrom`; the seed keeps its old tier values as `price`. Price shows on the gallery card (badge, top-left) and the design detail page ("Rp X · per set, 10 jari"). `formatIDR` guards non-finite values (renders "—"). A migration in `gallery-admin.mock.ts` backfills `price` for designs persisted before the field existed (falls back to legacy `priceFrom` or the tier default).
+- **Live catalog wiring** — `GalleryDesignsProvider` (client) + `useLiveGalleryDesigns()` makes the localStorage-backed admin catalog available to the public surfaces: `/gallery` explorer, `/booking` design step, and landing featured designs all render the owner's current catalog (seed as SSR fallback), so admin add/edit/delete shows up live in the customer flow. `gallery-admin.mock.ts` is the swap seam for a real repository; `GALLERY_DESIGNS` in `designs.mock.ts` is now documented as the seed only.
+- **Removed at the owner's request**: tags (search uses title + description), published date (no date-driven sorting anywhere), the "reset catalog" action, **related services** (`relatedServiceSlugs` dropped from the type; `/gallery/[slug]` no longer shows "Layanan terkait" and books via `/booking?design=...` directly; `/services/[slug]` no longer lists example designs), and the difficulty-derived price tier.
+
+
 ### Verified working (via Playwright, this session)
 - Full booking happy path end-to-end including promo code + deposit upload + confirmation.
 - Availability engine renders correct limited/full/closed days matching the seeded mock config.
@@ -104,7 +112,7 @@ Epics 5-9 (Gallery Management admin, Promotion admin, Finance, Analytics, Settin
 
 FE-first only. Backend wiring and Auth are out of scope for now (see Current Phase).
 
-1. **Epics 5-9, built FE-first on mocks** — Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings (Backoffice). Each still goes through `src/features/*/data/*.mock.ts` seams, extending the mock-first pattern already used for Epics 1-4.
+1. **Epics 6-9, built FE-first on mocks** — Promotion admin, Finance, Analytics, Settings (Backoffice). Each still goes through `src/features/*/data/*.mock.ts` seams, extending the mock-first pattern already used for Epics 1-5.
 2. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
 3. **Deferred (post-FE period)** — Backend wiring (Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions) and Auth (Supabase Auth, email + Google-ready). Every `*.mock.ts` file under `src/features/*/data/` is a named seam for that swap.
 

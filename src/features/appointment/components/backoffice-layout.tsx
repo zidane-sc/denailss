@@ -8,6 +8,8 @@ import {
   HouseIcon,
   CalendarBlankIcon,
   ClockIcon,
+  UsersThreeIcon,
+  ImagesIcon,
   ArrowLeftIcon,
   ListIcon,
 } from "@phosphor-icons/react/dist/ssr";
@@ -20,6 +22,8 @@ const NAV_ITEMS = [
   { href: "/backoffice", label: "Dashboard", icon: HouseIcon },
   { href: "/backoffice/calendar", label: "Kalender", icon: CalendarBlankIcon },
   { href: "/backoffice/availability", label: "Pengaturan Jadwal", icon: ClockIcon },
+  { href: "/backoffice/gallery", label: "Katalog Galeri", icon: ImagesIcon },
+  { href: "/backoffice/customers", label: "Pelanggan", icon: UsersThreeIcon },
 ];
 
 function BackofficeSidebar({ className }: { className?: string }) {
@@ -93,6 +97,8 @@ export function BackofficeLayoutContent({ children }: { children: React.ReactNod
     if (pathname.startsWith("/backoffice/calendar")) return "Kalender Kerja";
     if (pathname.startsWith("/backoffice/availability")) return "Pengaturan Jadwal";
     if (pathname.startsWith("/backoffice/appointments")) return "Detail Appointment";
+    if (pathname.startsWith("/backoffice/gallery")) return "Katalog Galeri";
+    if (pathname.startsWith("/backoffice/customers")) return "Buku Pelanggan";
     return "Backoffice";
   };
 

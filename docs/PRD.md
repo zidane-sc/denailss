@@ -201,13 +201,15 @@ Sebagai customer, saya ingin mencari design sesuai selera sehingga saya dapat me
 * Color
 * Occasion
 * Shape
-* Price Range
+* Difficulty
+* Search (judul/deskripsi)
 
 **Gallery Detail**
 
-* Multiple photos
+* Multiple photos (urutan bisa diatur, foto pertama = utama)
 * Description
-* Related services
+* Price (custom per desain)
+* Difficulty
 * Related designs
 * Book this design
 
@@ -680,21 +682,24 @@ High
 
 Gallery CRUD
 
-Status
-
-* Draft
-* Published
-
 Fields
 
-* Photos
-* Category
+* Photos (upload-only dari owner; bisa hapus & urutkan via drag-and-drop, foto pertama = foto utama)
+* Title
+* Description
+* Style
 * Color
 * Shape
-* Style
-* Service
-* Description
-* Tags
+* Occasion
+* Difficulty
+* Price (custom, bebas diisi owner)
+
+Catatan perubahan requirement:
+
+* Tags dihapus — desain diidentifikasi via judul/slug, pencarian lewat judul + deskripsi.
+* Harga tidak lagi otomatis mengikuti tier difficulty — owner mengisi harga custom per desain (tampil di card galeri & halaman detail).
+* "Related services" dihapus — desain tidak lagi terikat layanan tertentu (booking desain langsung `/booking?design=...`; halaman layanan tidak lagi menampilkan contoh desain).
+* Status Draft/Published tidak diimplementasikan di iterasi FE-first — semua desain tampil (tanpa tanggal terbit).
 ---
 
 # EPIC 6 — Promotion

@@ -89,19 +89,26 @@ const SEED_MAP: Record<string, string> = {
   "promo-default": "grid-5.jpg",
 
   // Deposit proof placeholders
-  proof1: "grid-6.jpg",
-  proof2: "grid-8.jpg",
-  proof3: "grid-12.jpg",
-  proof13: "grid-9.jpg",
-  "transfer-proof": "grid-10.jpg",
-  newproof: "grid-11.jpg",
+  proof1: "../bukti-transfer-dummy.jpg",
+  proof2: "../bukti-transfer-dummy.jpg",
+  proof3: "../bukti-transfer-dummy.jpg",
+  proof13: "../bukti-transfer-dummy.jpg",
+  "transfer-proof": "../bukti-transfer-dummy.jpg",
+  newproof: "../bukti-transfer-dummy.jpg",
 
   // Photo carousel fallback
   "denailss-fallback": "glazed-french-ombre.jpg",
 };
 
 export function imageUrl(seed: string) {
+  // Uploaded files are stored as real paths under /images/uploads/.
+  if (seed.startsWith("upload:")) {
+    return seed.replace(/^upload:/, "/images/uploads/");
+  }
   const file = SEED_MAP[seed] ?? "glazed-french-ombre.jpg";
+  if (file.startsWith("../")) {
+    return `/images/${file.substring(3)}`;
+  }
   return `${ASSET_ROOT}${file}`;
 }
 

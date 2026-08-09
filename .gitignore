@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# uploads (mock FE-first storage — user uploads, not source assets)
+/public/images/uploads/
+
 # production
 /build
 

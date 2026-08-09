@@ -1,10 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { imageUrl } from "@/lib/images";
 import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
-import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
+import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-designs-provider";
 import type { GalleryDesign } from "@/types";
 
 const STYLE_LABELS: Record<GalleryDesign["style"], string> = {
@@ -67,9 +69,8 @@ function DesignTile({ design, className, aspectClass, index }: DesignTileProps) 
 }
 
 export function FeaturedDesigns() {
-  const featured = [...GALLERY_DESIGNS]
-    .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
-    .slice(0, 6);
+  const designs = useLiveGalleryDesigns();
+  const featured = designs.slice(0, 6);
 
   const [hero, ...rest] = featured;
 

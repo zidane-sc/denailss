@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { GalleryDesignsProvider } from "@/features/gallery/components/gallery-designs-provider";
 import { SITE } from "@/constants/site";
 import "./globals.css";
 
@@ -52,9 +53,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <TooltipProvider delay={150}>
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <GalleryDesignsProvider>
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+          </GalleryDesignsProvider>
           <Toaster position="bottom-center" />
         </TooltipProvider>
       </body>

@@ -33,8 +33,15 @@ import {
   ShieldCheckIcon,
   UserIcon,
   MagnifyingGlassIcon,
+  WhatsappLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import type { BookingStatus, DepositVerificationStatus } from "@/types";
+import type { Appointment } from "../types";
+import {
+  waCustomerChatLink,
+  depositApprovedWaMessage,
+  depositRejectedWaMessage,
+} from "../lib/whatsapp";
 
 export function DashboardView() {
   const {
@@ -50,7 +57,7 @@ export function DashboardView() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [sortField, setSortField] = useState<"id" | "customer" | "service" | "date" | "price">("id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -109,9 +116,12 @@ export function DashboardView() {
   const totalPages = Math.ceil(filteredDbAppts.length / itemsPerPage);
   const paginatedAppts = React.useMemo(() => {
     return filteredDbAppts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  }, [filteredDbAppts, currentPage]);
+  }, [filteredDbAppts, currentPage, itemsPerPage]);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+
+  // WhatsApp notify modal after deposit approve / reject
+  const [notifyAppt, setNotifyAppt] = useState<{ appt: Appointment; type: "approved" | "rejected"; reason?: string } | null>(null);
 
   // Form states for new appointment
   const [newCustomerName, setNewCustomerName] = useState("");
@@ -214,8 +224,10 @@ export function DashboardView() {
   };
 
   const handleApproveDeposit = (id: string) => {
+    const appt = appointments.find((a) => a.id === id);
     approveDeposit(id);
     toast.success("Deposit berhasil diverifikasi dan disetujui! 💅");
+    if (appt) setNotifyAppt({ appt, type: "approved" });
   };
 
   const handleRejectDepositSubmit = (e: React.FormEvent, id: string) => {
@@ -224,10 +236,12 @@ export function DashboardView() {
       toast.error("Alasan penolakan wajib diisi!");
       return;
     }
+    const appt = appointments.find((a) => a.id === id);
     rejectDeposit(id, rejectReason);
     toast.info("Deposit ditolak. Status dikembalikan ke pending deposit.");
     setRejectId(null);
     setRejectReason("");
+    if (appt) setNotifyAppt({ appt, type: "rejected", reason: rejectReason });
   };
 
   const getStatusBadge = (status: BookingStatus) => {
@@ -936,12 +950,31 @@ export function DashboardView() {
         </div>
 
         {/* Pagination controls */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/40">
-            <span className="text-[11px] text-muted-foreground">
-              Menampilkan {Math.min(filteredDbAppts.length, (currentPage - 1) * itemsPerPage + 1)}-
+        <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-border/40 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="text-[11px] text-muted-foreground">Tampilkan</span>
+            <select
+              aria-label="Jumlah item per halaman"
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="h-8 rounded-lg border border-border bg-card px-2 text-xs font-semibold shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              {[5, 10, 15, 25, 50].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span className="text-[11px] text-muted-foreground">per halaman</span>
+            <span className="ml-1 text-[11px] text-muted-foreground">
+              · Menampilkan {Math.min(filteredDbAppts.length, (currentPage - 1) * itemsPerPage + 1)}-
               {Math.min(filteredDbAppts.length, currentPage * itemsPerPage)} dari {filteredDbAppts.length} data
             </span>
+          </div>
+          {totalPages > 1 && (
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -965,9 +998,76 @@ export function DashboardView() {
                 Berikutnya
               </Button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </section>
+
+      {/* Notify customer via WhatsApp modal */}
+      <Dialog open={Boolean(notifyAppt)} onOpenChange={(open) => !open && setNotifyAppt(null)}>
+        <DialogContent className="sm:max-w-md bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-lg font-semibold text-foreground/90 flex items-center gap-2">
+              <span className="flex size-8 items-center justify-center rounded-full bg-emerald-600 text-white">
+                <WhatsappLogoIcon weight="fill" className="size-4" />
+              </span>
+              Beri Tahu Customer
+            </DialogTitle>
+          </DialogHeader>
+          {notifyAppt && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Deposit untuk booking{" "}
+                <span className="font-mono font-semibold text-foreground">{notifyAppt.appt.id}</span>{" "}
+                sudah{" "}
+                <span className={cn("font-semibold", notifyAppt.type === "approved" ? "text-emerald-600" : "text-destructive")}>
+                  {notifyAppt.type === "approved" ? "disetujui" : "ditolak"}
+                </span>
+                . Beri tahu <span className="font-semibold text-foreground">{notifyAppt.appt.customer.name}</span> lewat
+                WhatsApp?
+              </p>
+
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground leading-relaxed">
+                <p className="font-semibold text-foreground/80">Pratinjau pesan:</p>
+                <p className="mt-1 whitespace-pre-line">
+                  {notifyAppt.type === "approved"
+                    ? depositApprovedWaMessage(notifyAppt.appt)
+                    : depositRejectedWaMessage(notifyAppt.appt, notifyAppt.reason || "")}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  variant="ghost"
+                  className="gap-1.5 rounded-full text-muted-foreground"
+                  onClick={() => setNotifyAppt(null)}
+                >
+                  Nanti saja
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5 rounded-full bg-emerald-600 px-4 text-white hover:bg-emerald-700"
+                  nativeButton={false}
+                  render={
+                    <a
+                      href={waCustomerChatLink(
+                        notifyAppt.appt.customer.phone,
+                        notifyAppt.type === "approved"
+                          ? depositApprovedWaMessage(notifyAppt.appt)
+                          : depositRejectedWaMessage(notifyAppt.appt, notifyAppt.reason || "")
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  }
+                >
+                  <WhatsappLogoIcon weight="fill" className="size-4" />
+                  Kirim WhatsApp
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

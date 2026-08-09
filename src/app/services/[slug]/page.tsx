@@ -4,8 +4,6 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowRightIcon, ClockIcon } from "@phosphor-icons/react/dist/ssr";
 import { SERVICES, getServiceBySlug } from "@/features/services/data/services.mock";
-import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
-import { GalleryCard } from "@/features/gallery/components/gallery-card";
 import {
   Accordion,
   AccordionContent,
@@ -33,10 +31,6 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
   const { slug } = await params;
   const service = getServiceBySlug(slug);
   if (!service) notFound();
-
-  const relatedDesigns = GALLERY_DESIGNS.filter((design) =>
-    design.relatedServiceSlugs.includes(service.slug)
-  ).slice(0, 6);
 
   const bookingHref = `/booking?service=${service.slug}`;
 
@@ -106,19 +100,6 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
           />
         </div>
       </div>
-
-      {relatedDesigns.length > 0 && (
-        <div className="mx-auto mt-16 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Contoh hasil {service.name}
-          </h2>
-          <div className="mt-5 columns-2 gap-4 sm:columns-3 lg:columns-4">
-            {relatedDesigns.map((design) => (
-              <GalleryCard key={design.id} design={design} />
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="mx-auto mt-16 w-full max-w-3xl px-4 pb-20 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold tracking-tight text-foreground">

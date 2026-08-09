@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useBackoffice } from "../context/backoffice-context";
 import {
   formatIDR,
@@ -39,9 +40,15 @@ import {
   PlusIcon,
   BookmarkSimpleIcon,
   WarningIcon,
+  WhatsappLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import type { BookingStatus, DepositVerificationStatus, TimeRange } from "@/types";
 import type { Appointment } from "../types";
+import {
+  waCustomerChatLink,
+  depositApprovedWaMessage,
+  rescheduledWaMessage,
+} from "../lib/whatsapp";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -67,6 +74,9 @@ export function CalendarView() {
   // Reject Deposit states inside detail pane
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+
+  // WhatsApp notify panel after approve / reschedule
+  const [notifWa, setNotifWa] = useState<{ type: "approved" | "rescheduled"; oldDate?: string; oldTime?: string } | null>(null);
 
   const todayKey = toDateKey(new Date()); // real today
 
@@ -176,6 +186,8 @@ export function CalendarView() {
     }
     if (!selectedAppointment) return;
 
+    const oldDate = selectedAppointment.date;
+    const oldTime = selectedAppointment.time;
     rescheduleAppointment(selectedAppointment.id, reschedDate, reschedTime);
     toast.success("Jadwal janji temu berhasil dipindahkan! 📅");
     
@@ -187,6 +199,7 @@ export function CalendarView() {
       status: selectedAppointment.status === "cancelled" || selectedAppointment.status === "no_show" ? "confirmed" : selectedAppointment.status,
     });
     setIsRescheduling(false);
+    setNotifWa({ type: "rescheduled", oldDate, oldTime });
   };
 
   return (
@@ -616,6 +629,36 @@ export function CalendarView() {
                 <div className="text-[10px] text-muted-foreground pt-1 border-t border-border/40">
                   📋 Status Customer: <span className="font-semibold text-primary">Customer Setia (3 booking selesai)</span>
                 </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <Button
+                    size="sm"
+                    className="gap-1.5 rounded-full bg-emerald-600 px-3.5 text-white hover:bg-emerald-700"
+                    nativeButton={false}
+                    render={
+                      <a
+                        href={waCustomerChatLink(
+                          selectedAppointment.customer.phone,
+                          `Halo ${selectedAppointment.customer.name.split(" ")[0]}! Ini Denailss 🖊️`
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      />
+                    }
+                  >
+                    <WhatsappLogoIcon weight="fill" className="size-3.5" />
+                    WhatsApp
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 rounded-full px-3.5"
+                    nativeButton={false}
+                    render={<Link href={`/backoffice/appointments/${selectedAppointment.id}`} />}
+                  >
+                    <ArrowRightIcon className="size-3.5" />
+                    Lihat Detail
+                  </Button>
+                </div>
               </div>
 
               {/* Appointment info card */}
@@ -715,6 +758,7 @@ export function CalendarView() {
                               status: "confirmed",
                               depositStatus: "approved",
                             });
+                            setNotifWa({ type: "approved" });
                           }}
                         >
                           Setujui Deposit
@@ -897,6 +941,64 @@ export function CalendarView() {
                       <p className="italic mt-1 text-muted-foreground">"Pengerjaannya rapi sekali, nail art 3D-nya lucu banget! Rekomen salon ini." ⭐️⭐️⭐️⭐️⭐️</p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* WhatsApp notify panel */}
+              {notifWa && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-xs animate-in fade-in duration-200">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+                        <WhatsappLogoIcon weight="fill" className="size-5" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-emerald-900">
+                          {notifWa.type === "approved" ? "Deposit disetujui!" : "Jadwal berhasil diubah!"}
+                        </p>
+                        <p className="mt-0.5 text-xs text-emerald-800/80 leading-relaxed">
+                          Kirim pemberitahuan ke {selectedAppointment.customer.name} lewat WhatsApp?
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Tutup pemberitahuan"
+                      className="rounded-full p-1 text-emerald-700 transition-colors hover:bg-emerald-100"
+                      onClick={() => setNotifWa(null)}
+                    >
+                      <XIcon className="size-4" />
+                    </button>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Button
+                      size="sm"
+                      className="gap-1.5 rounded-full bg-emerald-600 px-4 text-white hover:bg-emerald-700"
+                      nativeButton={false}
+                      render={
+                        <a
+                          href={waCustomerChatLink(
+                            selectedAppointment.customer.phone,
+                            notifWa.type === "approved"
+                              ? depositApprovedWaMessage(selectedAppointment)
+                              : rescheduledWaMessage(
+                                  selectedAppointment,
+                                  notifWa.oldDate || selectedAppointment.date,
+                                  notifWa.oldTime || selectedAppointment.time
+                                )
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      }
+                    >
+                      <WhatsappLogoIcon weight="fill" className="size-4" />
+                      Beri Tahu di WhatsApp
+                    </Button>
+                    <Button size="sm" variant="ghost" className="rounded-full text-emerald-800" onClick={() => setNotifWa(null)}>
+                      Nanti saja
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

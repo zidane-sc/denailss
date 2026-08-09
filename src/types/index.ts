@@ -68,10 +68,8 @@ export interface GalleryDesign {
   occasion: DesignOccasion;
   shape: DesignShape;
   difficulty: DesignDifficulty;
-  priceFrom: number;
-  relatedServiceSlugs: string[];
-  tags: string[];
-  publishedAt: string;
+  /** Owner-set custom price (Rp per set, 10 jari). */
+  price: number;
 }
 
 export interface Review {

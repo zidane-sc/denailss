@@ -3,10 +3,9 @@
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr";
-import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
+import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-designs-provider";
 import { STYLE_LABELS, COLOR_LABELS, OCCASION_LABELS, DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import { aspectRatioClass, imageUrl } from "@/lib/images";
-import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function StepDesign({
@@ -20,9 +19,10 @@ export function StepDesign({
   const [style, setStyle] = useState("all");
   const [color, setColor] = useState("all");
   const [occasion, setOccasion] = useState("all");
+  const designs = useLiveGalleryDesigns();
 
-  const designs = useMemo(() => {
-    return GALLERY_DESIGNS.filter((d) => {
+  const filteredDesigns = useMemo(() => {
+    return designs.filter((d) => {
       if (search.trim()) {
         const q = search.trim().toLowerCase();
         if (!d.title.toLowerCase().includes(q)) return false;
@@ -32,7 +32,7 @@ export function StepDesign({
       if (occasion !== "all" && d.occasion !== occasion) return false;
       return true;
     });
-  }, [search, style, color, occasion]);
+  }, [designs, search, style, color, occasion]);
 
   return (
     <div>
@@ -125,14 +125,14 @@ export function StepDesign({
 
       {/* Scrollable Grid Box */}
       <div className="mt-4 max-h-[360px] overflow-y-auto pr-1.5 border border-border/40 rounded-2xl p-3 bg-muted/10">
-        {designs.length === 0 ? (
+        {filteredDesigns.length === 0 ? (
           <div className="py-12 text-center">
             <span className="text-xl">💅</span>
             <p className="mt-2 text-xs text-muted-foreground italic">Tidak ada desain kuku yang cocok.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-            {designs.map((design) => {
+            {filteredDesigns.map((design) => {
               const active = selectedSlug === design.slug;
               return (
                 <button
@@ -155,7 +155,7 @@ export function StepDesign({
                     <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-black/10 to-transparent p-2.5 text-left">
                       <p className="text-[11px] font-semibold text-white leading-tight">{design.title}</p>
                       <p className="mt-0.5 text-[10px] text-white/80">
-                        {DIFFICULTY_LABELS[design.difficulty]} &middot; {formatIDR(design.priceFrom)}
+                        {DIFFICULTY_LABELS[design.difficulty]}
                       </p>
                     </div>
                     {active && (

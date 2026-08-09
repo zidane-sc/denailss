@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MagnifyingGlassIcon, SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
 import { GalleryCard } from "@/features/gallery/components/gallery-card";
-import { GALLERY_DESIGNS } from "@/features/gallery/data/designs.mock";
+import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-designs-provider";
 import {
   COLOR_LABELS,
   DIFFICULTY_LABELS,
@@ -35,6 +35,7 @@ const FILTER_GROUPS: { key: FilterKey; label: string; options: Record<string, st
 export function GalleryExplorer() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const designs = useLiveGalleryDesigns();
 
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [style, setStyle] = useState<DesignStyle | null>(
@@ -85,19 +86,19 @@ export function GalleryExplorer() {
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return GALLERY_DESIGNS.filter((design) => {
+    return designs.filter((design) => {
       if (style && design.style !== style) return false;
       if (color && design.color !== color) return false;
       if (occasion && design.occasion !== occasion) return false;
       if (shape && design.shape !== shape) return false;
       if (difficulty && design.difficulty !== difficulty) return false;
       if (query) {
-        const haystack = `${design.title} ${design.tags.join(" ")}`.toLowerCase();
+        const haystack = `${design.title} ${design.description}`.toLowerCase();
         if (!haystack.includes(query)) return false;
       }
       return true;
     });
-  }, [search, style, color, occasion, shape, difficulty]);
+  }, [designs, search, style, color, occasion, shape, difficulty]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;

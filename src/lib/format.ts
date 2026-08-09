@@ -5,6 +5,7 @@ const idrFormatter = new Intl.NumberFormat("id-ID", {
 });
 
 export function formatIDR(amount: number) {
+  if (!Number.isFinite(amount) || amount < 0) return "—";
   return idrFormatter.format(amount).replace("IDR", "Rp");
 }
 

@@ -51,7 +51,7 @@ export function CustomerListView() {
   const [sortField, setSortField] = useState<CustomerSortField>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const rows = useMemo(() => buildRows(query, segment), [query, segment]);
 
@@ -62,7 +62,7 @@ export function CustomerListView() {
     const sorted = sortCustomers(rows, sortField, sortDirection);
     const from = (safePage - 1) * itemsPerPage;
     return sorted.slice(from, from + itemsPerPage);
-  }, [rows, sortField, sortDirection, safePage]);
+  }, [rows, sortField, sortDirection, safePage, itemsPerPage]);
 
   const hasAnyCustomer = getCrmCustomers().length > 0;
 
@@ -223,12 +223,31 @@ export function CustomerListView() {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-4">
-                  <span className="text-[11px] text-muted-foreground">
-                    Menampilkan {(safePage - 1) * itemsPerPage + 1}-
+              <div className="mt-4 flex flex-col gap-3 border-t border-border/40 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-[11px] text-muted-foreground">Tampilkan</span>
+                  <select
+                    aria-label="Jumlah item per halaman"
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="h-8 rounded-lg border border-border bg-card px-2 text-xs font-semibold shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    {[5, 10, 15, 25, 50].map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[11px] text-muted-foreground">per halaman</span>
+                  <span className="ml-1 text-[11px] text-muted-foreground">
+                    · Menampilkan {(safePage - 1) * itemsPerPage + 1}-
                     {Math.min(safePage * itemsPerPage, totalRows)} dari {totalRows} data
                   </span>
+                </div>
+                {totalPages > 1 && (
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
@@ -252,8 +271,8 @@ export function CustomerListView() {
                       Berikutnya
                     </Button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
         </>

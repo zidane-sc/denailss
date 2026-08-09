@@ -3,6 +3,11 @@ import type { GalleryDesign } from "@/types";
 /**
  * Mock data standing in for the future `gallery` + `gallery_images` tables
  * (TRD §4). Swap for a real repository call without touching consumers.
+ *
+ * NOTE: This array is only the SEED. The live catalog the site renders is
+ * managed by the admin gallery store (`gallery-admin.mock.ts`), which seeds
+ * from this array and persists owner edits to localStorage. Consumers that
+ * need the current catalog should read from that store, not this constant.
  */
 export const GALLERY_DESIGNS: GalleryDesign[] = [
   {
@@ -18,10 +23,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "daily",
     shape: "almond",
     difficulty: "easy",
-    priceFrom: 100000,
-    relatedServiceSlugs: ["nail-art", "gel-extension", "fake-nail"],
-    tags: ["korean", "milk nail", "minimalis", "harian"],
-    publishedAt: "2026-07-28",
+    price: 100000,
   },
   {
     id: "des-02",
@@ -35,10 +37,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "daily",
     shape: "square",
     difficulty: "easy",
-    priceFrom: 100000,
-    relatedServiceSlugs: ["manicure", "nail-art", "fake-nail"],
-    tags: ["french tip", "klasik", "nude"],
-    publishedAt: "2026-07-20",
+    price: 100000,
   },
   {
     id: "des-03",
@@ -52,10 +51,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "party",
     shape: "coffin",
     difficulty: "medium",
-    priceFrom: 140000,
-    relatedServiceSlugs: ["gel-extension", "nail-art", "fake-nail"],
-    tags: ["chrome", "mirror", "y2k", "party"],
-    publishedAt: "2026-08-01",
+    price: 140000,
   },
   {
     id: "des-04",
@@ -69,10 +65,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "daily",
     shape: "almond",
     difficulty: "medium",
-    priceFrom: 140000,
-    relatedServiceSlugs: ["nail-art", "fake-nail"],
-    tags: ["ombre", "sunset", "coral"],
-    publishedAt: "2026-07-15",
+    price: 140000,
   },
   {
     id: "des-05",
@@ -86,10 +79,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "party",
     shape: "almond",
     difficulty: "complex",
-    priceFrom: 190000,
-    relatedServiceSlugs: ["nail-art", "gel-extension", "fake-nail"],
-    tags: ["3d", "bow", "girly", "pastel"],
-    publishedAt: "2026-08-03",
+    price: 190000,
   },
   {
     id: "des-06",
@@ -103,10 +93,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "daily",
     shape: "round",
     difficulty: "medium",
-    priceFrom: 140000,
-    relatedServiceSlugs: ["manicure", "nail-art", "fake-nail"],
-    tags: ["minimalis", "line art", "nude"],
-    publishedAt: "2026-06-30",
+    price: 140000,
   },
   {
     id: "des-07",
@@ -120,10 +107,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "wedding",
     shape: "almond",
     difficulty: "very-complex",
-    priceFrom: 240000,
-    relatedServiceSlugs: ["gel-extension", "nail-art", "fake-nail"],
-    tags: ["wedding", "pearl", "elegan"],
-    publishedAt: "2026-07-05",
+    price: 240000,
   },
   {
     id: "des-08",
@@ -137,10 +121,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "festive",
     shape: "coffin",
     difficulty: "very-complex",
-    priceFrom: 240000,
-    relatedServiceSlugs: ["gel-extension", "nail-art", "fake-nail"],
-    tags: ["gold foil", "mewah", "festive"],
-    publishedAt: "2026-07-22",
+    price: 240000,
   },
   {
     id: "des-09",
@@ -154,10 +135,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "party",
     shape: "square",
     difficulty: "easy",
-    priceFrom: 100000,
-    relatedServiceSlugs: ["manicure", "fake-nail"],
-    tags: ["merah", "glossy", "klasik"],
-    publishedAt: "2026-06-18",
+    price: 100000,
   },
   {
     id: "des-10",
@@ -171,10 +149,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "daily",
     shape: "round",
     difficulty: "very-complex",
-    priceFrom: 240000,
-    relatedServiceSlugs: ["nail-art", "fake-nail"],
-    tags: ["korean", "cloud", "pastel", "cute"],
-    publishedAt: "2026-08-05",
+    price: 240000,
   },
   {
     id: "des-11",
@@ -188,10 +163,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "graduation",
     shape: "almond",
     difficulty: "very-complex",
-    priceFrom: 240000,
-    relatedServiceSlugs: ["nail-art", "gel-extension", "fake-nail"],
-    tags: ["wisuda", "star charm", "elegan"],
-    publishedAt: "2026-07-10",
+    price: 240000,
   },
   {
     id: "des-12",
@@ -205,10 +177,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "party",
     shape: "stiletto",
     difficulty: "complex",
-    priceFrom: 190000,
-    relatedServiceSlugs: ["gel-extension", "nail-art", "fake-nail"],
-    tags: ["hitam", "chrome", "edgy", "bold"],
-    publishedAt: "2026-06-25",
+    price: 190000,
   },
   {
     id: "des-13",
@@ -222,10 +191,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "daily",
     shape: "almond",
     difficulty: "medium",
-    priceFrom: 140000,
-    relatedServiceSlugs: ["manicure", "nail-art", "fake-nail"],
-    tags: ["french", "milky", "almond"],
-    publishedAt: "2026-07-01",
+    price: 140000,
   },
   {
     id: "des-14",
@@ -239,10 +205,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "festive",
     shape: "coffin",
     difficulty: "complex",
-    priceFrom: 190000,
-    relatedServiceSlugs: ["gel-extension", "nail-art", "fake-nail"],
-    tags: ["festive", "gold flake", "lebaran"],
-    publishedAt: "2026-08-06",
+    price: 190000,
   },
   {
     id: "des-15",
@@ -256,10 +219,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "daily",
     shape: "round",
     difficulty: "medium",
-    priceFrom: 140000,
-    relatedServiceSlugs: ["nail-art", "fake-nail"],
-    tags: ["ombre", "biru", "liburan"],
-    publishedAt: "2026-06-12",
+    price: 140000,
   },
   {
     id: "des-16",
@@ -273,10 +233,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "daily",
     shape: "square",
     difficulty: "easy",
-    priceFrom: 100000,
-    relatedServiceSlugs: ["manicure", "fake-nail"],
-    tags: ["matte", "nude", "clean girl"],
-    publishedAt: "2026-05-30",
+    price: 100000,
   },
   {
     id: "des-17",
@@ -290,10 +247,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "party",
     shape: "stiletto",
     difficulty: "complex",
-    priceFrom: 190000,
-    relatedServiceSlugs: ["gel-extension", "nail-art", "fake-nail"],
-    tags: ["glitter", "fuchsia", "party"],
-    publishedAt: "2026-07-27",
+    price: 190000,
   },
   {
     id: "des-18",
@@ -307,10 +261,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "wedding",
     shape: "almond",
     difficulty: "very-complex",
-    priceFrom: 240000,
-    relatedServiceSlugs: ["gel-extension", "nail-art", "fake-nail"],
-    tags: ["wedding", "lace", "elegan"],
-    publishedAt: "2026-06-08",
+    price: 240000,
   },
   {
     id: "des-19",
@@ -324,10 +275,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "daily",
     shape: "round",
     difficulty: "easy",
-    priceFrom: 100000,
-    relatedServiceSlugs: ["nail-art", "fake-nail"],
-    tags: ["korean", "jelly", "pink", "tren"],
-    publishedAt: "2026-08-04",
+    price: 100000,
   },
   {
     id: "des-20",
@@ -341,10 +289,7 @@ export const GALLERY_DESIGNS: GalleryDesign[] = [
     occasion: "graduation",
     shape: "square",
     difficulty: "complex",
-    priceFrom: 190000,
-    relatedServiceSlugs: ["gel-extension", "nail-art", "fake-nail"],
-    tags: ["wisuda", "navy", "gold"],
-    publishedAt: "2026-06-20",
+    price: 190000,
   },
 ];
 

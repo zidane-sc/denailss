@@ -22,14 +22,6 @@ export const DIFFICULTY_LABELS: Record<DesignDifficulty, string> = {
   "very-complex": "Sangat Rumit",
 };
 
-/** Studio-set price per difficulty tier (per set, 10 jari) — see Ever Nails price list tiers. */
-export const DIFFICULTY_PRICES: Record<DesignDifficulty, number> = {
-  easy: 100000,
-  medium: 140000,
-  complex: 190000,
-  "very-complex": 240000,
-};
-
 export const COLOR_LABELS: Record<DesignColor, string> = {
   nude: "Nude",
   pink: "Pink",
@@ -57,4 +49,3 @@ export const SHAPE_LABELS: Record<DesignShape, string> = {
 };
 
 export const GALLERY_PAGE_SIZE = 8;
-export const PRICE_RANGE_BOUNDS: [number, number] = [100000, 250000];
