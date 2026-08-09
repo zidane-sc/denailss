@@ -48,10 +48,10 @@ Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, S
 
 ### Booking flow (`src/features/booking/`)
 - Dynamic step list built from the selected services:
-  - **Desain** appears only when the selection includes nail-art, fake-nail, or gel-extension (skipped for manicure/pedicure/removal-only bookings).
+  - **Desain** appears only when the selection includes nail-art, fake-nail, or gel-extension (skipped for manicure/pedicure/removal-only bookings). The step lists the full gallery catalog — no `relatedServiceSlugs` filtering — since any design can be applied to any eligible service (including press-on).
   - **Pengambilan** (fulfillment) appears when fake-nail is selected (even alongside other services); otherwise Tanggal/Waktu are used.
   - **Promo** is always present for every service combination; **Deposit** only when the selected service requires it.
-  - Step index/max-reached are clamped when the step list changes (services toggled) so navigation never lands out of range.
+  - Step index/max-reached are clamped for rendering when the step list changes (services toggled) so navigation never lands out of range.
 - **Availability Engine** (`logic/availability.ts`) is real logic, not fake states: weekly template + per-date overrides + vacation ranges + blocked times + booking rules (window/notice/max-per-day/buffer), computed against seeded mock appointments (`data/appointments.mock.ts`). Produces per-day status (available/limited/full/closed/past/outside-window) and per-slot grouped Pagi/Siang/Malam availability.
 - Pricing/discount/deposit math in `logic/pricing.ts`, validated against mock promotions with real rule checks (date window, min spend, applicable services, usage limit, max discount cap).
 - Customer info step uses `react-hook-form` + `zod` (`validators/booking.schema.ts`).

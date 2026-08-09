@@ -18,5 +18,9 @@
 
 - Wants the promo/discount step to be visible for every service in the booking flow, not conditional on service type — explicitly insisted "step promo visible untuk semua layanan!". Confidence: 0.7
 
-- Expects made-to-order/delivered items (e.g., press-on fake nails) to get a fulfillment/pickup step in the booking flow (ambil di lokasi vs dikirim via kurir), replacing the date/time slot that applies to in-studio services. Confidence: 0.6
+- Expects made-to-order/delivered items (e.g., press-on fake nails) to get a fulfillment/pickup step in the booking flow (ambil di lokasi vs dikirim via kurir), replacing the date/time slot that applies to in-studio services — and it should appear whenever fake-nail is selected, even alongside other in-studio services, not only when it is the sole service. Confidence: 0.8
+
+- Wants multi-step booking/wizard flows to derive their steps dynamically from the current selection and skip steps that don't apply rather than showing empty or irrelevant ones — e.g., the Desain step only when nail-art, fake-nail, or gel-extension is selected, and skipped entirely for manicure/pedicure/removal-only bookings. Confidence: 0.8
+
+- Press-on/fake-nail is a medium that can carry any nail-art design, so the design catalog must associate all designs with fake-nail — the "Pilih Desain" step must never render empty for a service that legitimately triggers it (flagged the empty design list for fake-nail as a defect to investigate/fix, not a data limitation). Confidence: 0.7
 ow; difficulty is set by the artist/studio on curated designs and quoted by the artist for custom requests. Prefers flows where authority lives with the party who owns it in the real world. Confidence: 0.9

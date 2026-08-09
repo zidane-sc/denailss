@@ -10,11 +10,9 @@ import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function StepDesign({
-  serviceSlugs,
   selectedSlug,
   onSelect,
 }: {
-  serviceSlugs: string[];
   selectedSlug: string | null;
   onSelect: (slug: string | null) => void;
 }) {
@@ -24,13 +22,7 @@ export function StepDesign({
   const [occasion, setOccasion] = useState("all");
 
   const designs = useMemo(() => {
-    const base = serviceSlugs.length > 0
-      ? GALLERY_DESIGNS.filter((design) =>
-          design.relatedServiceSlugs.some((slug) => serviceSlugs.includes(slug))
-        )
-      : GALLERY_DESIGNS;
-
-    return base.filter((d) => {
+    return GALLERY_DESIGNS.filter((d) => {
       if (search.trim()) {
         const q = search.trim().toLowerCase();
         if (!d.title.toLowerCase().includes(q)) return false;
@@ -40,7 +32,7 @@ export function StepDesign({
       if (occasion !== "all" && d.occasion !== occasion) return false;
       return true;
     });
-  }, [serviceSlugs, search, style, color, occasion]);
+  }, [search, style, color, occasion]);
 
   return (
     <div>

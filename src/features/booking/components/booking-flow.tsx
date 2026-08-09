@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -113,14 +113,12 @@ export function BookingFlow({
     return base;
   }, [wantsDesign, wantsPickup, depositRequired]);
 
-  const currentStep = steps[stepIndex]?.id ?? "service";
-
-  // When the step list changes (services toggled), keep the current index
-  // valid: clamp it and drop any max-reached index beyond the new list.
-  useEffect(() => {
-    setStepIndex((i) => Math.min(i, steps.length - 1));
-    setMaxReachedIndex((m) => Math.min(m, steps.length - 1));
-  }, [steps.length]);
+  // When the step list changes (services toggled), clamp the stored indexes
+  // for rendering so navigation never points out of range. The raw state is
+  // still updated through goNext/goBack/goToStep.
+  const activeStepIndex = Math.min(stepIndex, steps.length - 1);
+  const activeMaxReached = Math.min(maxReachedIndex, steps.length - 1);
+  const currentStep = steps[activeStepIndex]?.id ?? "service";
   const canProceed = useMemo(() => {
     switch (currentStep) {
       case "service":
@@ -148,14 +146,14 @@ export function BookingFlow({
     }
     if (currentStep === "deposit" && !selections.deposit) return;
 
-    if (stepIndex === steps.length - 2) {
+    if (activeStepIndex === steps.length - 2) {
       const code = `DNL-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}${String(
         new Date().getDate()
       ).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
       setBookingCode(code);
     }
 
-    const next = Math.min(stepIndex + 1, steps.length - 1);
+    const next = Math.min(activeStepIndex + 1, steps.length - 1);
     setStepIndex(next);
     setMaxReachedIndex((m) => Math.max(m, next));
   };
@@ -204,8 +202,8 @@ export function BookingFlow({
     <div className="mx-auto w-full max-w-6xl px-4 pb-28 pt-8 sm:px-6 sm:pb-12 lg:px-8">
       <BookingStepper
         steps={steps.slice(0, -1)}
-        currentIndex={stepIndex}
-        maxReachedIndex={maxReachedIndex}
+        currentIndex={activeStepIndex}
+        maxReachedIndex={activeMaxReached}
         onStepClick={goToStep}
       />
 
@@ -227,7 +225,6 @@ export function BookingFlow({
           )}
           {currentStep === "design" && (
             <StepDesign
-              serviceSlugs={selections.serviceSlugs}
               selectedSlug={selections.designSlug}
               onSelect={(slug) => setSelections((s) => ({ ...s, designSlug: slug }))}
             />
@@ -285,7 +282,7 @@ export function BookingFlow({
               variant="outline"
               size="lg"
               className="rounded-full px-6"
-              disabled={stepIndex === 0}
+              disabled={activeStepIndex === 0}
               onClick={goBack}
             >
               <ArrowLeftIcon className="size-4" />
@@ -323,7 +320,7 @@ export function BookingFlow({
             <Button
               variant="outline"
               size="icon-lg"
-              disabled={stepIndex === 0}
+              disabled={activeStepIndex === 0}
               onClick={goBack}
               aria-label="Kembali"
             >
