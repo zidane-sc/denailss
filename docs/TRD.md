@@ -518,21 +518,28 @@ Endpoint diawali dengan:
 /api/v1
 ```
 
-Contoh:
+Endpoint yang sudah berjalan pada vertical slice saat ini:
 
 ```text
+GET    /api/v1/services
 GET    /api/v1/gallery
+GET    /api/v1/availability
+POST   /api/v1/bookings              # guest atau customer authenticated
+GET    /api/v1/bookings               # owner semua; customer miliknya sendiri
+GET    /api/v1/bookings/:id           # ownership-scoped
+PATCH  /api/v1/bookings/:id           # owner-only
+GET    /api/v1/customer/profile
+PATCH  /api/v1/customer/profile
+GET    /api/v1/customer/bookings
+GET    /api/v1/customer/bookings/:id
+```
 
+Target domain endpoints lain tetap mengikuti pola REST ini:
+
+```text
 GET    /api/v1/gallery/:id
-
-POST   /api/v1/bookings
-
-PATCH  /api/v1/bookings/:id
-
 DELETE /api/v1/gallery/:id
-
 GET    /api/v1/settings
-
 PATCH  /api/v1/settings
 ```
 
@@ -772,12 +779,14 @@ Jangan melakukan `console.log()` pada production code.
 
 ## Authentication
 
-Menggunakan **Supabase Auth**.
+Menggunakan **Supabase Auth** dengan SSR cookie sessions.
 
-Provider MVP:
+Provider yang sudah diimplementasikan:
 
-* Email
-* Google (Future Ready)
+* Email/password login dan signup
+* Google OAuth dengan PKCE callback
+
+Session refresh menggunakan root `middleware.ts`. Route authorization dilakukan server-side pada layout customer/owner dan API auth context; RLS menjadi defense-in-depth untuk tabel private.
 
 ---
 
@@ -1052,19 +1061,21 @@ Seluruh data menggunakan UUID sebagai Primary Key.
 
 ### Decision
 
-Seluruh Epic (termasuk Settings) dibangun **FE-first menggunakan mock data** (`*.mock.ts` di `src/features/<domain>/data/`) dengan state client-side (localStorage), sebelum backend Supabase/Drizzle/Route Handler dibuat.
+Frontend dikembangkan FE-first menggunakan mock data (`*.mock.ts` di `src/features/<domain>/data/`) sebagai seam migrasi. Backend wiring sekarang aktif secara bertahap: Auth/RLS, booking ownership, customer profile, persistent customer bookings, dan Route Handlers sudah berjalan; domain admin/content lain tetap mock sampai repository/API-nya dimigrasikan.
 
 ### Reason
 
-* Fase pengembangan saat ini fokus pada cakupan FE dan validasi produk.
-* Setiap modul mock adalah seam bernama: dapat diganti repository/API nyata tanpa mengubah komponen.
-* Menghindari biaya pembangunan backend sebelum scope FE stabil.
+* FE-first memvalidasi cakupan produk dan menjaga kontrak komponen tetap stabil.
+* Setiap modul mock menjadi seam bernama yang dapat diganti repository/API nyata tanpa mengubah UI.
+* Migrasi bertahap membatasi blast radius pada domain inti booking dan customer.
 
-### Implikasi
+### Implikasi saat ini
 
-* Settings disimpan sementara di localStorage (`denailss.settings`), seed berasal dari `@/constants/site` dan deposit config (tidak ada duplikasi hardcode).
-* Logo hanya pratinjau lokal (`URL.createObjectURL`), belum diunggah ke Supabase Storage.
-* Saat backend diaktifkan, `src/features/settings/data/settings.mock.ts` diganti repository/API tanpa mengubah UI.
+* Booking customer dan profile memakai API + Supabase/Drizzle persistence.
+* Public booking tetap mendukung guest creation melalui server-side service path.
+* Auth memakai Supabase Auth, middleware session refresh, owner/customer guards, dan RLS policies.
+* Settings, promotions, reviews, favorites, CRM, finance, analytics, dan katalog admin masih memakai mock/localStorage seams.
+* Upload gallery, review, deposit proof, dan logo masih lokal/object URL; migrasi ke Supabase Storage belum selesai.
 
 ---
 

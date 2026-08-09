@@ -8,7 +8,6 @@ import { getServiceBySlug } from "@/features/services/data/services-admin.mock";
 import { getDesignBySlug } from "@/features/gallery/data/designs.mock";
 import { findPromotionByCode } from "@/features/promotion/data/promotion-booking";
 import { DEPOSIT_CONFIG } from "@/features/booking/data/deposit-config.mock";
-import { addBooking } from "@/features/booking/store/bookings-store";
 import { checkPromotion, calculateDeposit } from "@/features/booking/logic/pricing";
 import { BookingStepper, type StepMeta } from "@/features/booking/components/booking-stepper";
 import { BookingSummary } from "@/features/booking/components/booking-summary";
@@ -163,14 +162,10 @@ export function BookingFlow({
     }
     if (currentStep === "deposit" && !selections.deposit) return;
 
-    if (activeStepIndex === steps.length - 2) {
-      const code = `DNL-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}${String(
-        new Date().getDate()
-      ).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
+    if (activeStepIndex === steps.length - 2 && !bookingCode) {
+      const code = await submitBooking();
+      if (!code) return;
       setBookingCode(code);
-      if (!bookingCode) {
-        pushBookingToStore(code);
-      }
     }
 
     const next = Math.min(activeStepIndex + 1, steps.length - 1);
@@ -186,33 +181,33 @@ export function BookingFlow({
     setStepIndex(index);
   };
 
-  const pushBookingToStore = (code: string) => {
-    addBooking({
-      id: code,
-      date: selections.dateKey ?? "",
-      time: selections.time ?? "",
-      durationMinutes: totalDuration,
-      services: selectedServices.map((s) => ({
-        slug: s.slug,
-        name: s.name,
-        tierLabel: s.tierLabel,
-      })),
-      designSlug: design?.slug,
-      designTitle: design?.title,
-      fulfillment: selections.fulfillment ?? undefined,
-      price: total,
-      customer: {
-        name: selections.customer?.name ?? "Pelanggan Baru",
-        phone: selections.customer?.phone ?? "-",
-        email: selections.customer?.email,
-        notes: selections.customer?.notes,
-      },
-      depositRequired,
-      depositAmount: depositRequired ? depositAmount : undefined,
-      depositStatus: depositRequired ? "waiting_verification" : undefined,
-      status: depositRequired ? "waiting_verification" : "confirmed",
-      notes: selections.customer?.notes,
+  const submitBooking = async () => {
+    const response = await fetch("/api/v1/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        serviceSlugs: selections.serviceSlugs,
+        tierByServiceSlug: selections.tierByServiceSlug,
+        designSlug: selections.designSlug,
+        dateKey: selections.dateKey,
+        time: selections.time,
+        fulfillment: selections.fulfillment,
+        customer: selections.customer,
+        promoCode: selections.promoCode,
+        deposit: selections.deposit
+          ? { fileName: selections.deposit.fileName, status: selections.deposit.status }
+          : null,
+      }),
     });
+
+    if (response.ok) {
+      const payload = (await response.json()) as { data: { id: string } };
+      return payload.data.id;
+    }
+
+    const payload = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+    window.alert(payload?.error?.message ?? "Booking belum dapat disimpan. Coba lagi.");
+    return null;
   };
 
   if (currentStep === "confirmation" && selectedServices.length > 0 && bookingCode) {

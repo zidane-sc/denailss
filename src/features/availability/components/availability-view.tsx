@@ -373,7 +373,7 @@ export function AvailabilityView() {
           ) : (
             <div className="hidden md:flex flex-col items-center justify-center p-12 text-center bg-muted/10 border border-dashed rounded-2xl h-64">
               <ClockIcon className="size-8 text-muted-foreground/45" />
-              <p className="text-xs font-medium text-muted-foreground mt-2">Pilih "Edit" pada salah satu hari untuk mengatur jam sesi kerjanya.</p>
+              <p className="text-xs font-medium text-muted-foreground mt-2">Pilih &quot;Edit&quot; pada salah satu hari untuk mengatur jam sesi kerjanya.</p>
             </div>
           )}
         </div>

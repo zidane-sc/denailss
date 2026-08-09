@@ -37,11 +37,29 @@ interface BackofficeContextType {
 const BackofficeContext = createContext<BackofficeContextType | undefined>(undefined);
 
 export function BackofficeProvider({ children }: { children: React.ReactNode }) {
-  // Seed from mock + any bookings made through /booking in this session.
+  // Keep the FE-first seed visible while hydrating persisted appointments when configured.
   const [appointments, setAppointments] = useState<Appointment[]>(() => [
     ...INITIAL_APPOINTMENTS,
     ...getBookings(),
   ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/bookings")
+      .then(async (response) => (response.ok ? ((await response.json()) as { data: Appointment[] }).data : []))
+      .then((persisted) => {
+        if (!cancelled && persisted.length > 0) {
+          setAppointments((current) => {
+            const byId = new Map([...current, ...persisted].map((appointment) => [appointment.id, appointment]));
+            return [...byId.values()];
+          });
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [availabilityConfig, setAvailabilityConfig] = useState<AvailabilityConfig>(AVAILABILITY_CONFIG);
   const [depositConfig, setDepositConfig] = useState<DepositConfig>(DEPOSIT_CONFIG);
 
@@ -78,7 +96,16 @@ export function BackofficeProvider({ children }: { children: React.ReactNode }) 
     setAppointments((prev) => [...prev, newAppt]);
   };
 
+  const persistAppointment = (id: string, updates: Record<string, unknown>) => {
+    void fetch(`/api/v1/bookings/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    }).catch(() => undefined);
+  };
+
   const updateAppointmentStatus = (id: string, status: BookingStatus) => {
+    persistAppointment(id, { status });
     setAppointments((prev) =>
       prev.map((appt) => {
         if (appt.id !== id) return appt;
@@ -99,6 +126,7 @@ export function BackofficeProvider({ children }: { children: React.ReactNode }) 
   };
 
   const rescheduleAppointment = (id: string, date: string, time: string) => {
+    persistAppointment(id, { dateKey: date, time });
     setAppointments((prev) =>
       prev.map((appt) =>
         appt.id === id
@@ -114,6 +142,7 @@ export function BackofficeProvider({ children }: { children: React.ReactNode }) 
   };
 
   const approveDeposit = (id: string) => {
+    persistAppointment(id, { status: "confirmed", depositStatus: "approved", depositRejectReason: null });
     setAppointments((prev) =>
       prev.map((appt) =>
         appt.id === id
@@ -129,6 +158,7 @@ export function BackofficeProvider({ children }: { children: React.ReactNode }) 
   };
 
   const rejectDeposit = (id: string, reason: string) => {
+    persistAppointment(id, { status: "pending_deposit", depositStatus: "rejected", depositRejectReason: reason });
     setAppointments((prev) =>
       prev.map((appt) =>
         appt.id === id

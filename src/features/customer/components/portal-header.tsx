@@ -1,12 +1,20 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserCircleIcon, ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { CUSTOMER_PROFILE } from "../data/customer.mock";
+import { fetchCustomerProfile } from "@/features/customer/data/customer-api";
+import { LogoutDialog } from "@/features/auth/components/logout-dialog";
 
 export function PortalHeader() {
+  const [name, setName] = useState(CUSTOMER_PROFILE.name);
+
+  useEffect(() => {
+    fetchCustomerProfile().then((profile) => setName(profile.name)).catch(() => undefined);
+  }, []);
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center border-b border-border/70 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 sm:px-6">
@@ -46,11 +54,14 @@ export function PortalHeader() {
           >
             Kembali ke web utama
           </Button>
-          <div className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-3 pr-1.5 shadow-sm">
-            <span className="text-sm font-medium">{CUSTOMER_PROFILE.name.split(" ")[0]}</span>
-            <div className="flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <UserCircleIcon weight="fill" className="size-5" />
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-3 pr-1.5 shadow-sm">
+              <span className="text-sm font-medium">{name.split(" ")[0]}</span>
+              <div className="flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <UserCircleIcon weight="fill" className="size-5" />
+              </div>
             </div>
+            <LogoutDialog mobile />
           </div>
         </div>
       </div>

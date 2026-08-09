@@ -2,11 +2,13 @@
 
 - Wants explicit consent before consequential browser actions: pause and ask rather than acting (e.g., only click a GitHub star "if I explicitly say yes"; pause and ask before any task that needs login or confirmation). Confidence: 0.9
 
+- Prefers consequential logout actions to require an in-app confirmation modal before the session is cleared; the modal should provide clear "Batal" and "Keluar" actions and only submit logout after explicit confirmation. Confidence: 0.85
+
 - Wants tooling set up to be verified end-to-end after install/update ("install or update ... then verify it works") — not just installed and reported as done. Confidence: 0.6
 
 - Prefers the assistant to read the official skill/setup documentation first before executing a task ("Read the BrowserAct skill first"). Confidence: 0.5
 
-- Wants the assistant to commit completed work to git as part of wrapping up a task ("commit current changes") rather than leaving the repo with uncommitted changes; expects the assistant to handle staging and committing, including pre-existing uncommitted work from others. Confidence: 0.7
+- Wants the assistant to commit completed work to git as part of wrapping up a task ("commit current changes") rather than leaving the repo with uncommitted changes; expects the assistant to handle staging and committing, including pre-existing uncommitted work from others. Also, when offered options after a session wraps (commit vs. starting the backend phase vs. a lint hardening pass), prioritizes committing the working tree before anything else — replied tersely "comit first". Confidence: 0.8
 
 - Wants project documentation kept in sync with code changes — "update @docs if needed" (e.g., AGENTS.md, docs/PROGRESS.md) should be checked and updated as part of finishing a task; proactively asks whether docs need updating for the latest changes ("do we need update @docs about our changes?") and also asks the assistant to audit that the docs match the actual implementation, not just that they were updated (e.g., "apa sudah sesuai antara docs dan implementasi?"). Expects the doc to mirror the final shipped state of "our changes" broadly — including internal architecture refactors (e.g., a seed/store split for SSR safety) and intentional design decisions (e.g., a deliberately omitted delete feature) — not just user-visible feature lists. Reiterated explicitly right after an epic shipped ("okay then update the @docs"): a blanket docs request that expects the assistant to determine which docs need updating and to record the shipped technical decisions in the spec too (added settings to TRD entities/ERD, a data-model subsection, API endpoints, and a new ADR), not just the progress log. Confidence: 0.99
 
@@ -30,7 +32,11 @@
 
 - Accepts (implicitly greenlights) the assistant's standard verification protocol — typecheck, lint, production build, and dev-server smoke tests of new routes — as the definition of done for shipped features. Confidence: 0.4
 
+- Expects backend migrations to preserve a usable frontend during incremental rollout: keep explicit local/mock fallback seams until infrastructure credentials and deployment setup exist, while making the API authoritative when configured. Confidence: 0.8
+
 - Prefers building features front-end only on the existing mock data seam, deferring backend wiring to a later epic (explicitly said "do FE only") — mock-first implementation behind a named seam is the accepted interim until a real repository layer exists. Re-confirmed when offered "start the backend phase or pick the highest-value FE gap": chose to close the FE gap first ("okay fix the gap first") rather than begin the deferred backend. Confidence: 0.65
+
+- When beginning backend work, wants the documented plan used together with the already-implemented frontend as the source of truth: inspect real UI/data seams and preserve existing component behavior and contracts instead of implementing from docs alone. Confidence: 0.85
 
 - Agrees to keep user-uploaded/runtime-generated artifacts out of version control (approved adding `public/images/uploads/` to `.gitignore`) — generated storage, unlike source assets, should be gitignored so it doesn't get committed/deployed. Confidence: 0.5
 

@@ -63,6 +63,7 @@ export function DashboardView() {
 
   // Reset page when filters or sorting change
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [dbSearch, statusFilter, serviceFilter, sortField, sortDirection]);
 

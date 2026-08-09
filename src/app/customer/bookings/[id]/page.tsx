@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, use, useEffect } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Reveal } from "@/components/motion/reveal";
@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CUSTOMER_BOOKINGS, CUSTOMER_PROFILE } from "@/features/customer/data/customer.mock";
+import { CUSTOMER_PROFILE } from "@/features/customer/data/customer.mock";
+import { appointmentToCustomerBooking } from "@/features/customer/data/customer-api";
+import type { CustomerBooking } from "@/features/customer/types";
 import { addReview } from "@/features/reviews/data/reviews.mock";
 import { formatIDR, formatDateId, parseDateKey } from "@/lib/format";
 import {
@@ -30,13 +32,21 @@ import { toast } from "sonner";
 
 export default function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const booking = CUSTOMER_BOOKINGS.find((b) => b.id === id);
+  const [booking, setBooking] = useState<CustomerBooking | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!booking) {
-    notFound();
-  }
+  useEffect(() => {
+    fetch(`/api/v1/customer/bookings/${id}`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error("booking");
+        const payload = (await response.json()) as { data: Parameters<typeof appointmentToCustomerBooking>[0] };
+        setBooking(appointmentToCustomerBooking(payload.data));
+      })
+      .catch(() => setBooking(null))
+      .finally(() => setLoading(false));
+  }, [id]);
 
-  const [hasReview, setHasReview] = useState(booking.hasReview);
+  const [hasReview, setHasReview] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState("");
@@ -48,6 +58,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       toast.error("Tulis dulu ulasan singkatmu sebelum dikirim.");
       return;
     }
+    if (!booking) return;
     const primaryService = booking.services[0];
     addReview({
       id: `rev-${booking.id.toLowerCase()}`,
@@ -73,6 +84,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
     if (booking?.status === "waiting_verification") return <Badge variant="secondary">Menunggu Verifikasi</Badge>;
     return <Badge variant="outline">{booking?.status}</Badge>;
   }
+
+  if (loading) return <p className="py-16 text-center text-sm text-muted-foreground">Memuat detail booking...</p>;
+  if (!booking) return <p className="py-16 text-center text-sm text-destructive">Booking tidak ditemukan atau bukan milik akun ini.</p>;
 
   return (
     <div className="space-y-8 max-w-2xl mx-auto px-1 animate-in fade-in duration-300">

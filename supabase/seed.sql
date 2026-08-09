@@ -1,0 +1,3 @@
+-- Development seed placeholder.
+-- Import the current frontend catalogs here once a Supabase project is provisioned.
+-- The application keeps the existing mock catalogs as a local-development fallback.

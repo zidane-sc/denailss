@@ -6,6 +6,10 @@
 
 - Runs zsh as their shell (nvm loaded via `.zshrc`); when diagnosing shell/PATH issues, expects the assistant to account for zsh configs and behavior. Confidence: 0.9
 
+- Expects dependency installation problems to be diagnosed from the actual lockfile/node_modules state and repaired explicitly, then verified with the real project checks rather than assumed fixed from an npm success message. Confidence: 0.8
+
 - Directs the assistant to use specific Command Code skills for the work at hand (e.g., "use the skill design" for UI work) and expects the skill's process — activating it, reading its references, and following its rules — to be followed rather than ad-hoc implementation. Confidence: 0.7
 
 - Uses browser-act CLI for live browser verification: loads the skill workflow, opens a browser session, screenshots the actual page, and evaluates JS in the DOM to measure rendered geometry (getBoundingClientRect) rather than trusting guesswork. Confidence: 0.6
+
+- When configuring project environment variables, prefers them written directly to the repository-root `.env` file rather than only being shown as instructions or placed in `.env.local`. Confidence: 0.8

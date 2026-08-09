@@ -7,9 +7,9 @@
 
 ## Current Phase
 
-Epics 1, 2, 3, 4 (CRM), 5 (Gallery Management), 6 (Promotion admin), 7 (Finance), and 8 (Analytics) are implemented. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files, with client-side state hooks (BackofficeProvider) managing dashboard, calendar, and availability configuration.
+Epics 1, 2, 3, 4 (CRM), 5 (Gallery Management), 6 (Promotion admin), 7 (Finance), and 8 (Analytics) are implemented. The frontend-first phase is complete enough to begin backend wiring. A first backend vertical slice now exists: Drizzle schema + generated Supabase migration, shared API helpers, catalog/availability routes, booking create/list/detail/update routes, server-side catalog validation and pricing, transactional customer/appointment persistence, and frontend booking/backoffice adapters. Google OAuth, SSR session refresh, customer/owner route guards, Auth profile linkage, and RLS policies are now implemented and migrated to Supabase. Authenticated booking ownership is now enforced in the API, guest booking remains supported, and the customer dashboard, booking history/detail, profile, and portal header read persistent Supabase-backed data. The remaining favorites, reviews, CRM, and admin domains still run against local mock data in `*.mock.ts` files.
 
-**Backend wiring and Auth are deliberately skipped for now.** In-progress decision: this period is FE-first. All new work is built against mock data (extending the existing `*.mock.ts` seam pattern so it can be swapped for a real repository layer later without touching components). No Supabase project, no Drizzle schema, no `/api/v1/*` route handlers will be created until FE scope is further along.
+**Production Storage and complete domain migration are not implemented yet.** Public booking now fails explicitly when the API/database is unavailable instead of creating a misleading session-only booking. The approved Google accounts must be promoted with `supabase/OWNER_SETUP.sql` before `/backoffice` is accessible; the SQL supports two owner UUIDs. Auth/RLS SQL is currently hand-authored under `supabase/migrations/0001_auth_rls.sql` and was applied directly because Drizzle's journal only tracks generated migrations; the existing-account profile backfill is in `0002_backfill_auth_profiles.sql`.
 
 Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on mocks. SEO polish (sitemap, robots, JSON-LD, canonical/OG metadata) is done.
 
@@ -65,12 +65,13 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 - **Availability Engine** (`logic/availability.ts`) is real logic, not fake states: weekly template + per-date overrides + vacation ranges + blocked times + booking rules (window/notice/max-per-day/buffer), computed against seeded mock appointments (`data/appointments.mock.ts`). Produces per-day status (available/limited/full/closed/past/outside-window) and per-slot grouped Pagi/Siang/Malam availability.
 - Pricing/discount/deposit math in `logic/pricing.ts`, validated against mock promotions with real rule checks (date window, min spend, applicable services, usage limit, max discount cap).
 - Customer info step uses `react-hook-form` + `zod` (`validators/booking.schema.ts`).
-- State lives entirely in `booking-flow.tsx` (client component); no persistence across refresh.
+- Booking selections live in `booking-flow.tsx` until submission; completed bookings are persisted through `POST /api/v1/bookings` and are no longer mirrored into a session-only fallback when the API fails.
 - Deposit upload is a real file input with local preview (`URL.createObjectURL`), replace/remove, mocked "waiting verification" status. No actual upload to storage.
 
 ### Customer portal (`src/features/customer/`)
-- **Customer review submission (Epic 2 gap closed)** — the "Beri Ulasan" dialog on a completed booking detail page now persists the review through the reviews store (`addReview` → localStorage `denailss.reviews`), instead of only flipping local state. The submitted review (customer name from `CUSTOMER_PROFILE`, rating, primary service, visit date, comment) appears immediately on the public `/reviews` page, the landing reviews section, and the hero rating summary — all of which now read `getLiveReviews()` (SSR-safe, seed fallback).
-- Routes: Dashboard (`/customer`), History (`/customer/bookings`), Details (`/customer/bookings/[id]`), Favorites grid (`/customer/favorites`), and Profile edit form (`/customer/profile`).
+- Customer booking ownership is now API-backed: authenticated customer requests are scoped through `customers.user_id`, anonymous booking creation remains supported, and booking reads/updates are role-protected.
+- Routes: Dashboard (`/customer`), History (`/customer/bookings`), Details (`/customer/bookings/[id]`), Favorites grid (`/customer/favorites`), and Profile edit form (`/customer/profile`). Dashboard, history, detail, profile, and portal identity now read persistent API data; favorites and reviews remain on mock/localStorage seams.
+- **Customer review submission (FE-first)** — the "Beri Ulasan" dialog still persists through the reviews store (`addReview` → localStorage `denailss.reviews`) until the reviews API/storage slice is implemented.
 - Responsive layout: standalone portal desktop sidebar nav + mobile bottom navigation tab bar.
 - Global site header/footer context-aware hide logic on `/customer/*` routes.
 - Fully Indonesian copy matching Denailss boutique studio brand guidelines.
@@ -79,7 +80,7 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 
 ### Backoffice Command Center (`src/features/appointment/` & `src/features/availability/`)
 - **Multi-service appointments** — `Appointment` now carries `services: {slug, name}[]` (was a single `serviceSlug`/`serviceName`) plus optional `fulfillment` (`pickup` | `delivery`) for press-on orders. The add-booking form lets staff pick multiple services and choose a fulfillment method when fake-nail is selected. Dashboard, calendar, and detail views render joined service names + fulfillment label.
-- **Booking → backoffice sync (session store)** — bookings completed through `/booking` are pushed to `src/features/booking/store/bookings-store.ts` (module-level list + subscribers); `BackofficeProvider` seeds from it and subscribes so new bookings appear in the backoffice within the same session. No backend yet — the store is the mock-consistent seam for a real API later.
+- **Booking persistence and backoffice sync** — completed bookings are created through `POST /api/v1/bookings`; `BackofficeProvider` hydrates persisted owner-visible appointments and sends status/reschedule/deposit mutations through the API. `bookings-store.ts` is no longer used as a booking-submit fallback.
 - **Customer portal multi-service** — `CustomerBooking` uses the same `services` array + `fulfillment`; bookings list and detail render joined names + fulfillment.
 - Unified Backoffice state context (`BackofficeProvider`) coordinates data updates reactively between dashboard list, calendar blocks, detail drawer, overrides lists, and booking rules inputs.
 - Beautiful, non-generic boutique operating interface built on top of Outfit heading and Plus Jakarta Sans body typography, utilizing light blush card styling and deliberate primary accent coloring.
@@ -153,7 +154,7 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 - **Sitemap** — `src/app/sitemap.ts` (`/sitemap.xml`): 6 static public routes + all service and gallery-design detail routes from the seed catalogs, with priority/change-frequency. Backoffice/customer excluded.
 - **robots.txt** — `src/app/robots.ts`: public site crawlable; `/backoffice`, `/customer`, `/api/` disallowed; sitemap advertised.
 - **Metadata** — root layout now ships OpenGraph + Twitter image (logo-horizontal), `metadataBase` canonical base, and `robots: index/follow`. Every public page has `alternates.canonical`; gallery-design and service detail pages get per-item canonical, `og:type: article`, and a real photo as `og:image`.
-- Future swap note: values in `seo.tsx` read from `@/constants/site` today; they will flow from the Settings (Epic 9) model once backend integration lands.
+- Future integration note: values in `seo.tsx` still read from `@/constants/site`; they can flow from the Settings model after the Settings repository/API migration is completed.
 
 ### Settings (`src/features/settings/`) — Epic 9
 - `/backoffice/settings` — "Pengaturan": a single focused workspace, not a settings maze. Compact header ("Atur informasi dan kebijakan yang digunakan Denailss."), no KPI cards. Three quiet sections: **Profil Bisnis** (nama bisnis required, logo, deskripsi, alamat), **Social Media** (Instagram, TikTok, WhatsApp), **Kebijakan** (kebijakan pembatalan + kebijakan deposit as informational policy text — NOT the deposit calculation engine, which stays in the booking flow).
@@ -164,23 +165,30 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 - **Empty states** — "Belum ada logo", "Tambahkan deskripsi singkat tentang Denailss.", "Belum diatur" (social), "Belum ada kebijakan." — no broken links or undefined values.
 - Wired up: "Pengaturan" (`GearIcon`) nav item in desktop sidebar + mobile sheet; header title maps to "Pengaturan".
 
-### Verified working (via Playwright, this session)
-- Full booking happy path end-to-end including promo code + deposit upload + confirmation.
+### Verified working
+- Full booking happy path through the current frontend flow, including promo code + deposit upload preview + confirmation.
+- Supabase Google OAuth, email/password auth, email confirmation callback, resend confirmation, logout confirmation modal, and safe route redirects.
+- Supabase Auth profile linkage, two-role owner/customer guards, RLS migration, and explicit owner promotion flow.
+- Authenticated booking ownership: guest creation remains supported; customer booking reads are scoped to `customers.user_id`; owner booking mutations are protected.
+- Customer dashboard, booking history/detail, profile update, and portal identity read persistent API data.
 - Availability engine renders correct limited/full/closed days matching the seeded mock config.
-- Back-navigation preserves all selections.
-- Mobile viewport: sticky bottom summary bar + sheet, hamburger nav, no console errors.
-- `next build`, `tsc --noEmit`, `eslint` all clean.
+- Back-navigation preserves all selections; mobile viewport retains the sticky bottom summary bar and responsive navigation.
+- `next build`, `tsc --noEmit`, and `git diff --check` pass. ESLint has no errors; existing unused-import/hook warnings remain.
 
 ### Known fixed bug (don't reintroduce)
 `zodResolver` validation in `step-customer-info.tsx` is async. `formRef.current.submit()` must be `async` and awaited in `booking-flow.tsx`'s `goNext`, or the "Lanjut" button silently blocks progression on the first click after filling the form (reads stale `false` before the validation promise resolves).
 
 ---
 
-## What's Next (not started)
+## What's Next
 
-FE-first only. Backend wiring and Auth are out of scope for now (see Current Phase).
+1. **Seed the live catalog and availability data** — replace the placeholder `supabase/seed.sql` with current services, gallery metadata/images, availability templates, overrides, and blocked times.
+2. **Complete persistent Storage** — move gallery, review, deposit proof, and settings-logo uploads from local disk/object URLs to Supabase Storage with ownership, MIME/size validation, and metadata records.
+3. **Migrate remaining mock domains** — services/gallery admin catalogs, promotions, settings, reviews, favorites, CRM, finance, and analytics, preserving existing component contracts and pure business logic.
+4. **Strengthen booking validation** — move availability rules/promotions/deposit configuration behind persisted repositories and add transaction-level slot conflict checks.
+5. **Expand tests** — API auth/ownership tests, RLS verification, booking recalculation/conflict tests, upload validation, and E2E refresh/persistence coverage.
 
-1. **Deferred (post-FE period)** — Backend wiring (Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions) and Auth (Supabase Auth, email + Google-ready). Every `*.mock.ts` file under `src/features/*/data/` is a named seam for that swap.
+Implemented backend/auth paths live under `src/db/`, `src/lib/supabase/`, `src/features/booking/services/`, `src/features/customer/services/`, `src/features/booking/schemas/`, and `src/app/api/v1/`. Remaining `*.mock.ts` files under `src/features/*/data/` are named seams for the next migrations.
 
 ## File Map (where to look)
 

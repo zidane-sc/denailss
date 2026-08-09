@@ -699,7 +699,7 @@ Catatan perubahan requirement:
 * Tags dihapus — desain diidentifikasi via judul/slug, pencarian lewat judul + deskripsi.
 * Harga tidak lagi otomatis mengikuti tier difficulty — owner mengisi harga custom per desain (tampil di card galeri & halaman detail).
 * "Related services" dihapus — desain tidak lagi terikat layanan tertentu (booking desain langsung `/booking?design=...`; halaman layanan tidak lagi menampilkan contoh desain).
-* Status Draft/Published tidak diimplementasikan di iterasi FE-first — semua desain tampil (tanpa tanggal terbit).
+* Status Draft/Published tidak digunakan pada model katalog saat ini — semua desain yang tersimpan tampil tanpa tanggal terbit.
 ---
 
 # EPIC 6 — Promotion
@@ -1037,11 +1037,13 @@ Avoid
 ## Authentication
 
 * Supabase Auth
+* Email/password login and signup
+* Google OAuth login
+* Email confirmation and resend confirmation link
+* Customer and owner role separation
+* Protected Customer Portal and Backoffice routes
 
-Future Ready
-
-* Google Login
-* Email Login
+Authentication is implemented for the current vertical slice. Password reset and additional providers remain future work.
 
 ---
 

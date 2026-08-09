@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { BackofficeProvider } from "../context/backoffice-context";
+import { LogoutDialog } from "@/features/auth/components/logout-dialog";
 
 const NAV_ITEMS = [
   { href: "/backoffice", label: "Dashboard", icon: HouseIcon },
@@ -94,6 +95,9 @@ function BackofficeSidebar({ className }: { className?: string }) {
             <ArrowLeftIcon className="size-4" />
             Website Utama
           </Button>
+          <div className="mt-1">
+            <LogoutDialog />
+          </div>
         </div>
       </div>
     </aside>
@@ -184,6 +188,9 @@ export function BackofficeLayoutContent({ children }: { children: React.ReactNod
                     <ArrowLeftIcon className="size-4" />
                     Kembali ke Web Utama
                   </Link>
+                  <div className="mt-3">
+                    <LogoutDialog />
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>

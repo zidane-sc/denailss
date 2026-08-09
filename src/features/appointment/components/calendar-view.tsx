@@ -966,7 +966,7 @@ export function CalendarView() {
                   {selectedAppointment.status === "completed" && (
                     <div className="flex flex-col gap-1 w-full bg-muted/30 border p-3 rounded-lg text-xs">
                       <p className="font-semibold">Ulasan Dari Pelanggan:</p>
-                      <p className="italic mt-1 text-muted-foreground">"Pengerjaannya rapi sekali, nail art 3D-nya lucu banget! Rekomen salon ini." ⭐️⭐️⭐️⭐️⭐️</p>
+                      <p className="italic mt-1 text-muted-foreground">&quot;Pengerjaannya rapi sekali, nail art 3D-nya lucu banget! Rekomen salon ini.&quot; ⭐️⭐️⭐️⭐️⭐️</p>
                     </div>
                   )}
                 </div>
