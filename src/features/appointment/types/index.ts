@@ -1,4 +1,5 @@
 import type { BookingStatus, DepositVerificationStatus } from "@/types";
+import type { FulfillmentMethod } from "@/features/booking/types";
 
 export interface AppointmentCustomer {
   name: string;
@@ -7,15 +8,20 @@ export interface AppointmentCustomer {
   notes?: string;
 }
 
+export interface AppointmentService {
+  slug: string;
+  name: string;
+}
+
 export interface Appointment {
   id: string;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:MM
+  date: string; // YYYY-MM-DD ("" for product-only press-on orders)
+  time: string; // HH:MM ("" for product-only)
   durationMinutes: number;
-  serviceSlug: string;
-  serviceName: string;
+  services: AppointmentService[];
   designSlug?: string;
   designTitle?: string;
+  fulfillment?: FulfillmentMethod;
   price: number;
   customer: AppointmentCustomer;
   depositRequired: boolean;

@@ -78,9 +78,14 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       <Reveal delay={0.1}>
         <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
           <div className="border-b border-border/50 bg-muted/30 p-6">
-            <h2 className="font-heading text-xl font-semibold">{booking.serviceName}</h2>
+            <h2 className="font-heading text-xl font-semibold">{booking.services.map((s) => s.name).join(", ")}</h2>
             {booking.designTitle && (
               <p className="mt-1 text-sm text-muted-foreground">Desain: {booking.designTitle}</p>
+            )}
+            {booking.fulfillment && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Pengambilan: {booking.fulfillment === "pickup" ? "Ambil di lokasi" : "Dikirim via kurir"}
+              </p>
             )}
             
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">

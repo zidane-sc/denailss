@@ -11,6 +11,7 @@ import {
   monthNamesId,
 } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
+import { serviceNamesLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -350,7 +351,7 @@ export function CalendarView() {
                         {appt.customer.name}
                       </p>
                       <p className="text-[10px] text-muted-foreground truncate">
-                        {appt.serviceName}
+                        {serviceNamesLabel(appt.services)}
                       </p>
                       <div className="flex items-center justify-between gap-1 mt-2 pt-1.5 border-t border-border/40">
                         <span className="text-[9px] font-bold text-foreground/70">
@@ -457,7 +458,7 @@ export function CalendarView() {
                               {getStatusBadge(appt.status)}
                             </div>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              {appt.serviceName} {appt.designTitle && `· ${appt.designTitle}`}
+                              {serviceNamesLabel(appt.services)} {appt.designTitle && `· ${appt.designTitle}`}
                             </p>
                           </div>
                         </div>
@@ -469,7 +470,7 @@ export function CalendarView() {
                             {getStatusBadge(appt.status)}
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {appt.serviceName} {appt.designTitle && `· ${appt.designTitle}`}
+                            {serviceNamesLabel(appt.services)} {appt.designTitle && `· ${appt.designTitle}`}
                           </p>
                         </div>
 
@@ -633,7 +634,7 @@ export function CalendarView() {
                   </div>
                   <div>
                     <p className="text-muted-foreground">Layanan</p>
-                    <p className="font-semibold text-primary mt-0.5">{selectedAppointment.serviceName}</p>
+                    <p className="font-semibold text-primary mt-0.5">{serviceNamesLabel(selectedAppointment.services)}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Desain Seni</p>

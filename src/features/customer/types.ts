@@ -1,4 +1,6 @@
-import type { BookingStatus, DepositVerificationStatus, ServiceCategory } from "@/types";
+import type { BookingStatus, DepositVerificationStatus } from "@/types";
+import type { AppointmentService } from "@/features/appointment/types";
+import type { FulfillmentMethod } from "@/features/booking/types";
 
 export interface CustomerProfile {
   id: string;
@@ -10,11 +12,10 @@ export interface CustomerProfile {
 
 export interface CustomerBooking {
   id: string;
-  serviceSlug: string;
-  serviceName: string;
-  serviceCategory: ServiceCategory;
+  services: AppointmentService[];
   designSlug?: string;
   designTitle?: string;
+  fulfillment?: FulfillmentMethod;
   date: string;
   time: string;
   status: BookingStatus;

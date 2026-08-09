@@ -7,11 +7,11 @@
 
 ## Current Phase
 
-Epic 1, 2, and 3 are implemented. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files, with client-side state hooks (BackofficeProvider) managing dashboard, calendar, and availability configuration.
+Epics 1, 2, 3, and 4 (CRM) are implemented. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files, with client-side state hooks (BackofficeProvider) managing dashboard, calendar, and availability configuration.
 
 **Backend wiring and Auth are deliberately skipped for now.** In-progress decision: this period is FE-first. All new work is built against mock data (extending the existing `*.mock.ts` seam pattern so it can be swapped for a real repository layer later without touching components). No Supabase project, no Drizzle schema, no `/api/v1/*` route handlers will be created until FE scope is further along.
 
-Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, Settings) are **not started**; when they are, they will also be built FE-first on mocks.
+Epics 5-9 (Gallery Management admin, Promotion admin, Finance, Analytics, Settings) are **not started**; when they are, they will also be built FE-first on mocks.
 
 ---
 
@@ -69,11 +69,23 @@ Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, S
 - Spacing and color-calibrated button systems with solid backgrounds for action items.
 
 ### Backoffice Command Center (`src/features/appointment/` & `src/features/availability/`)
+- **Multi-service appointments** — `Appointment` now carries `services: {slug, name}[]` (was a single `serviceSlug`/`serviceName`) plus optional `fulfillment` (`pickup` | `delivery`) for press-on orders. The add-booking form lets staff pick multiple services and choose a fulfillment method when fake-nail is selected. Dashboard, calendar, and detail views render joined service names + fulfillment label.
+- **Booking → backoffice sync (session store)** — bookings completed through `/booking` are pushed to `src/features/booking/store/bookings-store.ts` (module-level list + subscribers); `BackofficeProvider` seeds from it and subscribes so new bookings appear in the backoffice within the same session. No backend yet — the store is the mock-consistent seam for a real API later.
+- **Customer portal multi-service** — `CustomerBooking` uses the same `services` array + `fulfillment`; bookings list and detail render joined names + fulfillment.
 - Unified Backoffice state context (`BackofficeProvider`) coordinates data updates reactively between dashboard list, calendar blocks, detail drawer, overrides lists, and booking rules inputs.
 - Beautiful, non-generic boutique operating interface built on top of Outfit heading and Plus Jakarta Sans body typography, utilizing light blush card styling and deliberate primary accent coloring.
 - Interactive calendar rendering day agenda lists, week columns, and month blocks, displaying closed templates, vacation ranges, and striped blocked periods. Supporting dynamic click-reschedule inline forms and drawer edits.
 - Complete deposit verification screen to view proof receipts, reject with optional reasons, or approve deposit confirmation instantly.
 - Availability setting manager allowing multi-session template editing, override entries, custom vacation range scheduling, and booking rule inputs.
+
+### CRM (`src/features/crm/`)
+- **Epic 4: Customer "little book"** — an FE-first internal CRM so the owner can recall every customer at a glance, built on the mock-first seam pattern.
+- `/backoffice/customers` — customer list with header ("Kenali pelangganmu…"), live text search (nama/no. HP/email, phone digits normalized), segment filter pills (Semua / Pelanggan Baru / Pelanggan Berulang / Tidak Aktif). Desktop table (avatar, contact, visits, total spend, favorite service, last visit, status badge) and mobile compact cards, both row-click navigable to the detail page. Gentle layout motion via `motion/react` (honors `prefers-reduced-motion`).
+- `/backoffice/customers/[id]` — profile view: identity header (avatar, since-date, contact, status), WhatsApp chat shortcut (`waCustomerLink`), "Tambah Booking" CTA, next-appointment highlight card, 4-stat summary band (total visits, total spending, favorite service/design, last visit + relative time), then a left/right grid of Notebook notes, tabbed History (`Riwayat` / `Pembatalan` / `Ulasan` with counts), and a "Kesukaan & Ciri Khas" preferences card (favorite design photo linked to `/gallery/[slug]`, preferred time-of-day, color swatches, nail shapes).
+- **Data & logic** (`types.ts`, `logic/customer-stats.ts`, `data/customers.mock.ts`): 10 varied customers (new/repeat/inactive, cancellations, reviews, notes, favorite designs, press-on orders, different spending). `computeCustomerStats` derives total visits/spending, favorite service+design (most-frequent), last visit, and next upcoming appointment from each customer's appointments — nothing hardcoded. `getCustomerStatus` (new/active/inactive) and `getCustomerSegment` (new/repeat/inactive) pure derivations. Simulated "today" is `CRM_TODAY = "2026-08-09"`.
+- History cross-links into existing backoffice appointment details (`/backoffice/appointments/[id]`) where the booking exists, and into the gallery; review photos reuse the Instagram seed map.
+- Notes editor persists per-customer to `localStorage` (`denailss.crm.notes.<id>`), seed fallback = customer's mock notes; save is confirmed with a toast.
+- Wired up: "Pelanggan" (`UsersThree`) nav item in desktop sidebar + mobile sheet; page title maps to "Buku Pelanggan".
 
 
 ### Verified working (via Playwright, this session)
@@ -92,7 +104,7 @@ Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, S
 
 FE-first only. Backend wiring and Auth are out of scope for now (see Current Phase).
 
-1. **Epics 4-9, built FE-first on mocks** — CRM, Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings (Backoffice). Each still goes through `src/features/*/data/*.mock.ts` seams, extending the mock-first pattern already used for Epics 1-3.
+1. **Epics 5-9, built FE-first on mocks** — Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings (Backoffice). Each still goes through `src/features/*/data/*.mock.ts` seams, extending the mock-first pattern already used for Epics 1-4.
 2. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
 3. **Deferred (post-FE period)** — Backend wiring (Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions) and Auth (Supabase Auth, email + Google-ready). Every `*.mock.ts` file under `src/features/*/data/` is a named seam for that swap.
 

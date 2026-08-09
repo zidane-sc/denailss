@@ -5,6 +5,7 @@ import type { Appointment } from "../types";
 import { AVAILABILITY_CONFIG } from "@/features/booking/data/availability-config.mock";
 import { DEPOSIT_CONFIG } from "@/features/booking/data/deposit-config.mock";
 import { INITIAL_APPOINTMENTS } from "../data/appointments.mock";
+import { getBookings, subscribeBookings } from "@/features/booking/store/bookings-store";
 import type { AvailabilityConfig, TimeRange, BookingStatus, DepositVerificationStatus, DepositConfig } from "@/types";
 
 interface BackofficeContextType {
@@ -36,9 +37,29 @@ interface BackofficeContextType {
 const BackofficeContext = createContext<BackofficeContextType | undefined>(undefined);
 
 export function BackofficeProvider({ children }: { children: React.ReactNode }) {
-  const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
+  // Seed from mock + any bookings made through /booking in this session.
+  const [appointments, setAppointments] = useState<Appointment[]>(() => [
+    ...INITIAL_APPOINTMENTS,
+    ...getBookings(),
+  ]);
   const [availabilityConfig, setAvailabilityConfig] = useState<AvailabilityConfig>(AVAILABILITY_CONFIG);
   const [depositConfig, setDepositConfig] = useState<DepositConfig>(DEPOSIT_CONFIG);
+
+  // Reflect new bookings from the booking flow into the backoffice.
+  useEffect(() => {
+    return subscribeBookings(() => {
+      setAppointments((prev) => {
+        const store = getBookings();
+        const storeIds = new Set(store.map((b) => b.id));
+        const merged = [
+          ...prev.filter((a) => !storeIds.has(a.id)),
+          ...store,
+        ];
+        // Keep stable ordering: mock first (by insertion), then store bookings.
+        return merged.length === prev.length ? prev : merged;
+      });
+    });
+  }, []);
 
   const updateDepositConfig = (updates: Partial<DepositConfig>) => {
     setDepositConfig((prev) => ({

@@ -74,7 +74,7 @@ export default function CustomerDashboardPage() {
                     <p className="font-medium text-primary">{formatDateId(parseDateKey(nextAppointment.date), { withWeekday: true })}</p>
                     <p className="mt-1 font-heading text-2xl font-bold">{nextAppointment.time} WIB</p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      {nextAppointment.serviceName} {nextAppointment.designTitle && `· ${nextAppointment.designTitle}`}
+                      {nextAppointment.services.map((s) => s.name).join(", ")} {nextAppointment.designTitle && `· ${nextAppointment.designTitle}`}
                     </p>
                   </div>
                   
@@ -157,7 +157,7 @@ export default function CustomerDashboardPage() {
                     <ClockIcon className="size-5" />
                   </div>
                   <div className="flex-1 overflow-hidden">
-                    <p className="truncate font-medium">{booking.serviceName}</p>
+                    <p className="truncate font-medium">{booking.services.map((s) => s.name).join(", ")}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {formatDateId(parseDateKey(booking.date))}
                     </p>

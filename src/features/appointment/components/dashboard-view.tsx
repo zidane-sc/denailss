@@ -3,8 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useBackoffice } from "../context/backoffice-context";
-import { formatIDR, formatDateId, toDateKey } from "@/lib/format";
+import { formatIDR, formatDateId, toDateKey, formatDuration } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
+import { SERVICES } from "@/features/services/data/services.mock";
+import { serviceNamesLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,15 +72,16 @@ export function DashboardView() {
     const q = dbSearch.trim().toLowerCase();
     const list = [...appointments].filter((a) => {
       if (q) {
+        const serviceText = a.services.map((s) => s.name).join(" ").toLowerCase();
         const matches =
           a.id.toLowerCase().includes(q) ||
           a.customer.name.toLowerCase().includes(q) ||
           a.customer.phone.includes(q) ||
-          a.serviceName.toLowerCase().includes(q);
+          serviceText.includes(q);
         if (!matches) return false;
       }
       if (statusFilter !== "all" && a.status !== statusFilter) return false;
-      if (serviceFilter !== "all" && a.serviceSlug !== serviceFilter) return false;
+      if (serviceFilter !== "all" && !a.services.some((s) => s.slug === serviceFilter)) return false;
       return true;
     });
 
@@ -89,7 +92,7 @@ export function DashboardView() {
       } else if (sortField === "customer") {
         comparison = a.customer.name.localeCompare(b.customer.name);
       } else if (sortField === "service") {
-        comparison = a.serviceName.localeCompare(b.serviceName);
+        comparison = (a.services[0]?.name ?? "").localeCompare(b.services[0]?.name ?? "");
       } else if (sortField === "price") {
         comparison = a.price - b.price;
       } else if (sortField === "date") {
@@ -114,9 +117,10 @@ export function DashboardView() {
   const [newCustomerName, setNewCustomerName] = useState("");
   const [newCustomerPhone, setNewCustomerPhone] = useState("");
   const [newCustomerEmail, setNewCustomerEmail] = useState("");
-  const [newServiceSlug, setNewServiceSlug] = useState("gel-extension");
+  const [newServiceSlugs, setNewServiceSlugs] = useState<string[]>(["gel-extension"]);
   const [newDesignSlug, setNewDesignSlug] = useState("");
   const [newDesignTitle, setNewDesignTitle] = useState("");
+  const [newFulfillment, setNewFulfillment] = useState<"pickup" | "delivery" | "">("");
   const [newDate, setNewDate] = useState("2026-08-09");
   const [newTime, setNewTime] = useState("13:00");
   const [newDuration, setNewDuration] = useState(60);
@@ -157,6 +161,10 @@ export function DashboardView() {
       toast.error("Nama dan Nomor Telepon wajib diisi!");
       return;
     }
+    if (newServiceSlugs.length === 0) {
+      toast.error("Pilih minimal satu layanan!");
+      return;
+    }
 
     const serviceNameMap: Record<string, string> = {
       "gel-extension": "Gel Extension",
@@ -171,10 +179,13 @@ export function DashboardView() {
       date: newDate,
       time: newTime,
       durationMinutes: Number(newDuration),
-      serviceSlug: newServiceSlug,
-      serviceName: serviceNameMap[newServiceSlug] || newServiceSlug,
+      services: newServiceSlugs.map((slug) => ({
+        slug,
+        name: serviceNameMap[slug] || slug,
+      })),
       designSlug: newDesignSlug || undefined,
       designTitle: newDesignTitle || undefined,
+      fulfillment: newFulfillment || undefined,
       price: Number(newPrice),
       customer: {
         name: newCustomerName,
@@ -185,7 +196,7 @@ export function DashboardView() {
       depositRequired: newDepositRequired,
       depositAmount: newDepositRequired ? Number(newDepositAmount) : undefined,
       depositStatus: newDepositRequired ? "waiting_verification" : undefined,
-      depositProofUrl: newDepositRequired ? "/images/instagram/grid-11.jpg" : undefined,
+      depositProofUrl: newDepositRequired ? "/images/bukti-transfer-dummy.jpg" : undefined,
       status: newDepositRequired ? "waiting_verification" : "confirmed",
       notes: newNotes || undefined,
     });
@@ -198,6 +209,7 @@ export function DashboardView() {
     setNewCustomerEmail("");
     setNewDesignSlug("");
     setNewDesignTitle("");
+    setNewFulfillment("");
     setNewNotes("");
   };
 
@@ -303,33 +315,40 @@ export function DashboardView() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="grid gap-2">
-                    <Label htmlFor="service" className="font-medium text-foreground/90">Layanan</Label>
-                    <select
-                      id="service"
-                      className="flex h-9 w-full rounded-xl border border-input bg-card px-3 py-1 text-sm shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      value={newServiceSlug}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setNewServiceSlug(val);
-                        // Default prices/durations
-                        if (val === "gel-extension") { setNewPrice(250000); setNewDuration(120); setNewDepositRequired(true); }
-                        else if (val === "removal") { setNewPrice(75000); setNewDuration(30); setNewDepositRequired(false); }
-                        else if (val === "manicure") { setNewPrice(90000); setNewDuration(45); setNewDepositRequired(false); }
-                        else if (val === "pedicure") { setNewPrice(110000); setNewDuration(60); setNewDepositRequired(false); }
-                        else if (val === "fake-nail") { setNewPrice(180000); setNewDuration(75); setNewDepositRequired(false); }
-                        else if (val === "nail-art") { setNewPrice(120000); setNewDuration(60); setNewDepositRequired(true); }
-                      }}
-                    >
-                      <option value="gel-extension">Gel Extension (2hr)</option>
-                      <option value="removal">Nail Removal (30m)</option>
-                      <option value="manicure">Manicure (45m)</option>
-                      <option value="pedicure">Pedicure (1hr)</option>
-                      <option value="fake-nail">Fake Nail (75m)</option>
-                      <option value="nail-art">Nail Art (1hr)</option>
-                    </select>
+                <div className="grid gap-2">
+                  <Label className="font-medium text-foreground/90">Layanan (bisa pilih lebih dari satu)</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SERVICES.map((svc) => {
+                      const active = newServiceSlugs.includes(svc.slug);
+                      return (
+                        <button
+                          key={svc.slug}
+                          type="button"
+                          onClick={() => {
+                            setNewServiceSlugs((prev) =>
+                              active
+                                ? prev.filter((s) => s !== svc.slug)
+                                : [...prev, svc.slug]
+                            );
+                          }}
+                          className={cn(
+                            "flex items-center justify-between gap-1 rounded-xl border px-3 py-2 text-xs font-medium transition-colors",
+                            active
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-card text-foreground/80 hover:border-primary/40"
+                          )}
+                        >
+                          <span>{svc.name}</span>
+                          <span className="shrink-0 text-[10px] text-muted-foreground">
+                            {formatDuration(svc.durationMinutes)}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
                   <div className="grid gap-2">
                     <Label htmlFor="duration" className="font-medium text-foreground/90">Durasi (Menit)</Label>
                     <Input
@@ -337,21 +356,6 @@ export function DashboardView() {
                       type="number"
                       value={newDuration}
                       onChange={(e) => setNewDuration(Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="grid gap-2">
-                    <Label htmlFor="designTitle" className="font-medium text-foreground/90">Desain (Opsional)</Label>
-                    <Input
-                      id="designTitle"
-                      placeholder="Korean Milk / Sunset Ombre"
-                      value={newDesignTitle}
-                      onChange={(e) => {
-                        setNewDesignTitle(e.target.value);
-                        setNewDesignSlug(e.target.value.toLowerCase().replace(/ /g, "-"));
-                      }}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -363,6 +367,35 @@ export function DashboardView() {
                       onChange={(e) => setNewPrice(Number(e.target.value))}
                     />
                   </div>
+                </div>
+
+                {newServiceSlugs.includes("fake-nail") && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="fulfillment" className="font-medium text-foreground/90">Cara Pengambilan (Kuku Palsu)</Label>
+                    <select
+                      id="fulfillment"
+                      className="flex h-9 w-full rounded-xl border border-input bg-card px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                      value={newFulfillment}
+                      onChange={(e) => setNewFulfillment(e.target.value as "pickup" | "delivery" | "")}
+                    >
+                      <option value="">Pilih...</option>
+                      <option value="pickup">Ambil di Lokasi</option>
+                      <option value="delivery">Dikirim via Kurir</option>
+                    </select>
+                  </div>
+                )}
+
+                <div className="grid gap-2">
+                  <Label htmlFor="designTitle" className="font-medium text-foreground/90">Desain (Opsional)</Label>
+                  <Input
+                    id="designTitle"
+                    placeholder="Korean Milk / Sunset Ombre"
+                    value={newDesignTitle}
+                    onChange={(e) => {
+                      setNewDesignTitle(e.target.value);
+                      setNewDesignSlug(e.target.value.toLowerCase().replace(/ /g, "-"));
+                    }}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -473,9 +506,12 @@ export function DashboardView() {
                           {getStatusBadge(appt.status)}
                         </div>
                         <p className="text-xs font-medium text-muted-foreground mt-1">
-                          Layanan: <span className="text-foreground/80 font-semibold">{appt.serviceName}</span>
+                          Layanan: <span className="text-foreground/80 font-semibold">{serviceNamesLabel(appt.services)}</span>
                           {appt.designTitle && (
                             <> · Desain: <span className="text-primary font-semibold">{appt.designTitle}</span></>
+                          )}
+                          {appt.fulfillment && (
+                            <> · {FULFILLMENT_LABELS[appt.fulfillment]}</>
                           )}
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -551,7 +587,10 @@ export function DashboardView() {
                         Jadwal: <span className="font-semibold text-foreground/80">{appt.date ? `${formatDateId(new Date(appt.date))} · ${appt.time}` : "Pesanan Produk (Online)"}</span>
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Layanan: <span className="font-semibold text-foreground/80">{appt.serviceName}</span>
+                        Layanan: <span className="font-semibold text-foreground/80">{serviceNamesLabel(appt.services)}</span>
+                        {appt.fulfillment && (
+                          <> · {FULFILLMENT_LABELS[appt.fulfillment]}</>
+                        )}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Total Harga: <span className="font-semibold text-foreground/80">{formatIDR(appt.price)}</span>
@@ -854,9 +893,14 @@ export function DashboardView() {
                       <p className="text-[10px] text-muted-foreground mt-0.5">{appt.customer.phone}</p>
                     </td>
                     <td className="p-3 font-medium">
-                      {appt.serviceName}
+                      {serviceNamesLabel(appt.services)}
                       {appt.designTitle && (
                         <span className="block text-[10px] text-primary mt-0.5 font-semibold">({appt.designTitle})</span>
+                      )}
+                      {appt.fulfillment && (
+                        <span className="block text-[10px] text-muted-foreground mt-0.5">
+                          {FULFILLMENT_LABELS[appt.fulfillment]}
+                        </span>
                       )}
                     </td>
                     <td className="p-3">

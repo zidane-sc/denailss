@@ -8,6 +8,7 @@ import { getServiceBySlug } from "@/features/services/data/services.mock";
 import { getDesignBySlug } from "@/features/gallery/data/designs.mock";
 import { findPromotionByCode } from "@/features/promotion/data/promotions.mock";
 import { DEPOSIT_CONFIG } from "@/features/booking/data/deposit-config.mock";
+import { addBooking } from "@/features/booking/store/bookings-store";
 import { checkPromotion, calculateDeposit } from "@/features/booking/logic/pricing";
 import { BookingStepper, type StepMeta } from "@/features/booking/components/booking-stepper";
 import { BookingSummary } from "@/features/booking/components/booking-summary";
@@ -151,6 +152,9 @@ export function BookingFlow({
         new Date().getDate()
       ).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
       setBookingCode(code);
+      if (!bookingCode) {
+        pushBookingToStore(code);
+      }
     }
 
     const next = Math.min(activeStepIndex + 1, steps.length - 1);
@@ -164,6 +168,31 @@ export function BookingFlow({
 
   const goToStep = (index: number) => {
     setStepIndex(index);
+  };
+
+  const pushBookingToStore = (code: string) => {
+    addBooking({
+      id: code,
+      date: selections.dateKey ?? "",
+      time: selections.time ?? "",
+      durationMinutes: totalDuration,
+      services: selectedServices.map((s) => ({ slug: s.slug, name: s.name })),
+      designSlug: design?.slug,
+      designTitle: design?.title,
+      fulfillment: selections.fulfillment ?? undefined,
+      price: total,
+      customer: {
+        name: selections.customer?.name ?? "Pelanggan Baru",
+        phone: selections.customer?.phone ?? "-",
+        email: selections.customer?.email,
+        notes: selections.customer?.notes,
+      },
+      depositRequired,
+      depositAmount: depositRequired ? depositAmount : undefined,
+      depositStatus: depositRequired ? "waiting_verification" : undefined,
+      status: depositRequired ? "waiting_verification" : "confirmed",
+      notes: selections.customer?.notes,
+    });
   };
 
   if (currentStep === "confirmation" && selectedServices.length > 0 && bookingCode) {

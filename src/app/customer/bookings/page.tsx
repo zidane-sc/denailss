@@ -75,7 +75,7 @@ export default function BookingsPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-heading text-lg font-semibold">{booking.serviceName}</p>
+                      <p className="font-heading text-lg font-semibold">{booking.services.map((s) => s.name).join(", ")}</p>
                       {getStatusBadge(booking)}
                     </div>
                     <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">

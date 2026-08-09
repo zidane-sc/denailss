@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useBackoffice } from "../context/backoffice-context";
 import { formatIDR, formatDateId, parseDateKey } from "@/lib/format";
+import { serviceNamesLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -315,12 +316,18 @@ export function AppointmentDetailView({ id }: AppointmentDetailViewProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-muted-foreground">Layanan</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{appt.serviceName}</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">{serviceNamesLabel(appt.services)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Desain Seni</p>
                   <p className="text-sm font-semibold text-foreground mt-0.5">{appt.designTitle || "Polos (Tidak Ada)"}</p>
                 </div>
+                {appt.fulfillment && (
+                  <div>
+                    <p className="text-muted-foreground">Pengambilan</p>
+                    <p className="text-sm font-semibold text-foreground mt-0.5">{FULFILLMENT_LABELS[appt.fulfillment]}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-muted-foreground">Tanggal Booking</p>
                   <p className="text-sm font-semibold text-foreground mt-0.5">

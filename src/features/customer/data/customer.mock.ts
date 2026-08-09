@@ -20,9 +20,7 @@ export const CUSTOMER_FAVORITES: string[] = [
 export const CUSTOMER_BOOKINGS: CustomerBooking[] = [
   {
     id: "BKG-2608-012",
-    serviceSlug: "gel-extension",
-    serviceName: "Gel Extension",
-    serviceCategory: "gel-extension",
+    services: [{ slug: "gel-extension", name: "Gel Extension" }],
     designSlug: "korean-milk-nail",
     designTitle: "Korean Milk Nail",
     date: "2026-08-15",
@@ -34,9 +32,7 @@ export const CUSTOMER_BOOKINGS: CustomerBooking[] = [
   },
   {
     id: "BKG-2608-013",
-    serviceSlug: "nail-art",
-    serviceName: "Nail Art",
-    serviceCategory: "nail-art",
+    services: [{ slug: "nail-art", name: "Nail Art" }],
     designSlug: "3d-bow-charm-pink",
     designTitle: "3D Bow Charm Pink",
     date: "2026-08-20",
@@ -47,9 +43,7 @@ export const CUSTOMER_BOOKINGS: CustomerBooking[] = [
   },
   {
     id: "BKG-2608-014",
-    serviceSlug: "manicure",
-    serviceName: "Manicure",
-    serviceCategory: "manicure",
+    services: [{ slug: "manicure", name: "Manicure" }],
     date: "2026-08-22",
     time: "13:00",
     status: "waiting_verification",
@@ -59,9 +53,7 @@ export const CUSTOMER_BOOKINGS: CustomerBooking[] = [
   },
   {
     id: "BKG-2607-088",
-    serviceSlug: "gel-extension",
-    serviceName: "Gel Extension",
-    serviceCategory: "gel-extension",
+    services: [{ slug: "gel-extension", name: "Gel Extension" }],
     designSlug: "sunset-ombre-coral",
     designTitle: "Sunset Ombre Coral",
     date: "2026-07-15",
@@ -74,9 +66,7 @@ export const CUSTOMER_BOOKINGS: CustomerBooking[] = [
   },
   {
     id: "BKG-2606-045",
-    serviceSlug: "pedicure",
-    serviceName: "Pedicure",
-    serviceCategory: "pedicure",
+    services: [{ slug: "pedicure", name: "Pedicure" }],
     date: "2026-06-20",
     time: "11:00",
     status: "completed",
@@ -85,9 +75,7 @@ export const CUSTOMER_BOOKINGS: CustomerBooking[] = [
   },
   {
     id: "BKG-2605-021",
-    serviceSlug: "manicure",
-    serviceName: "Manicure",
-    serviceCategory: "manicure",
+    services: [{ slug: "manicure", name: "Manicure" }],
     designSlug: "minimalist-line-art",
     designTitle: "Minimalist Line Art",
     date: "2026-05-10",
@@ -98,9 +86,7 @@ export const CUSTOMER_BOOKINGS: CustomerBooking[] = [
   },
   {
     id: "BKG-2604-099",
-    serviceSlug: "gel-extension",
-    serviceName: "Gel Extension",
-    serviceCategory: "gel-extension",
+    services: [{ slug: "gel-extension", name: "Gel Extension" }],
     date: "2026-04-05",
     time: "09:00",
     status: "cancelled",
