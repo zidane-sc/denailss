@@ -26,6 +26,8 @@ export type FulfillmentMethod = "pickup" | "delivery";
 
 export interface BookingSelections {
   serviceSlugs: string[];
+  /** Chosen difficulty tier per service slug (Simple/Complex). */
+  tierByServiceSlug: Record<string, string>;
   designSlug: string | null;
   dateKey: string | null;
   time: string | null;
@@ -37,6 +39,7 @@ export interface BookingSelections {
 
 export const INITIAL_SELECTIONS: BookingSelections = {
   serviceSlugs: [],
+  tierByServiceSlug: {},
   designSlug: null,
   dateKey: null,
   time: null,

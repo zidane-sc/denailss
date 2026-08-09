@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CUSTOMER_BOOKINGS } from "@/features/customer/data/customer.mock";
+import { CUSTOMER_BOOKINGS, CUSTOMER_PROFILE } from "@/features/customer/data/customer.mock";
+import { addReview } from "@/features/reviews/data/reviews.mock";
 import { formatIDR, formatDateId, parseDateKey } from "@/lib/format";
 import {
   ArrowLeftIcon,
@@ -42,9 +43,26 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
 
   const handleSendReview = (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedComment = comment.trim();
+    if (!trimmedComment) {
+      toast.error("Tulis dulu ulasan singkatmu sebelum dikirim.");
+      return;
+    }
+    const primaryService = booking.services[0];
+    addReview({
+      id: `rev-${booking.id.toLowerCase()}`,
+      customerName: CUSTOMER_PROFILE.name,
+      rating: rating as 1 | 2 | 3 | 4 | 5,
+      serviceSlug: primaryService?.slug ?? "manicure",
+      visitDate: booking.date,
+      comment: trimmedComment,
+    });
     setHasReview(true);
     setDialogOpen(false);
-    toast.success("Ulasan Kakak berhasil dikirim! Terima kasih banyak! 💖");
+    setComment("");
+    toast.success("Ulasan Kakak berhasil dikirim! Terima kasih banyak! 💖", {
+      description: "Ulasanmu sekarang tampil di halaman ulasan Denailss.",
+    });
   };
 
   function getStatusBadge() {

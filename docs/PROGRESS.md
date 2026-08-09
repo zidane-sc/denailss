@@ -35,7 +35,7 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 - `/` — full landing page (`src/features/landing/components/*`): hero, featured designs, services bento, promotion banner, reviews, about, FAQ, Instagram grid, contact. Composed in `src/app/page.tsx`.
 - **Instagram section** — real post photos, no embed iframe. Shortcodes live in `src/features/landing/data/instagram-posts.mock.ts`; the section renders square cards that pull each post's image through the `src/app/api/instagram/[shortcode]/route.ts` proxy (follows Instagram's public `/media/?size=l` 302 redirect, cached 24h) and link to the original post. No `next/image` optimization needed (already 1080×1080). Update by swapping shortcodes from new embed codes (post → ⋯ → Embed → Copy embed code).
 - `/gallery` — masonry grid, search (judul/deskripsi), style/color/occasion/shape/**difficulty** filters, IntersectionObserver infinite scroll (`src/features/gallery/components/gallery-explorer.tsx`). Reads the **live admin catalog** via `GalleryDesignsProvider`.
-- `/gallery/[slug]` — design detail with photo carousel, custom price, difficulty badge, related designs, booking CTA. (Server-rendered from the seed catalog — uploaded-only designs don't get a detail page yet.)
+- `/gallery/[slug]` — design detail with photo carousel, custom price, difficulty badge, related designs, booking CTA. **(Gap closed)** — now rendered from the live admin catalog via `DesignDetailView` (client, `useLiveGalleryDesigns`), so designs uploaded in the backoffice also get a real detail page (previously only seed designs had one; uploaded-only designs 404'd). `generateStaticParams` + per-design metadata still cover the seed for SEO/SSG; unknown slugs render a "Desain tidak ditemukan." state.
 - `/services` — **New dedicated page** listing all treatments in a premium grid layout with custom category icons, pricing starting indicators, and packaging duration indicators for fake nails.
 - `/services/[slug]` — service detail with price/duration, example results, FAQ.
 - `/reviews` — **New dedicated page** containing overall rating cards, dynamic star distribution bars, and composite filters (rating stars and treatment types) for customer testimonials.
@@ -54,6 +54,7 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 - `/backoffice/settings` — **New: settings workspace** (Epic 9), see below.
 
 ### Booking flow (`src/features/booking/`)
+- **Tier-aware booking pricing** — customers now pick the difficulty tier (Simple/Complex) for tiered services right in the service step: an inline tier selector appears when a tiered service (Fake Nail, Nail Art) is selected. The subtotal, total, duration (slot availability), deposit, summary, and confirmation all use the chosen tier's price/duration. The tier label is stored on the appointment (`AppointmentService.tierLabel`) and surfaces in the booking summary, confirmation, and backoffice service-name labels (`serviceNamesLabel` renders "Nama (Tier)"). Selection lives in `BookingSelections.tierByServiceSlug`; flat services keep a single price and show no picker.
 - Dynamic step list built from the selected services:
   - **Desain** appears only when the selection includes nail-art, fake-nail, or gel-extension (skipped for manicure/pedicure/removal-only bookings). The step lists the **live admin catalog** (via `useLiveGalleryDesigns`) — no service filtering, since any design can be applied to any eligible service (including press-on).
   - **Pengambilan** (fulfillment) appears when fake-nail is selected (even alongside other services); otherwise Tanggal/Waktu are used.
@@ -68,6 +69,7 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 - Deposit upload is a real file input with local preview (`URL.createObjectURL`), replace/remove, mocked "waiting verification" status. No actual upload to storage.
 
 ### Customer portal (`src/features/customer/`)
+- **Customer review submission (Epic 2 gap closed)** — the "Beri Ulasan" dialog on a completed booking detail page now persists the review through the reviews store (`addReview` → localStorage `denailss.reviews`), instead of only flipping local state. The submitted review (customer name from `CUSTOMER_PROFILE`, rating, primary service, visit date, comment) appears immediately on the public `/reviews` page, the landing reviews section, and the hero rating summary — all of which now read `getLiveReviews()` (SSR-safe, seed fallback).
 - Routes: Dashboard (`/customer`), History (`/customer/bookings`), Details (`/customer/bookings/[id]`), Favorites grid (`/customer/favorites`), and Profile edit form (`/customer/profile`).
 - Responsive layout: standalone portal desktop sidebar nav + mobile bottom navigation tab bar.
 - Global site header/footer context-aware hide logic on `/customer/*` routes.

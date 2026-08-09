@@ -29,6 +29,11 @@ export interface Service {
   tiers: ServiceTier[];
   /** Whether the service is fulfilled via pickup/delivery instead of an appointment slot. */
   requiresPickup: boolean;
+  /**
+   * Runtime-only: the tier chosen by the customer during booking (e.g. "Complex").
+   * Not part of the catalog data — set by the booking flow on the in-memory copy.
+   */
+  tierLabel?: string;
   heroImage: string;
   gallerySeeds: string[];
   faq: { question: string; answer: string }[];

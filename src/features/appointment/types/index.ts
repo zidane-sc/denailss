@@ -11,6 +11,8 @@ export interface AppointmentCustomer {
 export interface AppointmentService {
   slug: string;
   name: string;
+  /** Chosen difficulty tier label when the service is priced by tier. */
+  tierLabel?: string;
 }
 
 export interface Appointment {

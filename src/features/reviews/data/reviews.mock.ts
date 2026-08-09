@@ -1,104 +1,84 @@
 import type { Review } from "@/types";
+import { REVIEWS } from "./reviews.seed";
 
-export const REVIEWS: Review[] = [
-  {
-    id: "rev-01",
-    customerName: "Aulia Rahmadhani",
-    rating: 5,
-    serviceSlug: "gel-extension",
-    visitDate: "2026-07-30",
-    comment:
-      "Hasil gel extension-nya rapi banget, bentuknya presisi sama kiri kanan. Udah 3 minggu masih kuat nggak ada yang lepas sama sekali.",
-    photoSeed: "review-aulia",
-  },
-  {
-    id: "rev-02",
-    customerName: "Kezia Winarto",
-    rating: 5,
-    serviceSlug: "nail-art",
-    visitDate: "2026-07-22",
-    comment:
-      "Request desain dari Pinterest langsung dibuatin mirip banget sama referensinya. Kak Dela teliti banget sama detail kecil.",
-  },
-  {
-    id: "rev-03",
-    customerName: "Nadya Prasetyo",
-    rating: 4,
-    serviceSlug: "manicure",
-    visitDate: "2026-07-18",
-    comment:
-      "Suka sama pelayanannya yang ramah, tempatnya juga bersih. Cuma antre agak lama karena lagi ramai pas weekend.",
-  },
-  {
-    id: "rev-04",
-    customerName: "Salsabila Putri",
-    rating: 5,
-    serviceSlug: "gel-extension",
-    visitDate: "2026-07-10",
-    comment:
-      "Ini kesekian kalinya booking di Denailss, selalu konsisten hasilnya. Booking online-nya juga gampang banget, nggak perlu chat bolak-balik.",
-    photoSeed: "review-salsa",
-  },
-  {
-    id: "rev-05",
-    customerName: "Intan Maharani",
-    rating: 5,
-    serviceSlug: "pedicure",
-    visitDate: "2026-06-28",
-    comment:
-      "Pedicure-nya relaxing banget, ada pijat kaki juga. Worth it buat self-reward abis kerja seminggu.",
-  },
-  {
-    id: "rev-06",
-    customerName: "Devina Kusuma",
-    rating: 4,
-    serviceSlug: "fake-nail",
-    visitDate: "2026-06-15",
-    comment:
-      "Press-on-nya pas banget di ukuran kuku, nggak perlu dipotong lagi. Desainnya juga sesuai request buat acara kondangan.",
-  },
-  {
-    id: "rev-07",
-    customerName: "Farah Amelia",
-    rating: 5,
-    serviceSlug: "nail-art",
-    visitDate: "2026-06-02",
-    comment:
-      "Detail 3D bow-nya lucu banget, awet juga nggak gampang copot padahal aku sering pakai tangan buat kerja.",
-    photoSeed: "review-farah",
-  },
-  {
-    id: "rev-08",
-    customerName: "Clarissa Halim",
-    rating: 5,
-    serviceSlug: "gel-extension",
-    visitDate: "2026-05-20",
-    comment:
-      "Konsultasi bentuk kuku dijelasin dengan sabar sampai aku yakin sama pilihan almond shape. Recommended banget buat first-timer.",
-  },
-  {
-    id: "rev-09",
-    customerName: "Bunga Anggraini",
-    rating: 3,
-    serviceSlug: "manicure",
-    visitDate: "2026-05-08",
-    comment:
-      "Hasilnya bagus, cuma waktu itu jadwalku sedikit mundur dari jam booking. Overall masih puas sama hasil akhirnya.",
-  },
-  {
-    id: "rev-10",
-    customerName: "Michelle Tanoto",
-    rating: 5,
-    serviceSlug: "nail-art",
-    visitDate: "2026-04-25",
-    comment:
-      "Chrome mirror-nya kece parah, difoto dari sudut mana pun tetap kelihatan mengilap. Bakal balik lagi buat desain lain.",
-    photoSeed: "review-michelle",
-  },
-];
+/**
+ * Reviews store — mock-first seam standing in for the future `reviews`
+ * repository (TRD §4). Customers submit reviews from the portal; the public
+ * reviews page and landing section read the live list through
+ * `getLiveReviews()` so new reviews show up immediately.
+ *
+ * State persists to localStorage (`denailss.reviews`); the seeded REVIEWS
+ * array (in `reviews.seed.ts`) is the fallback until the first submission.
+ * Swap this module for a real API call without touching consumers.
+ */
 
-export function getReviewSummary() {
-  const total = REVIEWS.length;
-  const average = REVIEWS.reduce((sum, review) => sum + review.rating, 0) / total;
+const STORAGE_KEY = "denailss.reviews";
+
+let cached: Review[] | null = null;
+
+function load(): Review[] {
+  if (cached) return cached;
+  if (typeof window !== "undefined") {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Review[];
+        if (Array.isArray(parsed)) {
+          cached = parsed;
+          return cached;
+        }
+      }
+    } catch {
+      // fall through to seed
+    }
+  }
+  cached = [...REVIEWS];
+  return cached;
+}
+
+/** SSR-safe reactive read: server gets the seed, client gets persisted + live. */
+export function getLiveReviews(): Review[] {
+  if (typeof window !== "undefined") return load();
+  return [...REVIEWS];
+}
+
+/** Subscriber set for reactive (live) reads of the review list. */
+const subscribers = new Set<() => void>();
+
+export function subscribeReviews(cb: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  subscribers.add(cb);
+  return () => {
+    subscribers.delete(cb);
+  };
+}
+
+function notify() {
+  subscribers.forEach((cb) => cb());
+}
+
+function save(list: Review[]) {
+  cached = list;
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch {
+      // storage unavailable (private mode etc.) — keep in-memory state
+    }
+  }
+  notify();
+}
+
+/** Prepend a new review; the newest reviews appear first on the public page. */
+export function addReview(review: Review): Review[] {
+  const next = [review, ...load()];
+  save(next);
+  return next;
+}
+
+/** Aggregate rating summary for a list of reviews (SSR-safe via getLiveReviews). */
+export function getReviewSummary(list: Review[] = getLiveReviews()) {
+  const total = list.length;
+  const average = total > 0 ? list.reduce((sum, r) => sum + r.rating, 0) / total : 0;
   return { total, average: Math.round(average * 10) / 10 };
 }

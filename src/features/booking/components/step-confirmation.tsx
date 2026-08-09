@@ -91,7 +91,16 @@ export function StepConfirmation({
         <div className="mt-4 border-t border-border pt-4">
           <div className="flex items-start justify-between gap-4 text-sm">
             <span className="text-muted-foreground shrink-0">Layanan</span>
-            <span className="font-medium text-foreground text-right">{services.map((s) => s.name).join(", ")}</span>
+            <span className="font-medium text-foreground text-right">
+              {services.map((s) => (
+                <span key={s.slug} className="block">
+                  {s.name}
+                  {s.tierLabel && (
+                    <span className="ml-1 text-[11px] font-medium text-primary">{s.tierLabel}</span>
+                  )}
+                </span>
+              ))}
+            </span>
           </div>
           {design && (
             <div className="mt-1.5 flex items-center justify-between gap-4 text-sm">

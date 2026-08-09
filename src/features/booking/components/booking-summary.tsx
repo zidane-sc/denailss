@@ -52,16 +52,31 @@ export function BookingSummary({ data }: { data: SummaryData }) {
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">{service.name}</p>
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {service.name}
+                    {service.tierLabel && (
+                      <span className="ml-1.5 text-[11px] font-medium text-primary">
+                        {service.tierLabel}
+                      </span>
+                    )}
+                  </p>
                   <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                     <ClockIcon className="size-3.5" />
-                    {service.tiers.length > 0
-                      ? "Harga sesuai tingkat kesulitan"
-                      : service.requiresPickup
-                        ? "1-2 Hari Pembuatan"
-                        : formatDuration(service.durationMinutes)}
+                    {service.tierLabel
+                      ? formatDuration(service.durationMinutes)
+                      : service.tiers.length > 0
+                        ? "Harga sesuai tingkat kesulitan"
+                        : service.requiresPickup
+                          ? "1-2 Hari Pembuatan"
+                          : formatDuration(service.durationMinutes)}
                   </p>
-                  {service.tiers.length > 0 ? (
+                  {service.tierLabel ? (
+                    service.priceNote && (
+                      <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/80">
+                        {service.priceNote}
+                      </p>
+                    )
+                  ) : service.tiers.length > 0 ? (
                     <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/80">
                       {service.tiers.map((t) => `${t.label} ${formatIDR(t.priceFrom)}`).join(" · ")}
                     </p>

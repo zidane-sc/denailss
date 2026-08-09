@@ -20,7 +20,7 @@
 
 - Redirects already-shipped functionality with a single terse sentence when the implementation doesn't match their operational reality — right after a full CRUD service-management feature was built and verified, the user stated "layanan tidak bisa ditambahkan atau hapus, hanya edit dan nonaktif" and expected the assistant to rework type, store, consumers, admin UI, and docs end-to-end with no debate, no proposal, and no review of the previously shipped version. Confidence: 0.7
 
-- Expects commits to stay scoped to the current task: when unrelated pre-existing changes are already in the working tree (e.g., from a previous session), stage and commit only the files relevant to this task rather than folding everything into one commit. But an explicit "commit all changes!" instruction overrides scoping — everything gets staged and committed as one comprehensive commit even when the work spans multiple epics. Confidence: 0.6
+- Expects commits to stay scoped to the current task: when unrelated pre-existing changes are already in the working tree (e.g., from a previous session), stage and commit only the files relevant to this task rather than folding everything into one commit. But an explicit "commit all changes!" instruction overrides scoping — everything gets staged and committed as one comprehensive commit even when the work spans multiple epics (re-confirmed with "commit all changes then push": a single catch-all commit covering many epics, followed by push). Confidence: 0.7
 
 - Wants the assistant to apply fixes directly once a problem is diagnosed, rather than stopping at explanation — explicitly directs action with terse commands (e.g., "fix it") and expects the fix to be implemented and verified, not just described. Confidence: 0.6
 
@@ -30,7 +30,7 @@
 
 - Accepts (implicitly greenlights) the assistant's standard verification protocol — typecheck, lint, production build, and dev-server smoke tests of new routes — as the definition of done for shipped features. Confidence: 0.4
 
-- Prefers building features front-end only on the existing mock data seam, deferring backend wiring to a later epic (explicitly said "do FE only") — mock-first implementation behind a named seam is the accepted interim until a real repository layer exists. Confidence: 0.55
+- Prefers building features front-end only on the existing mock data seam, deferring backend wiring to a later epic (explicitly said "do FE only") — mock-first implementation behind a named seam is the accepted interim until a real repository layer exists. Re-confirmed when offered "start the backend phase or pick the highest-value FE gap": chose to close the FE gap first ("okay fix the gap first") rather than begin the deferred backend. Confidence: 0.65
 
 - Agrees to keep user-uploaded/runtime-generated artifacts out of version control (approved adding `public/images/uploads/` to `.gitignore`) — generated storage, unlike source assets, should be gitignored so it doesn't get committed/deployed. Confidence: 0.5
 
@@ -43,3 +43,7 @@
 - When asked "so what's next?" after an epic ships, expects the assistant to lay out the remaining roadmap from the progress doc in priority order (with scope notes, e.g., which epics are FE-only on mocks, deferred backend work) and end with a concrete either/or choice (e.g., "start Epic 7 (Finance) next, or knock out SEO polish first?") — presenting a short prioritized menu rather than asking open-endedly. Confidence: 0.7
 
 - Challenges delivered work with terse, pointed questions in Indonesian ("btw apakah tidak perlu ada feature hapus promo?") and expects the assistant to defend the design with concrete reasoning (requirements brief, data-integrity tradeoffs) and then immediately act on the conclusion — here, removing the now-unused `deletePromotion` function to keep the codebase free of dead code. Confidence: 0.35
+
+- When offered a prioritized menu of next steps (e.g., commit-first, start the deferred backend phase, or close the current phase's feature gaps), picks closing the loose ends/gaps of just-shipped FE work over housekeeping and over starting the next large phase — replied "okay fix the gap first" (tier-aware booking pricing) and again "go fix thegap!" (customer review submission), each time expecting the named gap implemented end-to-end without further planning. Prefers functional completion of in-scope work before moving on. Confidence: 0.75
+ now-unused `deletePromotion` function to keep the codebase free of dead code. Confidence: 0.35
+fidence: 0.35

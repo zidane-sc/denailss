@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { REVIEWS, getReviewSummary } from "@/features/reviews/data/reviews.mock";
+import { getLiveReviews } from "@/features/reviews/data/reviews.mock";
 import { getActiveServices } from "@/features/services/data/services-admin.mock";
 import { imageUrl } from "@/lib/images";
 import { formatDateId } from "@/lib/format";
@@ -14,16 +14,18 @@ const ROTATIONS = ["-rotate-1", "rotate-1", "rotate-0", "-rotate-2", "rotate-2",
 
 export function ReviewsSection() {
   const [filter, setFilter] = useState<string>("all");
-  const { average, total } = getReviewSummary();
+  const reviews = useMemo(() => getLiveReviews(), []);
+  const total = reviews.length;
+  const average = total > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / total : 0;
 
   const filtered = useMemo(
-    () => (filter === "all" ? REVIEWS : REVIEWS.filter((r) => r.serviceSlug === filter)).slice(0, 6),
-    [filter]
+    () => (filter === "all" ? reviews : reviews.filter((r) => r.serviceSlug === filter)).slice(0, 6),
+    [reviews, filter]
   );
 
   const usedServiceSlugs = useMemo(
-    () => Array.from(new Set(REVIEWS.map((r) => r.serviceSlug))),
-    []
+    () => Array.from(new Set(reviews.map((r) => r.serviceSlug))),
+    [reviews]
   );
 
   return (
@@ -38,7 +40,9 @@ export function ReviewsSection() {
           </div>
           <div className="flex items-center gap-2 rounded-2xl bg-muted px-4 py-2.5">
             <StarIcon weight="fill" className="size-5 text-secondary" />
-            <span className="text-sm font-semibold text-foreground">{average} / 5</span>
+            <span className="text-sm font-semibold text-foreground">
+              {average.toFixed(1)} / 5
+            </span>
             <span className="text-sm text-muted-foreground">dari {total} ulasan</span>
           </div>
         </Reveal>

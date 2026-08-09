@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr";
-import { REVIEWS } from "@/features/reviews/data/reviews.mock";
+import { getLiveReviews } from "@/features/reviews/data/reviews.mock";
 import { getActiveServices } from "@/features/services/data/services-admin.mock";
 import { formatDateId } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
@@ -15,14 +15,15 @@ export function ReviewsExplorer() {
   const [ratingFilter, setRatingFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
 
+  const reviews = useMemo(() => getLiveReviews(), []);
+
   const { average, total, counts } = useMemo(() => {
-    const list = REVIEWS;
-    const totalCount = list.length;
-    const avg = list.reduce((sum, r) => sum + r.rating, 0) / totalCount;
-    
+    const totalCount = reviews.length;
+    const avg = totalCount > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalCount : 0;
+
     // Distribution of stars
     const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    list.forEach((r) => {
+    reviews.forEach((r) => {
       const rate = r.rating as 1 | 2 | 3 | 4 | 5;
       if (dist[rate] !== undefined) {
         dist[rate]++;
@@ -34,10 +35,10 @@ export function ReviewsExplorer() {
       total: totalCount,
       counts: dist,
     };
-  }, []);
+  }, [reviews]);
 
   const filteredReviews = useMemo(() => {
-    return REVIEWS.filter((r) => {
+    return reviews.filter((r) => {
       if (ratingFilter !== "all" && r.rating !== Number(ratingFilter)) {
         return false;
       }
@@ -46,7 +47,7 @@ export function ReviewsExplorer() {
       }
       return true;
     });
-  }, [ratingFilter, serviceFilter]);
+  }, [reviews, ratingFilter, serviceFilter]);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">

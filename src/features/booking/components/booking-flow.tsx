@@ -47,11 +47,27 @@ export function BookingFlow({
 
   const customerFormRef = useRef<{ submit: () => Promise<boolean> }>(null);
 
+  /** Resolve a service's effective price/duration from the chosen tier (falls back to flat). */
+  const effectiveService = (service: Service): Service => {
+    const tierKey = selections.tierByServiceSlug[service.slug];
+    const tier = tierKey ? service.tiers.find((t) => t.key === tierKey) : undefined;
+    return tier
+      ? {
+          ...service,
+          priceFrom: tier.priceFrom,
+          durationMinutes: tier.durationMinutes,
+          tierLabel: tier.label,
+        }
+      : { ...service, tierLabel: undefined };
+  };
+
   const selectedServices = useMemo(() => {
     return selections.serviceSlugs
       .map((slug) => getServiceBySlug(slug))
-      .filter((s): s is Service => Boolean(s && s.active));
-  }, [selections.serviceSlugs]);
+      .filter((s): s is Service => Boolean(s && s.active))
+      .map(effectiveService);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selections.serviceSlugs, selections.tierByServiceSlug]);
 
   const totalDuration = useMemo(() => {
     return selectedServices.reduce((sum, s) => sum + s.durationMinutes, 0);
@@ -176,7 +192,11 @@ export function BookingFlow({
       date: selections.dateKey ?? "",
       time: selections.time ?? "",
       durationMinutes: totalDuration,
-      services: selectedServices.map((s) => ({ slug: s.slug, name: s.name })),
+      services: selectedServices.map((s) => ({
+        slug: s.slug,
+        name: s.name,
+        tierLabel: s.tierLabel,
+      })),
       designSlug: design?.slug,
       designTitle: design?.title,
       fulfillment: selections.fulfillment ?? undefined,
@@ -241,6 +261,7 @@ export function BookingFlow({
           {currentStep === "service" && (
             <StepService
               selectedSlugs={selections.serviceSlugs}
+              tierByServiceSlug={selections.tierByServiceSlug}
               onToggle={(slug) =>
                 setSelections((s) => {
                   const isSelected = s.serviceSlugs.includes(slug);
@@ -249,6 +270,12 @@ export function BookingFlow({
                     : [...s.serviceSlugs, slug];
                   return { ...s, serviceSlugs: updatedSlugs };
                 })
+              }
+              onSelectTier={(slug, tierKey) =>
+                setSelections((s) => ({
+                  ...s,
+                  tierByServiceSlug: { ...s.tierByServiceSlug, [slug]: tierKey },
+                }))
               }
             />
           )}
