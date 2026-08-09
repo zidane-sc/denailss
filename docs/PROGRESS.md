@@ -9,7 +9,9 @@
 
 Epic 1, 2, and 3 are implemented. Supabase/Drizzle/Route Handlers/Server Actions from the TRD do not exist yet — everything runs against local mock data in `*.mock.ts` files, with client-side state hooks (BackofficeProvider) managing dashboard, calendar, and availability configuration.
 
-Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, Settings) are **not started**.
+**Backend wiring and Auth are deliberately skipped for now.** In-progress decision: this period is FE-first. All new work is built against mock data (extending the existing `*.mock.ts` seam pattern so it can be swapped for a real repository layer later without touching components). No Supabase project, no Drizzle schema, no `/api/v1/*` route handlers will be created until FE scope is further along.
+
+Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, Settings) are **not started**; when they are, they will also be built FE-first on mocks.
 
 ---
 
@@ -45,7 +47,11 @@ Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, S
 - `/backoffice/availability` — availability and operating rules editor.
 
 ### Booking flow (`src/features/booking/`)
-- Dynamic step list: Layanan → Desain (optional) → Tanggal → Waktu → Data Diri → Promo (optional) → Deposit (**only if** the selected service's `depositApplicable` is true and the global mock deposit config is enabled) → Confirmation.
+- Dynamic step list built from the selected services:
+  - **Desain** appears only when the selection includes nail-art, fake-nail, or gel-extension (skipped for manicure/pedicure/removal-only bookings).
+  - **Pengambilan** (fulfillment) appears when fake-nail is selected (even alongside other services); otherwise Tanggal/Waktu are used.
+  - **Promo** is always present for every service combination; **Deposit** only when the selected service requires it.
+  - Step index/max-reached are clamped when the step list changes (services toggled) so navigation never lands out of range.
 - **Availability Engine** (`logic/availability.ts`) is real logic, not fake states: weekly template + per-date overrides + vacation ranges + blocked times + booking rules (window/notice/max-per-day/buffer), computed against seeded mock appointments (`data/appointments.mock.ts`). Produces per-day status (available/limited/full/closed/past/outside-window) and per-slot grouped Pagi/Siang/Malam availability.
 - Pricing/discount/deposit math in `logic/pricing.ts`, validated against mock promotions with real rule checks (date window, min spend, applicable services, usage limit, max discount cap).
 - Customer info step uses `react-hook-form` + `zod` (`validators/booking.schema.ts`).
@@ -82,12 +88,11 @@ Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, S
 
 ## What's Next (not started)
 
-Roughly in the order the TRD implies:
+FE-first only. Backend wiring and Auth are out of scope for now (see Current Phase).
 
-1. **Backend wiring** — Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions. This is the biggest gap: every `*.mock.ts` file under `src/features/*/data/` is a named seam meant to be swapped for a real repository call without touching components.
-2. **Auth** — Supabase Auth (email + Google-ready).
-3. **Epic 4-9**: CRM, Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings.
-4. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
+1. **Epics 4-9, built FE-first on mocks** — CRM, Gallery Management (admin CRUD replacing the static mock array), Promotion admin, Finance, Analytics, Settings (Backoffice). Each still goes through `src/features/*/data/*.mock.ts` seams, extending the mock-first pattern already used for Epics 1-3.
+2. **SEO polish** — sitemap.xml, robots.txt, JSON-LD structured data (LocalBusiness/Service), per TRD §9 non-functional requirements. Metadata/OG tags exist per-page already; structured data does not.
+3. **Deferred (post-FE period)** — Backend wiring (Supabase project, Drizzle schema matching TRD §4 entity list, Route Handlers under `/api/v1/*` per TRD §5 REST conventions) and Auth (Supabase Auth, email + Google-ready). Every `*.mock.ts` file under `src/features/*/data/` is a named seam for that swap.
 
 ## File Map (where to look)
 

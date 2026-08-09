@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -83,16 +83,20 @@ export function BookingFlow({
 
   const depositAmount = depositRequired ? calculateDeposit(total, DEPOSIT_CONFIG) : 0;
 
-  const isOnlyFakeNails = useMemo(() => {
-    return selectedServices.length > 0 && selectedServices.every((s) => s.slug === "fake-nail");
-  }, [selectedServices]);
+  const selectedSlugs = selections.serviceSlugs;
+
+  const wantsDesign = useMemo(() => {
+    return selectedSlugs.some((slug) => ["nail-art", "fake-nail", "gel-extension"].includes(slug));
+  }, [selectedSlugs]);
+
+  const wantsPickup = useMemo(() => {
+    return selectedSlugs.includes("fake-nail");
+  }, [selectedSlugs]);
 
   const steps: StepMeta[] = useMemo(() => {
-    const base: StepMeta[] = [
-      { id: "service", label: "Layanan" },
-      { id: "design", label: "Desain" },
-    ];
-    if (isOnlyFakeNails) {
+    const base: StepMeta[] = [{ id: "service", label: "Layanan" }];
+    if (wantsDesign) base.push({ id: "design", label: "Desain" });
+    if (wantsPickup) {
       base.push({ id: "pickup", label: "Pengambilan" });
     } else {
       base.push(
@@ -107,10 +111,16 @@ export function BookingFlow({
     if (depositRequired) base.push({ id: "deposit", label: "Deposit" });
     base.push({ id: "confirmation", label: "Selesai" });
     return base;
-  }, [depositRequired, isOnlyFakeNails]);
+  }, [wantsDesign, wantsPickup, depositRequired]);
 
   const currentStep = steps[stepIndex]?.id ?? "service";
 
+  // When the step list changes (services toggled), keep the current index
+  // valid: clamp it and drop any max-reached index beyond the new list.
+  useEffect(() => {
+    setStepIndex((i) => Math.min(i, steps.length - 1));
+    setMaxReachedIndex((m) => Math.min(m, steps.length - 1));
+  }, [steps.length]);
   const canProceed = useMemo(() => {
     switch (currentStep) {
       case "service":

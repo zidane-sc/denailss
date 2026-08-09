@@ -10,9 +10,13 @@
 
 - Wants domain-accurate data modeling of real-world nuance — e.g., nail art is not a flat/static service but has difficulty levels (easy/medium/complex) that should drive per-design pricing, so data models should carry that variability (e.g., a `difficulty` field) instead of single hard-coded prices. Confidence: 0.6
 
-- Prefers the displayed price to stay stable in the customer flow — selecting a design should not visibly change the price shown (the estimate/nominal stands and the final price is confirmed separately, e.g., via WhatsApp) rather than the summary updating per design click. Confidence: 0.5
+- Prefers the displayed price to stay stable in the customer flow — selecting a design should not visibly change the price shown (the estimate/nominal stands and the final price is confirmed separately, e.g., via WhatsApp) rather than the summary updating per design click. Re-stated explicitly ("sepertinya tidak perlu berubah harga setelah klik desain"). Confidence: 0.7
 
 - Expects thorough verification before finalizing a task — typechecking, git status/diff review, and a full picture of what's being committed — even when the user didn't explicitly ask for it. Confidence: 0.6
 
 - Challenges proposed flows when the decision-maker doesn't match reality — e.g., the customer must never self-assess nail-art difficulty/pricing in the booking flow; difficulty is set by the artist/studio on curated designs and quoted by the artist for custom requests. Prefers flows where authority lives with the party who owns it in the real world. Confidence: 0.9
+
+- Wants the promo/discount step to be visible for every service in the booking flow, not conditional on service type — explicitly insisted "step promo visible untuk semua layanan!". Confidence: 0.7
+
+- Expects made-to-order/delivered items (e.g., press-on fake nails) to get a fulfillment/pickup step in the booking flow (ambil di lokasi vs dikirim via kurir), replacing the date/time slot that applies to in-studio services. Confidence: 0.6
 ow; difficulty is set by the artist/studio on curated designs and quoted by the artist for custom requests. Prefers flows where authority lives with the party who owns it in the real world. Confidence: 0.9
