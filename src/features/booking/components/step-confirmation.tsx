@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button";
 import { formatDateId, formatIDR, parseDateKey } from "@/lib/format";
 import { SITE, whatsappLink } from "@/constants/site";
 import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
+import type { FulfillmentMethod } from "@/features/booking/types";
 import type { Service, GalleryDesign } from "@/types";
+
+const FULFILLMENT_LABELS: Record<FulfillmentMethod, string> = {
+  pickup: "Ambil di lokasi",
+  delivery: "Dikirim via kurir",
+};
 
 export function StepConfirmation({
   bookingCode,
@@ -18,6 +24,7 @@ export function StepConfirmation({
   design,
   dateKey,
   time,
+  fulfillment,
   total,
   depositAmount,
   depositRequired,
@@ -27,11 +34,12 @@ export function StepConfirmation({
   design: GalleryDesign | null;
   dateKey: string | null;
   time: string | null;
+  fulfillment: FulfillmentMethod | null;
   total: number;
   depositAmount: number;
   depositRequired: boolean;
 }) {
-  const hasEstimate = services.some((s) => s.priceNote && !design);
+  const hasEstimate = services.some((s) => s.priceNote);
 
   return (
     <div className="text-center">
@@ -70,6 +78,11 @@ export function StepConfirmation({
             <span className="text-sm">📦</span>
             <div>
               <p className="text-sm font-semibold text-emerald-600">Pesanan Kuku Palsu (Custom Press-On)</p>
+              {fulfillment && (
+                <p className="text-xs font-medium text-foreground mt-0.5">
+                  {FULFILLMENT_LABELS[fulfillment]}
+                </p>
+              )}
               <p className="text-[11px] text-muted-foreground mt-0.5">Bisa diambil langsung ke lokasi atau opsi pengiriman paket.</p>
             </div>
           </div>

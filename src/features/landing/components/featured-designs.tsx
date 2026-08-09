@@ -49,12 +49,11 @@ function DesignTile({ design, className, aspectClass, index }: DesignTileProps) 
           <span className="absolute right-4 top-4 rounded-full border border-white/25 bg-black/25 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/85 backdrop-blur-sm">
             {label}
           </span>
-          <span className="absolute left-4 bottom-4 rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm">
-            {DIFFICULTY_LABELS[design.difficulty]}
-          </span>
-
           <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-5">
             <div className="min-w-0">
+              <span className="mb-1.5 inline-block rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm">
+                {DIFFICULTY_LABELS[design.difficulty]}
+              </span>
               <p className="truncate text-base font-semibold text-white sm:text-lg">{design.title}</p>
             </div>
             <span className="flex size-9 shrink-0 translate-y-1 items-center justify-center rounded-full bg-primary text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">

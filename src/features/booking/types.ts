@@ -6,6 +6,7 @@ export const BOOKING_STEP_IDS = [
   "design",
   "date",
   "time",
+  "pickup",
   "customer",
   "promo",
   "deposit",
@@ -20,11 +21,15 @@ export interface DepositUpload {
   status: DepositVerificationStatus;
 }
 
+/** How a press-on / fake-nail order is fulfilled. */
+export type FulfillmentMethod = "pickup" | "delivery";
+
 export interface BookingSelections {
   serviceSlugs: string[];
   designSlug: string | null;
   dateKey: string | null;
   time: string | null;
+  fulfillment: FulfillmentMethod | null;
   customer: CustomerInfoFormValues | null;
   promoCode: string | null;
   deposit: DepositUpload | null;
@@ -35,6 +40,7 @@ export const INITIAL_SELECTIONS: BookingSelections = {
   designSlug: null,
   dateKey: null,
   time: null,
+  fulfillment: null,
   customer: null,
   promoCode: null,
   deposit: null,

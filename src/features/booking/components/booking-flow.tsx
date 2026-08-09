@@ -15,6 +15,7 @@ import { StepService } from "@/features/booking/components/step-service";
 import { StepDesign } from "@/features/booking/components/step-design";
 import { StepDate } from "@/features/booking/components/step-date";
 import { StepTime } from "@/features/booking/components/step-time";
+import { StepPickup } from "@/features/booking/components/step-pickup";
 import { StepCustomerInfo } from "@/features/booking/components/step-customer-info";
 import { StepPromo } from "@/features/booking/components/step-promo";
 import { StepDeposit } from "@/features/booking/components/step-deposit";
@@ -57,16 +58,11 @@ export function BookingFlow({
 
   const design = selections.designSlug ? getDesignBySlug(selections.designSlug) ?? null : null;
 
-  const hasEstimate = selectedServices.some((s) => s.priceNote && !design);
+  const hasEstimate = selectedServices.some((s) => s.priceNote);
 
   const subtotal = useMemo(() => {
-    return selectedServices.reduce((sum, s) => {
-      if (design && design.relatedServiceSlugs.includes(s.slug)) {
-        return sum + design.priceFrom;
-      }
-      return sum + s.priceFrom;
-    }, 0);
-  }, [selectedServices, design]);
+    return selectedServices.reduce((sum, s) => sum + s.priceFrom, 0);
+  }, [selectedServices]);
 
   const promotion = selections.promoCode ? findPromotionByCode(selections.promoCode) : undefined;
   
@@ -96,7 +92,9 @@ export function BookingFlow({
       { id: "service", label: "Layanan" },
       { id: "design", label: "Desain" },
     ];
-    if (!isOnlyFakeNails) {
+    if (isOnlyFakeNails) {
+      base.push({ id: "pickup", label: "Pengambilan" });
+    } else {
       base.push(
         { id: "date", label: "Tanggal" },
         { id: "time", label: "Waktu" }
@@ -121,6 +119,8 @@ export function BookingFlow({
         return Boolean(selections.dateKey);
       case "time":
         return Boolean(selections.time);
+      case "pickup":
+        return Boolean(selections.fulfillment);
       case "customer":
         return true;
       case "deposit":
@@ -167,6 +167,7 @@ export function BookingFlow({
           design={design}
           dateKey={selections.dateKey}
           time={selections.time}
+          fulfillment={selections.fulfillment}
           total={total}
           depositAmount={depositAmount}
           depositRequired={depositRequired}
@@ -180,6 +181,7 @@ export function BookingFlow({
     design,
     dateKey: selections.dateKey,
     time: selections.time,
+    fulfillment: selections.fulfillment,
     subtotal,
     discount,
     total,
@@ -233,6 +235,12 @@ export function BookingFlow({
               durationMinutes={totalDuration}
               selectedTime={selections.time}
               onSelect={(time) => setSelections((s) => ({ ...s, time }))}
+            />
+          )}
+          {currentStep === "pickup" && (
+            <StepPickup
+              value={selections.fulfillment}
+              onSelect={(fulfillment) => setSelections((s) => ({ ...s, fulfillment }))}
             />
           )}
           {currentStep === "customer" && (

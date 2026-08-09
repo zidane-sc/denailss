@@ -3,6 +3,7 @@ import { ClockIcon } from "@phosphor-icons/react/dist/ssr";
 import { formatDateId, formatDuration, formatIDR, parseDateKey } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
+import type { FulfillmentMethod } from "@/features/booking/types";
 import type { GalleryDesign, Service } from "@/types";
 
 export interface SummaryData {
@@ -10,6 +11,7 @@ export interface SummaryData {
   design: GalleryDesign | null;
   dateKey: string | null;
   time: string | null;
+  fulfillment: FulfillmentMethod | null;
   subtotal: number;
   discount: number;
   total: number;
@@ -18,11 +20,16 @@ export interface SummaryData {
   promoCode: string | null;
 }
 
+const FULFILLMENT_LABELS: Record<FulfillmentMethod, string> = {
+  pickup: "Ambil di lokasi",
+  delivery: "Dikirim via kurir",
+};
+
 export function BookingSummary({ data }: { data: SummaryData }) {
-  const { services, design, dateKey, time, subtotal, discount, total, depositAmount, depositRequired, promoCode } =
+  const { services, design, dateKey, time, fulfillment, subtotal, discount, total, depositAmount, depositRequired, promoCode } =
     data;
 
-  const hasEstimate = services.some((s) => s.priceNote && !design);
+  const hasEstimate = services.some((s) => s.priceNote);
 
   return (
     <div className="rounded-3xl border border-border bg-card p-5">
@@ -50,14 +57,14 @@ export function BookingSummary({ data }: { data: SummaryData }) {
                     <ClockIcon className="size-3.5" />
                     {formatDuration(service.durationMinutes)}
                   </p>
-                  {service.priceNote && !design && (
+                  {service.priceNote && (
                     <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground/80">
                       {service.priceNote}
                     </p>
                   )}
                 </div>
                 <span className="text-xs font-semibold text-foreground shrink-0">
-                  {service.priceNote && !design ? `± ${formatIDR(service.priceFrom)}` : formatIDR(service.priceFrom)}
+                  {service.priceNote ? `± ${formatIDR(service.priceFrom)}` : formatIDR(service.priceFrom)}
                 </span>
               </div>
             ))}
@@ -81,7 +88,6 @@ export function BookingSummary({ data }: { data: SummaryData }) {
                   Tingkat kesulitan: {DIFFICULTY_LABELS[design.difficulty]}
                 </p>
               </div>
-              <span className="shrink-0 text-xs font-semibold text-foreground">{formatIDR(design.priceFrom)}</span>
             </div>
           )}
 
@@ -89,6 +95,12 @@ export function BookingSummary({ data }: { data: SummaryData }) {
             <div className="rounded-xl bg-muted px-3 py-2.5 text-sm text-foreground/80">
               {dateKey && <p>{formatDateId(parseDateKey(dateKey), { withWeekday: true })}</p>}
               {time && <p className="mt-0.5 font-medium text-foreground">{time} WIB</p>}
+            </div>
+          )}
+
+          {fulfillment && (
+            <div className="rounded-xl bg-muted px-3 py-2.5 text-sm text-foreground/80">
+              {FULFILLMENT_LABELS[fulfillment]}
             </div>
           )}
 
