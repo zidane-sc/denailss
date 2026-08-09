@@ -52,6 +52,8 @@ Epics 4-9 (CRM, Gallery Management admin, Promotion admin, Finance, Analytics, S
   - **Pengambilan** (fulfillment) appears when fake-nail is selected (even alongside other services); otherwise Tanggal/Waktu are used.
   - **Promo** is always present for every service combination; **Deposit** only when the selected service requires it.
   - Step index/max-reached are clamped for rendering when the step list changes (services toggled) so navigation never lands out of range.
+- **Design and Promo steps are skippable** — `canProceed` defaults to `true` for both, so a customer can leave the design unselected and/or skip the promo code (both optional).
+- **Confirmation requires a generated booking code** — the "Selesai" screen renders only once `bookingCode` is set, which happens in `goNext` when leaving the second-to-last step (format `DNL-YYYYMMDD-NNNN`).
 - **Availability Engine** (`logic/availability.ts`) is real logic, not fake states: weekly template + per-date overrides + vacation ranges + blocked times + booking rules (window/notice/max-per-day/buffer), computed against seeded mock appointments (`data/appointments.mock.ts`). Produces per-day status (available/limited/full/closed/past/outside-window) and per-slot grouped Pagi/Siang/Malam availability.
 - Pricing/discount/deposit math in `logic/pricing.ts`, validated against mock promotions with real rule checks (date window, min spend, applicable services, usage limit, max discount cap).
 - Customer info step uses `react-hook-form` + `zod` (`validators/booking.schema.ts`).
