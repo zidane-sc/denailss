@@ -17,3 +17,5 @@
 - Expects hand-written SQL migrations to be idempotent/re-runnable against the live database: after a migration re-run failed on non-idempotent `CREATE POLICY` statements, the fix was adding `DROP POLICY IF EXISTS` guards before each policy (and `CREATE TABLE IF NOT EXISTS` / `ADD COLUMN IF NOT EXISTS` elsewhere) so re-applying the file is safe — this was accepted without complaint. Confidence: 0.5
 
 - Approves removing dead/unused dependencies to keep the dependency tree lean — when the assistant flagged `date-fns` as installed-but-never-imported and offered to remove it, replied tersely "yeah remove it", expecting the removal to be completed (manifest + lockfile) and verified, not just described. Confidence: 0.6
+
+- Approves pinning the project's Node version via `.nvmrc` for reproducible installs — greenlit adding `.nvmrc` (24.11.1) after the default nvm Node version broke devDependency installs and a transitive dep required Node >=24. Confidence: 0.55

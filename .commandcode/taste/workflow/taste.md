@@ -12,7 +12,7 @@
 
 - Wants project documentation kept in sync with code changes — "update @docs if needed" (e.g., AGENTS.md, docs/PROGRESS.md) should be checked and updated as part of finishing a task; proactively asks whether docs need updating for the latest changes ("do we need update @docs about our changes?") and also asks the assistant to audit that the docs match the actual implementation, not just that they were updated (e.g., "apa sudah sesuai antara docs dan implementasi?"). Expects the doc to mirror the final shipped state of "our changes" broadly — including internal architecture refactors (e.g., a seed/store split for SSR safety) and intentional design decisions (e.g., a deliberately omitted delete feature) — not just user-visible feature lists. Reiterated explicitly right after an epic shipped ("okay then update the @docs"): a blanket docs request that expects the assistant to determine which docs need updating and to record the shipped technical decisions in the spec too (added settings to TRD entities/ERD, a data-model subsection, API endpoints, and a new ADR), not just the progress log. Confidence: 0.99
 
-- Commits authored by the assistant are expected to follow conventional-commit format with a scoped `feat:`/`fix:` summary, a detailed bullet-point body, and the `Co-authored-by: CommandCodeBot` attribution line — the user hasn't objected to this format in reviews. Confidence: 0.5
+- Commits authored by the assistant are expected to follow conventional-commit format with a scoped `feat:`/`fix:` summary, a detailed bullet-point body, and the `Co-authored-by: CommandCodeBot` attribution line — the user hasn't objected to this format in reviews; a fresh instance (detailed `feat:` body for a 173-file commit + `chore:` for `.nvmrc`) shipped under a terse "go" approval. Confidence: 0.6
 
 - Wants competitive/market research grounded in authoritative sources (official studio price lists, reputable articles like Kompas, market-data sites) before deciding whether the current service/feature set is complete and what to add — e.g., "check our services, is it enough? can you do research what service should we add?" Confidence: 0.7
 
@@ -57,6 +57,10 @@
 fidence: 0.35
 -to-end without further planning. Prefers functional completion of in-scope work before moving on. Confidence: 0.75
  now-unused `deletePromotion` function to keep the codebase free of dead code. Confidence: 0.35
+fidence: 0.35
+.35
+fidence: 0.35
+ase free of dead code. Confidence: 0.35
 fidence: 0.35
 .35
 fidence: 0.35

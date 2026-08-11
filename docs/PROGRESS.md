@@ -172,6 +172,7 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 - Note: public surfaces now read the persisted settings — the site footer, contact page, landing contact + Instagram sections, booking pickup/confirmation steps, and customer booking detail all consume `/api/v1/settings` (client fetch with `SITE` fallback), while the landing JSON-LD (`localBusinessJsonLd`/`serviceJsonLd`) uses `getPublicSettings()` (server read). The `SITE` constants remain the fallback and the source for non-editable identity (URL, tagline, maps link, hours note).
 
 ### Verified working
+- **Vitest unit tests** (`npm test`) — 36 tests across the pure business logic: `checkPromotion` (all rules + unlimited-usage regression), `calculateDeposit` (percentage/fixed/disabled), the availability slot engine (`getDayStatus` past/window/vacation/closed/override + `getDayTimeSlots` notice/slots), and `computeCustomerStats`/`getCustomerStatus`/`getCustomerSegment` (visits, spending, favorites, last visit, next appointment, status/segment mapping).
 - Full booking happy path through the current frontend flow, including promo code + deposit upload preview + confirmation.
 - Supabase Google OAuth, email/password auth, email confirmation callback, resend confirmation, logout confirmation modal, and safe route redirects.
 - Supabase Auth profile linkage, two-role owner/customer guards, RLS migration, and explicit owner promotion flow.
@@ -188,7 +189,7 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 
 ## What's Next
 
-1. **Expand tests** — API auth/ownership tests, RLS verification, booking recalculation/conflict tests (incl. promo quota + deposit math + overlap checks), upload validation, Storage access tests, and E2E refresh/persistence coverage.
+1. **Expand test coverage** — unit tests are in place for the pure business logic (see "Verified working" below); next is API auth/ownership tests, RLS verification, booking recalculation/conflict tests against the DB, upload validation, Storage access tests, and E2E persistence coverage.
 
 Implemented backend/auth paths live under `src/db/`, `src/lib/supabase/`, `src/features/booking/services/`, `src/features/customer/services/`, `src/features/booking/schemas/`, `src/features/gallery/services/`, `src/features/services/services/`, `src/features/settings/services/`, `src/features/promotion/services/`, `src/features/reviews/services/`, `src/features/crm/services/`, `src/features/finance/services/`, `src/features/availability/schemas/`, and `src/app/api/v1/`. No config mocks remain — the only `*.mock.ts` files are dev fixtures (backoffice appointment seed, instagram posts).
 
