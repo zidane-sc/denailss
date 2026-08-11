@@ -182,6 +182,79 @@ export function BusinessProfileForm({
           className="h-10"
         />
       </SettingsField>
+
+      <SettingsField
+        label="Link Google Maps"
+        hint={draft.businessProfile.mapsUrl ? undefined : "Tempel link Maps untuk tombol \"Lihat lokasi di Maps\" di footer dan halaman kontak."}
+      >
+        <Input
+          type="url"
+          value={draft.businessProfile.mapsUrl ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...draft,
+              businessProfile: { ...draft.businessProfile, mapsUrl: e.target.value },
+            })
+          }
+          placeholder="https://maps.google.com/?q=Denailss+Nail+Art"
+          className="h-10"
+        />
+        {!draft.businessProfile.mapsUrl?.trim() && (
+          <p className="text-[11px] text-muted-foreground">Belum diatur.</p>
+        )}
+      </SettingsField>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <SettingsField
+          label="Latitude"
+          hint={error.latitude ? undefined : "Koordinat peta yang tampil di halaman kontak, contoh -6.2088."}
+          error={error.latitude}
+        >
+          <Input
+            type="number"
+            step="any"
+            value={draft.businessProfile.latitude ?? ""}
+            onChange={(e) => {
+              const raw = e.target.value;
+              onChange({
+                ...draft,
+                businessProfile: {
+                  ...draft.businessProfile,
+                  latitude: raw === "" ? null : Number(raw),
+                },
+              });
+            }}
+            placeholder="-6.2088"
+            className="h-10"
+            aria-invalid={Boolean(error.latitude)}
+          />
+        </SettingsField>
+
+        <SettingsField
+          label="Longitude"
+          hint={error.longitude ? undefined : "Koordinat peta yang tampil di halaman kontak, contoh 106.8456."}
+          error={error.longitude}
+        >
+          <Input
+            type="number"
+            step="any"
+            value={draft.businessProfile.longitude ?? ""}
+            onChange={(e) => {
+              const raw = e.target.value;
+              onChange({
+                ...draft,
+                businessProfile: {
+                  ...draft.businessProfile,
+                  longitude: raw === "" ? null : Number(raw),
+                },
+              });
+            }}
+            placeholder="106.8456"
+            className="h-10"
+            aria-invalid={Boolean(error.longitude)}
+          />
+        </SettingsField>
+      </div>
     </SettingsSection>
   );
 }

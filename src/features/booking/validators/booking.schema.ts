@@ -7,7 +7,8 @@ export const customerInfoSchema = z.object({
     .trim()
     .min(9, "Nomor WhatsApp tidak valid.")
     .regex(/^(\+62|62|0)8[0-9]{7,12}$/, "Gunakan format nomor Indonesia, contoh 08123456789."),
-  email: z.union([z.literal(""), z.string().trim().email("Format email tidak valid.")]).optional(),
+  email: z.string().trim().email("Format email tidak valid."),
+  instagram: z.string().trim().max(60, "Instagram maksimal 60 karakter.").optional(),
   notes: z.string().trim().max(300, "Catatan maksimal 300 karakter.").optional(),
 });
 

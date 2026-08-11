@@ -1,13 +1,14 @@
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type { ApiAuthContext } from "@/lib/supabase/api-auth";
 import { calculateDeposit, checkPromotion } from "@/features/booking/logic/pricing";
+import { FREE_ADDON_BY_BODY_PART, NAIL_ART_SLUG } from "@/features/booking/logic/free-addon";
 import { getAvailabilityConfig } from "@/features/booking/services/availability-service";
 import { getDepositConfig } from "@/features/booking/services/deposit-service";
 import { incrementPromotionUsage, getPromotionByCode } from "@/features/promotion/services/promotion-service";
 import { ApiError } from "@/lib/api/errors";
 import { getDb } from "@/db/client";
 import { removeStorageReference } from "@/lib/storage";
-import { appointmentServices, appointments, customers, gallery, services } from "@/db/schema";
+import { appointmentAddOns, appointmentServices, appointments, customers, gallery, services } from "@/db/schema";
 import { forgetDepositUpload } from "./deposit-proof-service";
 import type { Appointment } from "@/features/appointment/types";
 import type { CreateBookingInput, UpdateBookingInput } from "../schemas/api";
@@ -39,20 +40,36 @@ function hasSlotConflict(
   });
 }
 
-function toAppointment(row: typeof appointments.$inferSelect, customer: typeof customers.$inferSelect, items: typeof appointmentServices.$inferSelect[]): Appointment {
+function toAppointment(
+  row: typeof appointments.$inferSelect,
+  customer: typeof customers.$inferSelect,
+  items: typeof appointmentServices.$inferSelect[],
+  addOns: typeof appointmentAddOns.$inferSelect[] = []
+): Appointment {
   return {
     id: row.bookingCode,
     date: row.date ?? "",
     time: row.time ?? "",
     durationMinutes: row.durationMinutes,
-    services: items.map((item) => ({ slug: item.serviceSlug, name: item.serviceName, tierLabel: item.tierLabel ?? undefined })),
+    services: items.map((item) => ({
+      slug: item.serviceSlug,
+      name: item.serviceName,
+      tierLabel: item.tierLabel ?? undefined,
+      bodyPart: (item.bodyPart as "hand" | "foot" | undefined) ?? undefined,
+    })),
+    addOns: addOns.map((item) => ({
+      slug: item.serviceSlug,
+      name: item.serviceName,
+      bodyPart: (item.bodyPart as "hand" | "foot"),
+      price: 0,
+    })),
     designSlug: row.designSlug ?? undefined,
     designTitle: row.designTitle ?? undefined,
     fulfillment: row.fulfillment ?? undefined,
     promoCode: row.promoCode ?? undefined,
     price: row.price,
     customerId: row.customerId ?? undefined,
-    customer: { name: customer.name, phone: customer.phone, email: customer.email ?? undefined, notes: customer.notes ?? undefined },
+    customer: { name: customer.name, phone: customer.phone, email: customer.email ?? undefined, instagram: customer.instagram ?? undefined, notes: customer.notes ?? undefined },
     depositRequired: row.depositRequired,
     depositAmount: row.depositAmount ?? undefined,
     depositProofUrl: row.depositProofUrl ?? undefined,
@@ -99,15 +116,37 @@ export async function createBooking(input: CreateBookingInput, auth: ApiAuthCont
     const tierKey = input.tierByServiceSlug[service.slug];
     const tier = tierKey ? tiers.find((item) => item.key === tierKey) : undefined;
     if (tiers.length > 0 && !tier) throw new ApiError("VALIDATION_ERROR", `Pilih tingkat untuk ${service.name}.`, 422);
+    const bodyPart = input.bodyPartByServiceSlug[service.slug] as "hand" | "foot" | undefined;
+    if (service.slug === NAIL_ART_SLUG && !service.requiresPickup && !bodyPart) {
+      throw new ApiError("VALIDATION_ERROR", "Pilih bagian tubuh untuk Nail Art (tangan/kaki).", 422);
+    }
     return {
       service,
       tier,
+      bodyPart,
       price: tier?.priceFrom ?? service.priceFrom,
       duration: tier?.durationMinutes ?? service.durationMinutes,
     };
   });
 
-  const durationMinutes = resolved.reduce((sum, item) => sum + item.duration, 0);
+  // Free add-ons: nail art on hands bundles a manicure, nail art on feet a
+  // pedicure. The add-on is always Rp0; its duration counts toward the slot.
+  const addOns = resolved.flatMap((item) => {
+    if (item.service.slug !== NAIL_ART_SLUG || !item.bodyPart) return [];
+    const freebie = FREE_ADDON_BY_BODY_PART[item.bodyPart];
+    const catalog = selected.find((s) => s?.slug === freebie.slug);
+    if (!catalog) return [];
+    return [{
+      ...freebie,
+      bodyPart: item.bodyPart,
+      service: catalog,
+      price: 0,
+      duration: catalog.durationMinutes,
+    }];
+  });
+
+  const durationMinutes = resolved.reduce((sum, item) => sum + item.duration, 0) +
+    addOns.reduce((sum, item) => sum + item.duration, 0);
   const requiresPickup = resolved.some((item) => item.service.requiresPickup);
   assertSchedule(input, durationMinutes, requiresPickup, minimumNoticeHours);
 
@@ -160,12 +199,32 @@ export async function createBooking(input: CreateBookingInput, auth: ApiAuthCont
       }
     }
 
-    const [existingCustomer] = auth.kind === "customer"
-      ? await tx.select().from(customers).where(eq(customers.userId, auth.userId))
-      : await tx.select().from(customers).where(eq(customers.phone, input.customer.phone));
-    const [customer] = existingCustomer
-      ? await tx.update(customers).set({ name: input.customer.name, phone: input.customer.phone, email: input.customer.email || null, notes: input.customer.notes || null, updatedAt: new Date() }).where(eq(customers.id, existingCustomer.id)).returning()
-      : await tx.insert(customers).values({ userId: auth.kind === "customer" ? auth.userId : null, name: input.customer.name, phone: input.customer.phone, email: input.customer.email || null, notes: input.customer.notes || null }).returning();
+    // Resolve which customer row this booking binds to:
+    //   1. Logged-in user → their account row (user_id = auth.userId).
+    //   2. Anonymous guest → the anon row with this email (guests reusing an
+    //      email across visits stay on one row, even if they later sign up).
+    //   3. Fallback → the anon row with this phone (legacy/mock rows).
+    //   4. Otherwise → create a fresh row.
+    let customer: typeof customers.$inferSelect | undefined;
+    if (auth.kind === "customer") {
+      const [byUser] = await tx.select().from(customers).where(eq(customers.userId, auth.userId));
+      if (byUser) customer = byUser;
+    }
+    if (!customer) {
+      const [byEmail] = await tx.select().from(customers).where(and(eq(customers.email, input.customer.email ?? ""), isNull(customers.userId)));
+      if (byEmail) customer = byEmail;
+    }
+    if (!customer) {
+      const [byPhone] = await tx.select().from(customers).where(and(eq(customers.phone, input.customer.phone), isNull(customers.userId)));
+      if (byPhone) customer = byPhone;
+    }
+    if (!customer) {
+      const [created] = await tx.insert(customers).values({ userId: auth.kind === "customer" ? auth.userId : null, name: input.customer.name, phone: input.customer.phone, email: input.customer.email || null, instagram: input.customer.instagram || null, notes: input.customer.notes || null }).returning();
+      customer = created;
+    } else {
+      const [updated] = await tx.update(customers).set({ name: input.customer.name, phone: input.customer.phone, email: input.customer.email || null, instagram: input.customer.instagram || null, notes: input.customer.notes || null, updatedAt: new Date() }).where(eq(customers.id, customer.id)).returning();
+      if (updated) customer = updated;
+    }
     if (!customer) throw new ApiError("INTERNAL_ERROR", "Customer tidak dapat disimpan.", 500);
 
     const [appointment] = await tx.insert(appointments).values({
@@ -201,15 +260,27 @@ export async function createBooking(input: CreateBookingInput, auth: ApiAuthCont
       serviceName: item.service.name,
       tierKey: input.tierByServiceSlug[item.service.slug] || null,
       tierLabel: item.tier?.label || null,
+      bodyPart: item.bodyPart || null,
       price: item.price,
       durationMinutes: item.duration,
     }))).returning();
+
+    const addOnRows = addOns.length > 0
+      ? await tx.insert(appointmentAddOns).values(addOns.map((addOn) => ({
+          appointmentId: appointment.id,
+          serviceId: addOn.service.id,
+          serviceSlug: addOn.slug,
+          serviceName: addOn.name,
+          bodyPart: addOn.bodyPart,
+          price: 0,
+        }))).returning()
+      : [];
 
     if (input.deposit?.storagePath) {
       await forgetDepositUpload(input.deposit.storagePath);
     }
 
-    return toAppointment(appointment, customer, items);
+    return toAppointment(appointment, customer, items, addOnRows);
   });
 }
 
@@ -219,7 +290,8 @@ async function mapRows(rows: (typeof appointments.$inferSelect)[]) {
   for (const row of rows) {
     const [customer] = await db.select().from(customers).where(eq(customers.id, row.customerId));
     const items = await db.select().from(appointmentServices).where(eq(appointmentServices.appointmentId, row.id));
-    if (customer) result.push(toAppointment(row, customer, items));
+    const addOns = await db.select().from(appointmentAddOns).where(eq(appointmentAddOns.appointmentId, row.id));
+    if (customer) result.push(toAppointment(row, customer, items, addOns));
   }
   return result;
 }
@@ -236,6 +308,16 @@ export async function listBookings(auth: ApiAuthContext) {
 
 export async function listOwnerBookings() {
   return listBookings({ kind: "owner", userId: "system" });
+}
+
+/** Count of completed (fulfilled) appointments — feeds the hero trust counter. */
+export async function countCompletedBookings(): Promise<number> {
+  const db = getDb();
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(appointments)
+    .where(eq(appointments.status, "completed"));
+  return row?.count ?? 0;
 }
 
 export async function listCustomerBookings(customerId: string) {

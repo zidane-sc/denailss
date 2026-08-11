@@ -9,6 +9,7 @@ import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-des
 import { useFindPromotionByCode } from "@/features/promotion/data/promotion-booking";
 import { useDepositConfig } from "@/features/booking/components/deposit-config-provider";
 import { checkPromotion, calculateDeposit } from "@/features/booking/logic/pricing";
+import { freeAddonForService } from "@/features/booking/logic/free-addon";
 import { BookingStepper, type StepMeta } from "@/features/booking/components/booking-stepper";
 import { BookingSummary } from "@/features/booking/components/booking-summary";
 import { StepService } from "@/features/booking/components/step-service";
@@ -58,8 +59,13 @@ export function BookingFlow({
           priceFrom: tier.priceFrom,
           durationMinutes: tier.durationMinutes,
           tierLabel: tier.label,
+          bodyPart: selections.bodyPartByServiceSlug[service.slug],
         }
-      : { ...service, tierLabel: undefined };
+      : {
+          ...service,
+          tierLabel: undefined,
+          bodyPart: selections.bodyPartByServiceSlug[service.slug],
+        };
   };
 
   const selectedServices = useMemo(() => {
@@ -68,11 +74,29 @@ export function BookingFlow({
       .filter((s): s is Service => Boolean(s && s.active))
       .map(effectiveService);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selections.serviceSlugs, selections.tierByServiceSlug, services]);
+  }, [selections.serviceSlugs, selections.tierByServiceSlug, selections.bodyPartByServiceSlug, services]);
+
+  /** Free add-ons bundled with the selected services (nail art → manicure/pedicure). */
+  const addOns = useMemo(() => {
+    return selectedServices
+      .flatMap((s) => {
+        const freebie = freeAddonForService(s);
+        if (!freebie) return [];
+        const catalog = services.find((c) => c.slug === freebie.slug);
+        return [
+          {
+            ...freebie,
+            durationMinutes: catalog?.durationMinutes ?? 0,
+          },
+        ];
+      })
+      .filter((a) => a.durationMinutes > 0);
+  }, [selectedServices, services]);
 
   const totalDuration = useMemo(() => {
-    return selectedServices.reduce((sum, s) => sum + s.durationMinutes, 0);
-  }, [selectedServices]);
+    return selectedServices.reduce((sum, s) => sum + s.durationMinutes, 0) +
+      addOns.reduce((sum, a) => sum + a.durationMinutes, 0);
+  }, [selectedServices, addOns]);
 
   const design = selections.designSlug
     ? galleryDesigns.find((d) => d.slug === selections.designSlug) ?? null
@@ -194,6 +218,7 @@ export function BookingFlow({
       body: JSON.stringify({
         serviceSlugs: selections.serviceSlugs,
         tierByServiceSlug: selections.tierByServiceSlug,
+        bodyPartByServiceSlug: selections.bodyPartByServiceSlug,
         designSlug: selections.designSlug,
         dateKey: selections.dateKey,
         time: selections.time,
@@ -222,6 +247,7 @@ export function BookingFlow({
         <StepConfirmation
           bookingCode={bookingCode}
           services={selectedServices}
+          addOns={addOns}
           design={design}
           dateKey={selections.dateKey}
           time={selections.time}
@@ -236,6 +262,7 @@ export function BookingFlow({
 
   const summaryData = {
     services: selectedServices,
+    addOns,
     design,
     dateKey: selections.dateKey,
     time: selections.time,
@@ -263,19 +290,32 @@ export function BookingFlow({
             <StepService
               selectedSlugs={selections.serviceSlugs}
               tierByServiceSlug={selections.tierByServiceSlug}
+              bodyPartByServiceSlug={selections.bodyPartByServiceSlug}
               onToggle={(slug) =>
                 setSelections((s) => {
                   const isSelected = s.serviceSlugs.includes(slug);
                   const updatedSlugs = isSelected
                     ? s.serviceSlugs.filter((x) => x !== slug)
                     : [...s.serviceSlugs, slug];
-                  return { ...s, serviceSlugs: updatedSlugs };
+                  const bodyPartByServiceSlug = { ...s.bodyPartByServiceSlug };
+                  if (isSelected) {
+                    delete bodyPartByServiceSlug[slug];
+                  } else if (slug === "nail-art" && !bodyPartByServiceSlug[slug]) {
+                    bodyPartByServiceSlug[slug] = "hand";
+                  }
+                  return { ...s, serviceSlugs: updatedSlugs, bodyPartByServiceSlug };
                 })
               }
               onSelectTier={(slug, tierKey) =>
                 setSelections((s) => ({
                   ...s,
                   tierByServiceSlug: { ...s.tierByServiceSlug, [slug]: tierKey },
+                }))
+              }
+              onSelectBodyPart={(slug, bodyPart) =>
+                setSelections((s) => ({
+                  ...s,
+                  bodyPartByServiceSlug: { ...s.bodyPartByServiceSlug, [slug]: bodyPart },
                 }))
               }
             />

@@ -26,7 +26,7 @@ export function StepCustomerInfo({
     formState: { errors },
   } = useForm<CustomerInfoFormValues>({
     resolver: zodResolver(customerInfoSchema),
-    defaultValues: value ?? { name: "", phone: "", email: "", notes: "" },
+    defaultValues: value ?? { name: "", phone: "", email: "", instagram: "", notes: "" },
     mode: "onBlur",
   });
 
@@ -69,9 +69,15 @@ export function StepCustomerInfo({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email (opsional)</Label>
+          <Label htmlFor="email">Email</Label>
           <Input id="email" placeholder="nama@email.com" {...register("email")} />
           {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="instagram">Instagram (opsional)</Label>
+          <Input id="instagram" placeholder="@namakamu" {...register("instagram")} />
+          {errors.instagram && <p className="text-xs text-destructive">{errors.instagram.message}</p>}
         </div>
 
         <div className="space-y-1.5">

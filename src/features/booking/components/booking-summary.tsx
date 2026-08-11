@@ -4,10 +4,12 @@ import { formatDateId, formatDuration, formatIDR, parseDateKey } from "@/lib/for
 import { imageUrl } from "@/lib/images";
 import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import type { FulfillmentMethod } from "@/features/booking/types";
-import type { GalleryDesign, Service } from "@/types";
+import type { FreeAddOn } from "@/features/booking/logic/free-addon";
+import type { BodyPart, GalleryDesign, Service } from "@/types";
 
 export interface SummaryData {
   services: Service[];
+  addOns: FreeAddOn[];
   design: GalleryDesign | null;
   dateKey: string | null;
   time: string | null;
@@ -25,8 +27,13 @@ const FULFILLMENT_LABELS: Record<FulfillmentMethod, string> = {
   delivery: "Dikirim via kurir",
 };
 
+const BODY_PART_LABELS: Record<BodyPart, string> = {
+  hand: "Tangan",
+  foot: "Kaki",
+};
+
 export function BookingSummary({ data }: { data: SummaryData }) {
-  const { services, design, dateKey, time, fulfillment, subtotal, discount, total, depositAmount, depositRequired, promoCode } =
+  const { services, addOns, design, dateKey, time, fulfillment, subtotal, discount, total, depositAmount, depositRequired, promoCode } =
     data;
 
   const hasEstimate = services.some((s) => s.priceNote);
@@ -57,6 +64,11 @@ export function BookingSummary({ data }: { data: SummaryData }) {
                     {service.tierLabel && (
                       <span className="ml-1.5 text-[11px] font-medium text-primary">
                         {service.tierLabel}
+                      </span>
+                    )}
+                    {service.bodyPart && (
+                      <span className="ml-1.5 text-[11px] font-medium text-primary">
+                        {BODY_PART_LABELS[service.bodyPart]}
                       </span>
                     )}
                   </p>
@@ -94,6 +106,30 @@ export function BookingSummary({ data }: { data: SummaryData }) {
               </div>
             ))}
           </div>
+
+          {addOns.length > 0 && (
+            <div className="space-y-2">
+              {addOns.map((addOn) => (
+                <div key={`${addOn.slug}-${addOn.bodyPart}`} className="flex items-center gap-3">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-secondary-soft">
+                    <span className="text-lg">🎁</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {addOn.name}
+                      <span className="ml-1.5 text-[11px] font-medium text-secondary">
+                        Gratis
+                      </span>
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Termasuk gratis dengan Nail Art ({BODY_PART_LABELS[addOn.bodyPart]})
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold text-secondary shrink-0">Gratis</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {design && (
             <div className="flex items-center gap-3 border-t border-border pt-4">

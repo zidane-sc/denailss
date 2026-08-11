@@ -9,10 +9,9 @@ import {
 import { Reveal } from "@/components/motion/reveal";
 import { imageUrl } from "@/lib/images";
 import { SITE, whatsappLink } from "@/constants/site";
-import { getPublicSettings } from "@/features/settings/services/settings-public";
+import type { Settings } from "@/features/settings/types";
 
-export async function ContactSection() {
-  const settings = await getPublicSettings();
+export async function ContactSection({ settings }: { settings: Settings }) {
   const social = settings.socialMedia;
   const address = settings.businessProfile.address || SITE.address;
   const instagramHandle = social.instagram || SITE.instagramHandle;
@@ -89,6 +88,7 @@ export async function ContactSection() {
               src={imageUrl("denailss-contact-studio")}
               alt="Interior ruang kuku Denailss"
               fill
+              loading="lazy"
               sizes="(min-width: 1024px) 32rem, 100vw"
               className="object-cover"
             />

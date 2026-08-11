@@ -22,6 +22,7 @@ export function ContactView() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [instagram, setInstagram] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -38,22 +39,47 @@ export function ContactView() {
   }, []);
 
   const address = settings?.businessProfile.address ?? SITE.address;
+  const mapsUrl = settings?.businessProfile.mapsUrl ?? SITE.mapsUrl;
   const whatsappNumber = settings?.socialMedia.whatsapp || SITE.whatsappNumber;
   const instagramHandle = settings?.socialMedia.instagram || SITE.instagramHandle;
   const tiktokHandle = settings?.socialMedia.tiktok || SITE.tiktokHandle;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Build the embedded map from the managed coordinates; fall back to the
+  // original static embed when they aren't configured yet.
+  const latitude = settings?.businessProfile.latitude ?? SITE.latitude;
+  const longitude = settings?.businessProfile.longitude ?? SITE.longitude;
+  const mapEmbedSrc =
+    latitude !== null && longitude !== null
+      ? `https://www.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`
+      : "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.1557999824634!2d106.812345!3d-6.245678!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwMTQnNDQuNCJTIDEwNsKwNDgnNDQuNCJF!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid";
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/v1/contact-messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, email, instagram, message }),
+      });
+      const payload = (await res.json().catch(() => null)) as
+        | { error?: { message?: string } }
+        | null;
+      if (!res.ok) {
+        throw new Error(payload?.error?.message ?? "Pesan gagal terkirim. Coba lagi.");
+      }
       toast.success("Pesan Kakak berhasil terkirim! Tim kami akan segera merespon via email/WhatsApp. ✨");
       setName("");
       setPhone("");
       setEmail("");
+      setInstagram("");
       setMessage("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Pesan gagal terkirim. Coba lagi.");
+    } finally {
       setIsSubmitting(false);
-    }, 1200); // 1.2s delay
+    }
   };
 
   return (
@@ -85,7 +111,7 @@ export function ContactView() {
             {/* Google Map Iframe */}
             <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/80 bg-muted mt-4">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.1557999824634!2d106.812345!3d-6.245678!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwMTQnNDQuNCJTIDEwNsKwNDgnNDQuNCJF!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid"
+                src={mapEmbedSrc}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -101,7 +127,7 @@ export function ContactView() {
               size="sm"
               className="w-full rounded-xl text-xs gap-1.5 mt-2 h-9"
               nativeButton={false}
-              render={<a href={SITE.mapsUrl} target="_blank" rel="noopener noreferrer" />}
+              render={<a href={mapsUrl} target="_blank" rel="noopener noreferrer" />}
             >
               Petunjuk Arah Google Maps
               <ArrowRightIcon className="size-3.5" />
@@ -219,6 +245,17 @@ export function ContactView() {
                   className="rounded-xl text-xs h-9.5"
                 />
               </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="instagram" className="text-xs font-semibold text-foreground/80">Instagram <span className="font-normal text-muted-foreground">(opsional)</span></Label>
+              <Input
+                id="instagram"
+                placeholder="@alya.xx"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                className="rounded-xl text-xs h-9.5"
+              />
             </div>
 
             <div className="grid gap-2">

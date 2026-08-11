@@ -5,6 +5,7 @@ export function appointmentToCustomerBooking(appointment: Appointment): Customer
   return {
     id: appointment.id,
     services: appointment.services,
+    addOns: appointment.addOns,
     designSlug: appointment.designSlug,
     designTitle: appointment.designTitle,
     fulfillment: appointment.fulfillment,
@@ -18,12 +19,13 @@ export function appointmentToCustomerBooking(appointment: Appointment): Customer
   };
 }
 
-export function customerProfileFromApi(profile: { id: string; name: string; phone: string; email: string | null; notes: string | null }): CustomerProfile {
+export function customerProfileFromApi(profile: { id: string; name: string; phone: string; email: string | null; instagram: string | null; notes: string | null }): CustomerProfile {
   return {
     id: profile.id,
     name: profile.name,
     phone: profile.phone,
     email: profile.email ?? "",
+    instagram: profile.instagram ?? undefined,
     notes: profile.notes ?? undefined,
   };
 }
@@ -42,7 +44,7 @@ export async function fetchCustomerBookings() {
   return payload.data.map(appointmentToCustomerBooking);
 }
 
-export async function updateCustomerProfile(profile: Pick<CustomerProfile, "name" | "phone" | "notes">) {
+export async function updateCustomerProfile(profile: Pick<CustomerProfile, "name" | "phone" | "notes" | "instagram">) {
   const response = await fetch("/api/v1/customer/profile", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

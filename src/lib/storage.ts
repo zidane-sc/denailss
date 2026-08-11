@@ -5,6 +5,7 @@ export const STORAGE_BUCKETS = {
   gallery: "gallery-images",
   service: "service-images",
   settings: "business-assets",
+  promotion: "promotion-images",
   deposit: "deposit-proofs",
   review: "review-images",
 } as const;

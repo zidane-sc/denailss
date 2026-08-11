@@ -4,29 +4,40 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { useLiveReviews } from "@/features/reviews/components/reviews-provider";
+import { useLiveReviews, useReviewSummary } from "@/features/reviews/components/reviews-provider";
 import { useLiveServices } from "@/features/services/components/services-provider";
 import { imageUrl } from "@/lib/images";
 import { formatDateId } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { Review } from "@/types";
 
 const ROTATIONS = ["-rotate-1", "rotate-1", "rotate-0", "-rotate-2", "rotate-2", "rotate-0"];
 
-export function ReviewsSection() {
+export function ReviewsSection({
+  initialReviews = [],
+  initialSummary = null,
+}: {
+  initialReviews?: Review[];
+  initialSummary?: { total: number; average: number } | null;
+}) {
   const [filter, setFilter] = useState<string>("all");
   const services = useLiveServices();
   const reviews = useLiveReviews();
-  const total = reviews.length;
-  const average = total > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / total : 0;
+  const providerSummary = useReviewSummary();
+  // Use server-provided data until the client provider hydrates/fetches.
+  const summary = providerSummary ?? initialSummary;
+  const reviewList = reviews.length > 0 ? reviews : initialReviews;
+  const total = summary?.total ?? reviewList.length;
+  const average = summary?.average ?? (total > 0 ? reviewList.reduce((sum, r) => sum + r.rating, 0) / total : 0);
 
   const filtered = useMemo(
-    () => (filter === "all" ? reviews : reviews.filter((r) => r.serviceSlug === filter)).slice(0, 6),
-    [reviews, filter]
+    () => (filter === "all" ? reviewList : reviewList.filter((r) => r.serviceSlug === filter)).slice(0, 6),
+    [reviewList, filter]
   );
 
   const usedServiceSlugs = useMemo(
-    () => Array.from(new Set(reviews.map((r) => r.serviceSlug))),
-    [reviews]
+    () => Array.from(new Set(reviewList.map((r) => r.serviceSlug))),
+    [reviewList]
   );
 
   return (

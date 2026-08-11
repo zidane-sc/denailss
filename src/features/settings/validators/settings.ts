@@ -12,6 +12,8 @@ export type SettingsErrors = {
   instagram?: string;
   tiktok?: string;
   whatsapp?: string;
+  latitude?: string;
+  longitude?: string;
 };
 
 export function validateSettings(draft: SettingsDraft): SettingsErrors {
@@ -19,6 +21,14 @@ export function validateSettings(draft: SettingsDraft): SettingsErrors {
 
   if (!draft.businessProfile.name.trim()) {
     errors.name = "Nama bisnis wajib diisi.";
+  }
+
+  const { latitude, longitude } = draft.businessProfile;
+  if (latitude !== null && (Number.isNaN(latitude) || latitude < -90 || latitude > 90)) {
+    errors.latitude = "Latitude antara -90 dan 90.";
+  }
+  if (longitude !== null && (Number.isNaN(longitude) || longitude < -180 || longitude > 180)) {
+    errors.longitude = "Longitude antara -180 dan 180.";
   }
 
   const instagram = draft.socialMedia.instagram.trim().replace(/^@/, "").replace(/\/+$/, "");

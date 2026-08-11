@@ -1,5 +1,5 @@
 import type { CustomerInfoFormValues } from "@/features/booking/validators/booking.schema";
-import type { DepositVerificationStatus } from "@/types";
+import type { DepositVerificationStatus, BodyPart } from "@/types";
 
 export const BOOKING_STEP_IDS = [
   "service",
@@ -29,6 +29,8 @@ export interface BookingSelections {
   serviceSlugs: string[];
   /** Chosen difficulty tier per service slug (Simple/Complex). */
   tierByServiceSlug: Record<string, string>;
+  /** Chosen body part (hand/foot) per service slug (nail art). */
+  bodyPartByServiceSlug: Record<string, BodyPart>;
   designSlug: string | null;
   dateKey: string | null;
   time: string | null;
@@ -41,6 +43,7 @@ export interface BookingSelections {
 export const INITIAL_SELECTIONS: BookingSelections = {
   serviceSlugs: [],
   tierByServiceSlug: {},
+  bodyPartByServiceSlug: {},
   designSlug: null,
   dateKey: null,
   time: null,

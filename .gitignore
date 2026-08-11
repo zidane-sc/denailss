@@ -20,6 +20,9 @@
 # uploads (mock FE-first storage — user uploads, not source assets)
 /public/images/uploads/
 
+# IG scraping scratch (one-off tooling, not source assets)
+/scrap-ig-denails
+
 # production
 /build
 

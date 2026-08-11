@@ -2,11 +2,11 @@ import { createPromotionSchema } from "@/features/promotion/schemas/api";
 import { createPromotion, listPromotions } from "@/features/promotion/services/promotion-service";
 import { requireApiOwner } from "@/lib/supabase/api-auth";
 import { ApiError } from "@/lib/api/errors";
-import { apiFailure, apiSuccess } from "@/lib/api/response";
+import { apiFailure, apiSuccess, cachedApiSuccess } from "@/lib/api/response";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    return apiSuccess(await listPromotions());
+    return cachedApiSuccess(await listPromotions(), request);
   } catch (error) {
     return apiFailure(error);
   }

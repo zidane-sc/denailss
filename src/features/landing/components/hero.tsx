@@ -6,9 +6,15 @@ import { Reveal } from "@/components/motion/reveal";
 import { imageUrl } from "@/lib/images";
 import { whatsappLink } from "@/constants/site";
 import { getReviewSummary } from "@/features/reviews/services/review-service";
+import { countCompletedBookings } from "@/features/booking/services/booking-service";
+import { BASELINE_BOOKING_SUKSES } from "@/features/reviews/constants/review-baseline";
 
 export async function Hero() {
-  const { average, total } = await getReviewSummary();
+  const [{ average }, completedBookings] = await Promise.all([
+    getReviewSummary(),
+    countCompletedBookings(),
+  ]);
+  const totalSukses = BASELINE_BOOKING_SUKSES + completedBookings;
 
   return (
     <section className="relative overflow-hidden pt-10 pb-20 sm:pt-16 lg:pt-24 lg:pb-32 bg-linear-to-b from-background via-background-tint/10 to-background">
@@ -108,6 +114,7 @@ export async function Hero() {
                 src={imageUrl("denailss-hero-detail")}
                 alt="Detail close-up nail art bunga sakura"
                 fill
+                loading="lazy"
                 sizes="11rem"
                 className="object-cover"
               />
@@ -117,13 +124,13 @@ export async function Hero() {
             <div className="absolute -bottom-5 -left-4 flex items-center gap-3 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur-sm sm:-left-8 transition-transform duration-300 hover:scale-105">
               <div className="flex -space-x-2 shrink-0">
                 <div className="relative size-6 overflow-hidden rounded-full ring-2 ring-background">
-                  <Image src={imageUrl("review-aulia")} alt="Client 1" fill className="object-cover" />
+                  <Image src={imageUrl("review-aulia")} alt="Client 1" fill loading="lazy" className="object-cover" />
                 </div>
                 <div className="relative size-6 overflow-hidden rounded-full ring-2 ring-background">
-                  <Image src={imageUrl("review-salsa")} alt="Client 2" fill className="object-cover" />
+                  <Image src={imageUrl("review-salsa")} alt="Client 2" fill loading="lazy" className="object-cover" />
                 </div>
                 <div className="relative size-6 overflow-hidden rounded-full ring-2 ring-background">
-                  <Image src={imageUrl("review-farah")} alt="Client 3" fill className="object-cover" />
+                  <Image src={imageUrl("review-farah")} alt="Client 3" fill loading="lazy" className="object-cover" />
                 </div>
               </div>
               <div className="leading-tight">
@@ -131,7 +138,7 @@ export async function Hero() {
                   <span className="text-xs font-bold text-foreground">{average}</span>
                   <StarIcon weight="fill" className="size-3.5 text-secondary" />
                 </div>
-                <p className="text-[9px] text-muted-foreground font-semibold leading-none mt-0.5">{total * 12}+ booking sukses</p>
+                <p className="text-[9px] text-muted-foreground font-semibold leading-none mt-0.5">{totalSukses}+ booking sukses</p>
               </div>
             </div>
 

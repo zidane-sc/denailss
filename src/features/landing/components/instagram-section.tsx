@@ -1,11 +1,10 @@
 import { InstagramLogoIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/motion/reveal";
 import { SITE } from "@/constants/site";
-import { getPublicSettings } from "@/features/settings/services/settings-public";
 import { InstagramFeed } from "@/features/landing/components/instagram-feed";
+import type { Settings } from "@/features/settings/types";
 
-export async function InstagramSection() {
-  const settings = await getPublicSettings();
+export async function InstagramSection({ settings }: { settings: Settings }) {
   const handle = settings.socialMedia.instagram || SITE.instagramHandle;
   const url = `https://www.instagram.com/${handle}/`;
 

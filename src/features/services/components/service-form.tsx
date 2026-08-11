@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { PlusIcon, TrashIcon, UploadSimpleIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import { imageUrl } from "@/lib/images";
@@ -331,10 +332,11 @@ export function ServiceForm({
             <div className="flex flex-wrap items-center gap-3">
               {heroImage ? (
                 <div className="relative size-20 overflow-hidden rounded-xl border border-border bg-muted/30">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={imageUrl(heroImage)}
                     alt="Foto utama layanan"
+                    fill
+                    sizes="5rem"
                     className="size-full object-cover"
                   />
                 </div>

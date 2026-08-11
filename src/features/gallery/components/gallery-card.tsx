@@ -10,7 +10,15 @@ import type { GalleryDesign } from "@/types";
 
 export function GalleryCard({ design }: { design: GalleryDesign }) {
   return (
-    <div className="group relative mb-4 block break-inside-avoid overflow-hidden rounded-3xl">
+    <div
+      className="group relative mb-4 block break-inside-avoid overflow-hidden rounded-3xl"
+      style={{
+        // Native browser windowing: offscreen cards skip layout/paint and are
+        // cheap to keep in the DOM as the user scrolls the full catalog.
+        contentVisibility: "auto",
+        containIntrinsicSize: "auto 600px",
+      }}
+    >
       <Link
         href={`/gallery/${design.slug}`}
         className="group block"

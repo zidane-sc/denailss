@@ -110,6 +110,7 @@ export async function listCrmCustomers(): Promise<CrmCustomerWithData[]> {
       name: c.name,
       phone: c.phone,
       email: c.email ?? undefined,
+      instagram: c.instagram ?? undefined,
       since: since ?? new Date(c.createdAt).toISOString().slice(0, 10),
       notes: notesByCustomer.get(c.id) ?? c.notes ?? undefined,
       preferences: (c.preferences as CustomerPreferences | null) ?? undefined,

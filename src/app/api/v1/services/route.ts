@@ -1,9 +1,9 @@
 import { listCatalogServicesAll } from "@/features/services/services/service-service";
-import { apiFailure, apiSuccess } from "@/lib/api/response";
+import { apiFailure, cachedApiSuccess } from "@/lib/api/response";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    return apiSuccess(await listCatalogServicesAll());
+    return cachedApiSuccess(await listCatalogServicesAll(), request);
   } catch (error) {
     return apiFailure(error);
   }

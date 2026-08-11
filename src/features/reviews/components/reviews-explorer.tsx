@@ -4,42 +4,57 @@ import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr";
-import { useLiveReviews } from "./reviews-provider";
+import { useLiveReviews, useReviewSummary } from "./reviews-provider";
 import { useLiveServices } from "@/features/services/components/services-provider";
 import { formatDateId } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import type { Review } from "@/types";
 
-export function ReviewsExplorer() {
+export function ReviewsExplorer({
+  initialReviews = [],
+  initialSummary = null,
+}: {
+  initialReviews?: Review[];
+  initialSummary?: { total: number; average: number } | null;
+}) {
   const [ratingFilter, setRatingFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const services = useLiveServices();
 
   const reviews = useLiveReviews();
+  const providerSummary = useReviewSummary();
+  // Use server-provided data until the client provider hydrates/fetches.
+  const summary = providerSummary ?? initialSummary;
+  const reviewList = reviews.length > 0 ? reviews : initialReviews;
 
   const { average, total, counts } = useMemo(() => {
-    const totalCount = reviews.length;
-    const avg = totalCount > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalCount : 0;
+    const totalCount = reviewList.length;
+    const avg = totalCount > 0 ? reviewList.reduce((sum, r) => sum + r.rating, 0) / totalCount : 0;
 
-    // Distribution of stars
+    // Distribution of stars among live reviews; the baseline 300 five-star
+    // reviews are added on top when the server summary is available.
     const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach((r) => {
+    reviewList.forEach((r) => {
       const rate = r.rating as 1 | 2 | 3 | 4 | 5;
       if (dist[rate] !== undefined) {
         dist[rate]++;
       }
     });
 
+    const baselineTotal = Math.max(summary ? summary.total - totalCount : 0, 0);
+    dist[5] += baselineTotal;
+
     return {
-      average: avg.toFixed(1),
-      total: totalCount,
+      average: summary ? summary.average.toFixed(1) : avg.toFixed(1),
+      total: summary ? summary.total : totalCount,
       counts: dist,
     };
-  }, [reviews]);
+  }, [reviewList, summary]);
 
   const filteredReviews = useMemo(() => {
-    return reviews.filter((r) => {
+    return reviewList.filter((r) => {
       if (ratingFilter !== "all" && r.rating !== Number(ratingFilter)) {
         return false;
       }
@@ -48,7 +63,7 @@ export function ReviewsExplorer() {
       }
       return true;
     });
-  }, [reviews, ratingFilter, serviceFilter]);
+  }, [reviewList, ratingFilter, serviceFilter]);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">

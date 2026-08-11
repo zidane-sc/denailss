@@ -9,5 +9,6 @@ export const CUSTOMER_PROFILE_FALLBACK: CustomerProfile = {
   name: "",
   phone: "",
   email: "",
+  instagram: "",
   notes: "",
 };

@@ -7,6 +7,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/motion/reveal";
 import { useActivePromotionBanners } from "@/features/promotion/data/promotion-booking";
+import { cn } from "@/lib/utils";
 import { formatDateId, formatIDR } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import type { ReactNode } from "react";
@@ -31,9 +32,15 @@ function MetaItem({ label, children }: { label: string; children: ReactNode }) {
 
 function PromotionSlide({ promotion }: { promotion: Promotion }) {
   const remaining = Math.max(promotion.usageLimit - promotion.usedCount, 0);
+  const hasImage = Boolean(promotion.imageSeed);
 
   return (
-    <div className="grid w-full shrink-0 md:grid-cols-2">
+    <div
+      className={cn(
+        "grid w-full shrink-0",
+        hasImage ? "md:grid-cols-2" : "md:grid-cols-1"
+      )}
+    >
       <div className="flex flex-col gap-2.5 p-5 sm:p-10 md:p-12">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary sm:text-xs">
           Promo bulan ini
@@ -76,15 +83,17 @@ function PromotionSlide({ promotion }: { promotion: Promotion }) {
         </div>
       </div>
 
-      <div className="relative min-h-52 h-full md:min-h-[22rem]">
-        <Image
-          src={imageUrl(promotion.imageSeed ?? "promo-default")}
-          alt={`Hasil nail art untuk promo ${promotion.title}`}
-          fill
-          sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-cover"
-        />
-      </div>
+      {hasImage && (
+        <div className="relative min-h-52 h-full md:min-h-[22rem]">
+          <Image
+            src={imageUrl(promotion.imageSeed!)}
+            alt={`Hasil nail art untuk promo ${promotion.title}`}
+            fill
+            sizes="(min-width: 768px) 50vw, 100vw"
+            className="object-cover"
+          />
+        </div>
+      )}
     </div>
   );
 }

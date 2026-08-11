@@ -1,12 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   CheckIcon,
   SparkleIcon,
+  TrashIcon,
+  UploadSimpleIcon,
   XIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
+import { imageUrl } from "@/lib/images";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +33,7 @@ export interface PromotionDraft {
   usageLimit: string;
   minimumSpend: string;
   applicableServiceSlugs: string[];
+  imageSeed?: string;
   active: boolean;
 }
 
@@ -46,6 +51,7 @@ export function draftFromPromotion(promotion: Promotion): PromotionDraft {
     usageLimit: promotion.usageLimit > 0 ? String(promotion.usageLimit) : "",
     minimumSpend: promotion.minimumSpend ? String(promotion.minimumSpend) : "",
     applicableServiceSlugs: promotion.applicableServiceSlugs ?? [],
+    imageSeed: promotion.imageSeed,
     active: promotion.active,
   };
 }
@@ -63,6 +69,7 @@ export function emptyDraft(): PromotionDraft {
     usageLimit: "",
     minimumSpend: "",
     applicableServiceSlugs: [],
+    imageSeed: undefined,
     active: true,
   };
 }
@@ -125,9 +132,39 @@ export function PromotionForm({
   const services = useLiveServices();
   const [draft, setDraft] = useState<PromotionDraft>(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [uploading, setUploading] = useState(false);
 
   const set = <K extends keyof PromotionDraft>(key: K, value: PromotionDraft[K]) => {
     setDraft((d) => ({ ...d, [key]: value }));
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setErrors((prev) => ({ ...prev, image: "File harus berupa gambar (JPG/PNG/WebP)." }));
+      return;
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, image: "Ukuran file maksimal 6 MB." }));
+      return;
+    }
+    setUploading(true);
+    setErrors((prev) => ({ ...prev, image: "" }));
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("category", "promotion");
+      const res = await fetch("/api/upload", { method: "POST", body });
+      const data = (await res.json()) as { data?: { reference?: string }; error?: { message?: string } };
+      if (!res.ok || !data.data?.reference) {
+        setErrors((prev) => ({ ...prev, image: data.error?.message ?? "Gagal mengunggah gambar." }));
+        return;
+      }
+      set("imageSeed", data.data.reference);
+    } catch {
+      setErrors((prev) => ({ ...prev, image: "Gagal mengunggah gambar. Coba lagi." }));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const toggleService = (slug: string) => {
@@ -226,6 +263,7 @@ export function PromotionForm({
         minimumSpend,
         applicableServiceSlugs: serviceSlugs,
         maximumDiscount,
+        imageSeed: draft.imageSeed || undefined,
         active: draft.active,
       },
       editing ? "update" : "create"
@@ -302,6 +340,71 @@ export function PromotionForm({
               <p className="text-[11px] text-muted-foreground">
                 Auto-normalisasi: huruf besar, tanpa spasi.
               </p>
+            </Field>
+
+            <Field
+              label="Foto Banner"
+              hint="Foto yang tampil di banner promo halaman utama. Kosongkan untuk memakai gambar bawaan."
+              error={renderErrors("image")}
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                {draft.imageSeed ? (
+                  <div className="relative size-20 overflow-hidden rounded-xl border border-border bg-muted/30">
+                    <Image
+                      src={imageUrl(draft.imageSeed)}
+                      alt="Foto banner promo"
+                      fill
+                      sizes="5rem"
+                      className="size-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex size-20 items-center justify-center rounded-xl border border-dashed border-border bg-background/40 text-muted-foreground">
+                    <UploadSimpleIcon className="size-5" />
+                  </div>
+                )}
+                <label
+                  className={cn(
+                    "flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10",
+                    uploading && "pointer-events-none opacity-60"
+                  )}
+                >
+                  {uploading ? (
+                    <>
+                      <span className="size-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                      Mengunggah...
+                    </>
+                  ) : (
+                    <>
+                      <UploadSimpleIcon className="size-4" weight="bold" />
+                      {draft.imageSeed ? "Ganti Foto" : "Upload Foto"}
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void handleImageUpload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {draft.imageSeed && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 gap-1.5 rounded-full px-3.5 text-xs text-muted-foreground hover:text-destructive"
+                    onClick={() => set("imageSeed", undefined)}
+                  >
+                    <TrashIcon className="size-3.5" />
+                    Hapus
+                  </Button>
+                )}
+              </div>
             </Field>
           </SectionCard>
 

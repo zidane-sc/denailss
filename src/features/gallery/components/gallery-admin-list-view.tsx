@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -387,10 +388,11 @@ export function GalleryAdminListView() {
                     <td className="p-3">
                       <div className="flex items-center gap-3">
                         <div className="relative size-11 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-muted/30">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                          <Image
                             src={imageUrl(design.imageSeeds[0] ?? "denailss-fallback")}
                             alt={design.title}
+                            fill
+                            sizes="2.75rem"
                             className="size-full object-cover"
                           />
                         </div>
@@ -461,10 +463,11 @@ export function GalleryAdminListView() {
                 >
                   <div className="flex items-start gap-3">
                     <div className="relative size-14 shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted/30">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={imageUrl(design.imageSeeds[0] ?? "denailss-fallback")}
                         alt={design.title}
+                        fill
+                        sizes="3.5rem"
                         className="size-full object-cover"
                       />
                     </div>
@@ -576,8 +579,9 @@ export function GalleryAdminListView() {
         </>
       )}
 
-      {/* Create / edit dialog */}
+      {/* Create / edit dialog — key remounts the form so its state re-initializes per design */}
       <GalleryDesignForm
+        key={editing?.id ?? "create"}
         open={formOpen}
         onOpenChange={setFormOpen}
         initial={editing}

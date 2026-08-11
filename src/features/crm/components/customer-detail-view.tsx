@@ -10,6 +10,7 @@ import {
   CoinsIcon,
   ClockIcon,
   EnvelopeIcon,
+  InstagramLogoIcon,
   PaletteIcon,
   PhoneIcon,
   PlusIcon,
@@ -163,6 +164,17 @@ export function CustomerDetailView({ id }: { id: string }) {
                     <EnvelopeIcon className="size-3.5 text-primary/70" />
                     {customer.email}
                   </span>
+                )}
+                {customer.instagram && (
+                  <a
+                    href={`https://www.instagram.com/${customer.instagram.replace(/^@/, "")}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                  >
+                    <InstagramLogoIcon className="size-3.5 text-primary/70" />
+                    {customer.instagram}
+                  </a>
                 )}
               </div>
             </div>

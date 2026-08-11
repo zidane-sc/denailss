@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
@@ -141,8 +142,7 @@ export default function CustomerDashboardPage() {
                     <div key={design.id} className="group relative">
                       <Link href={`/gallery/${design.slug}`} className="block">
                         <div className="relative aspect-square overflow-hidden rounded-xl border border-border/60 bg-muted">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={imageUrl(design.imageSeeds[0] ?? "denailss-fallback")} alt={design.title} className="size-full object-cover" />
+                          <Image src={imageUrl(design.imageSeeds[0] ?? "denailss-fallback")} alt={design.title} fill sizes="6rem" className="size-full object-cover" />
                         </div>
                       </Link>
                       <Link

@@ -15,7 +15,7 @@ export function DepositConfigProvider({ children }: { children: React.ReactNode 
   const [config, setConfig] = useState<DepositConfig | null>(null);
 
   const refresh = useCallback(() => {
-    fetch("/api/v1/deposit-config", { cache: "no-store" })
+    fetch("/api/v1/deposit-config", { cache: "no-cache" })
       .then((res) => (res.ok ? res.json() : null))
       .then((payload: { data?: DepositConfig } | null) => {
         if (payload?.data) setConfig(payload.data);

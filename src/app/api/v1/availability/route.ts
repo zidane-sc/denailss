@@ -3,16 +3,16 @@ import { getAvailabilityConfig, saveAvailabilityConfig } from "@/features/bookin
 import { getBookedSlotsByDate } from "@/features/booking/services/booking-service";
 import { requireApiOwner } from "@/lib/supabase/api-auth";
 import { ApiError } from "@/lib/api/errors";
-import { apiFailure, apiSuccess } from "@/lib/api/response";
+import { apiFailure, apiSuccess, cachedApiSuccess } from "@/lib/api/response";
 import type { AvailabilityConfig } from "@/types";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const [config, occupiedSlotsByDate] = await Promise.all([
       getAvailabilityConfig(),
       getBookedSlotsByDate(),
     ]);
-    return apiSuccess({ config, occupiedSlotsByDate });
+    return cachedApiSuccess({ config, occupiedSlotsByDate }, request);
   } catch (error) {
     return apiFailure(error);
   }

@@ -57,6 +57,9 @@ export async function getPublicSettings(): Promise<Settings> {
       logo: null,
       description: SITE.description,
       address: SITE.address,
+      mapsUrl: SITE.mapsUrl,
+      latitude: SITE.latitude,
+      longitude: SITE.longitude,
     },
     socialMedia: {
       instagram: SITE.instagramHandle,

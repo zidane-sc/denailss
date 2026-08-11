@@ -167,14 +167,16 @@ export function matchesCustomerQuery(
   name: string,
   phone: string,
   email: string | undefined,
-  query: string
+  query: string,
+  instagram?: string
 ) {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   return (
     name.toLowerCase().includes(q) ||
     phone.replace(/\D/g, "").includes(q.replace(/\D/g, "")) ||
-    (email ?? "").toLowerCase().includes(q)
+    (email ?? "").toLowerCase().includes(q) ||
+    (instagram ?? "").toLowerCase().includes(q)
   );
 }
 

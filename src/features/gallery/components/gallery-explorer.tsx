@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MagnifyingGlassIcon, SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
 import { GalleryCard } from "@/features/gallery/components/gallery-card";
-import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-designs-provider";
+import { useLiveGalleryDesigns, useGalleryDesignsLoading } from "@/features/gallery/components/gallery-designs-provider";
 import {
   COLOR_LABELS,
   DIFFICULTY_LABELS,
@@ -14,12 +14,14 @@ import {
   STYLE_LABELS,
 } from "@/features/gallery/constants";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import type {
   DesignColor,
   DesignDifficulty,
   DesignOccasion,
   DesignShape,
   DesignStyle,
+  GalleryDesign,
 } from "@/types";
 
 type FilterKey = "style" | "color" | "occasion" | "shape" | "difficulty";
@@ -32,10 +34,16 @@ const FILTER_GROUPS: { key: FilterKey; label: string; options: Record<string, st
   { key: "difficulty", label: "Kesulitan", options: DIFFICULTY_LABELS },
 ];
 
-export function GalleryExplorer() {
+export function GalleryExplorer({ initialDesigns = [] }: { initialDesigns?: GalleryDesign[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const designs = useLiveGalleryDesigns();
+  const isLoading = useGalleryDesignsLoading();
+
+  // Server-provided catalog renders on first paint so the page never shows a
+  // loading state; the client provider takes over once it hydrates.
+  const liveDesigns = designs.length > 0 ? designs : initialDesigns;
+  const showSkeleton = isLoading && designs.length === 0 && initialDesigns.length === 0;
 
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [style, setStyle] = useState<DesignStyle | null>(
@@ -56,6 +64,12 @@ export function GalleryExplorer() {
   const [visibleCount, setVisibleCount] = useState(GALLERY_PAGE_SIZE);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  // Skip the URL-sync effect on first mount: the URL already reflects the
+  // initial filters, and dispatching a router action before the App Router
+  // queue is initialized (during hydration) throws "Router action dispatched
+  // before initialization".
+  const isFirstRender = useRef(true);
+
   const activeValues: Record<FilterKey, string | null> = { style, color, occasion, shape, difficulty };
   const setters: Record<FilterKey, (value: never) => void> = {
     style: setStyle as (value: never) => void,
@@ -66,6 +80,10 @@ export function GalleryExplorer() {
   };
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const params = new URLSearchParams();
     if (search) params.set("q", search);
     if (style) params.set("style", style);
@@ -86,7 +104,7 @@ export function GalleryExplorer() {
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return designs.filter((design) => {
+    return liveDesigns.filter((design) => {
       if (style && design.style !== style) return false;
       if (color && design.color !== color) return false;
       if (occasion && design.occasion !== occasion) return false;
@@ -98,7 +116,7 @@ export function GalleryExplorer() {
       }
       return true;
     });
-  }, [designs, search, style, color, occasion, shape, difficulty]);
+  }, [liveDesigns, search, style, color, occasion, shape, difficulty]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -204,10 +222,30 @@ export function GalleryExplorer() {
       )}
 
       <p className="mt-5 text-sm text-muted-foreground">
-        Menampilkan {visible.length} dari {filtered.length} desain
+        {showSkeleton
+          ? "Memuat desain..."
+          : `Menampilkan ${visible.length} dari ${filtered.length} desain`}
       </p>
 
-      {visible.length > 0 ? (
+      {showSkeleton ? (
+        <div className="mt-4 columns-1 gap-4 sm:columns-2 lg:columns-3">
+          {Array.from({ length: GALLERY_PAGE_SIZE }).map((_, index) => (
+            <div
+              key={index}
+              className="mb-4 break-inside-avoid overflow-hidden rounded-3xl"
+            >
+              <Skeleton
+                className={cn(
+                  "w-full rounded-3xl",
+                  index % 3 === 0 && "aspect-[4/5]",
+                  index % 3 === 1 && "aspect-square",
+                  index % 3 === 2 && "aspect-[16/11]"
+                )}
+              />
+            </div>
+          ))}
+        </div>
+      ) : visible.length > 0 ? (
         <div className="mt-4 columns-1 gap-4 sm:columns-2 lg:columns-3">
           {visible.map((design) => (
             <GalleryCard key={design.id} design={design} />

@@ -4,7 +4,7 @@ import { DEFAULT_FAQS } from "@/features/settings/services/settings-public";
 import { getDepositConfig } from "@/features/booking/services/deposit-service";
 import { requireApiOwner } from "@/lib/supabase/api-auth";
 import { ApiError } from "@/lib/api/errors";
-import { apiFailure, apiSuccess } from "@/lib/api/response";
+import { apiFailure, apiSuccess, cachedApiSuccess } from "@/lib/api/response";
 import { SITE } from "@/constants/site";
 
 /** Fallback when the settings row has not been seeded yet. */
@@ -16,6 +16,9 @@ async function defaultSettings() {
       logo: null,
       description: SITE.description,
       address: SITE.address,
+      mapsUrl: SITE.mapsUrl,
+      latitude: SITE.latitude,
+      longitude: SITE.longitude,
     },
     socialMedia: {
       instagram: SITE.instagramHandle,
@@ -35,10 +38,10 @@ async function defaultSettings() {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const settings = await getSettings();
-    return apiSuccess(settings ?? (await defaultSettings()));
+    return cachedApiSuccess(settings ?? (await defaultSettings()), request);
   } catch (error) {
     return apiFailure(error);
   }

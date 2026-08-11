@@ -130,6 +130,11 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
                 Perlu deposit
               </span>
             )}
+            {service.slug === "nail-art" && (
+              <span className="rounded-full border border-secondary/30 bg-secondary-soft px-3 py-1.5 text-sm font-semibold text-secondary-foreground">
+                🎁 Gratis Manicure (Tangan) / Pedicure (Kaki)
+              </span>
+            )}
           </div>
 
           {service.tiers.length > 0 && (

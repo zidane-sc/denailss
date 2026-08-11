@@ -12,17 +12,24 @@ import { formatDateId, formatIDR, parseDateKey } from "@/lib/format";
 import { SITE, whatsappLink } from "@/constants/site";
 import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import type { FulfillmentMethod } from "@/features/booking/types";
+import type { FreeAddOn } from "@/features/booking/logic/free-addon";
 import type { Settings } from "@/features/settings/types";
-import type { Service, GalleryDesign } from "@/types";
+import type { BodyPart, Service, GalleryDesign } from "@/types";
 
 const FULFILLMENT_LABELS: Record<FulfillmentMethod, string> = {
   pickup: "Ambil di lokasi",
   delivery: "Dikirim via kurir",
 };
 
+const BODY_PART_LABELS: Record<BodyPart, string> = {
+  hand: "Tangan",
+  foot: "Kaki",
+};
+
 export function StepConfirmation({
   bookingCode,
   services,
+  addOns,
   design,
   dateKey,
   time,
@@ -33,6 +40,7 @@ export function StepConfirmation({
 }: {
   bookingCode: string;
   services: Service[];
+  addOns: FreeAddOn[];
   design: GalleryDesign | null;
   dateKey: string | null;
   time: string | null;
@@ -116,8 +124,18 @@ export function StepConfirmation({
                   {s.tierLabel && (
                     <span className="ml-1 text-[11px] font-medium text-primary">{s.tierLabel}</span>
                   )}
+                  {s.bodyPart && (
+                    <span className="ml-1 text-[11px] font-medium text-primary">
+                      {BODY_PART_LABELS[s.bodyPart]}
+                    </span>
+                  )}
                 </span>
               ))}
+              {addOns.length > 0 && (
+                <span className="mt-1 block border-t border-border/40 pt-1 text-[11px] font-medium text-secondary">
+                  {addOns.map((a) => `${a.name} (Gratis)`).join(" + ")}
+                </span>
+              )}
             </span>
           </div>
           {design && (

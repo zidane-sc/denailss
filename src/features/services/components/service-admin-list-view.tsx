@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -73,6 +74,10 @@ export function ServiceAdminListView() {
     service.tiers.length > 0
       ? service.tiers.map((t) => t.label).join(" / ")
       : "Flat";
+
+  /** Freebie note for services that bundle a free add-on (nail art). */
+  const freebieNote = (service: Service) =>
+    service.slug === "nail-art" ? "Gratis Manicure / Pedicure" : null;
 
   const handleSubmit = async (service: Service) => {
     setSaving(true);
@@ -233,10 +238,11 @@ export function ServiceAdminListView() {
                     <td className="p-3">
                       <div className="flex items-center gap-3">
                         <div className="relative size-11 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-muted/30">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                          <Image
                             src={imageUrl(service.heroImage)}
                             alt={service.name}
+                            fill
+                            sizes="2.75rem"
                             className="size-full object-cover"
                           />
                         </div>
@@ -247,6 +253,11 @@ export function ServiceAdminListView() {
                           <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
                             {service.slug}
                           </p>
+                          {freebieNote(service) && (
+                            <p className="mt-0.5 text-[10px] font-semibold text-secondary">
+                              {freebieNote(service)}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -328,10 +339,11 @@ export function ServiceAdminListView() {
                 >
                   <div className="flex items-start gap-3">
                     <div className="relative size-14 shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted/30">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={imageUrl(service.heroImage)}
                         alt={service.name}
+                        fill
+                        sizes="3.5rem"
                         className="size-full object-cover"
                       />
                     </div>
@@ -342,6 +354,11 @@ export function ServiceAdminListView() {
                       <p className="mt-0.5 text-[11px] text-muted-foreground">
                         {tierSummary(service)} · {formatIDR(service.priceFrom)}
                       </p>
+                      {freebieNote(service) && (
+                        <p className="mt-0.5 text-[11px] font-semibold text-secondary">
+                          {freebieNote(service)}
+                        </p>
+                      )}
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                         <span
                           className={cn(

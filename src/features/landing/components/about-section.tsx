@@ -17,6 +17,7 @@ export function AboutSection() {
               src={imageUrl("denailss-about-studio")}
               alt="Dela, owner dan nail artist Denailss, sedang mengerjakan nail art"
               fill
+              loading="lazy"
               sizes="(min-width: 1024px) 28rem, 22rem"
               className="object-cover"
             />

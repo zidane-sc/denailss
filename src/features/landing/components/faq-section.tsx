@@ -5,10 +5,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { getPublicSettings } from "@/features/settings/services/settings-public";
+import type { Settings } from "@/features/settings/types";
 
-export async function FaqSection() {
-  const settings = await getPublicSettings();
+export async function FaqSection({ settings }: { settings: Settings }) {
   const bookingFaqs = settings.faqs.filter((f) => f.section === "booking");
   const serviceFaqs = settings.faqs.filter((f) => f.section === "service");
 

@@ -1,10 +1,15 @@
 -- Idempotent development seed for the current Denailss catalog and availability configuration.
 --
--- Covers the dev catalog (services, gallery, gallery_images, availability
--- template/overrides/blocked). The remaining config tables (availability
--- vacations + booking rules, deposit_config, settings + FAQ/SEO, promotions,
--- instagram_posts) are seeded idempotently by their own migrations
--- (supabase/migrations/0005…0017), so they are not duplicated here.
+-- Covers the dev catalog (services, availability template/overrides/blocked).
+-- The remaining config tables (availability vacations + booking rules,
+-- deposit_config, settings + FAQ/SEO, promotions, instagram_posts) are seeded
+-- idempotently by their own migrations (supabase/migrations/0005…0017), so
+-- they are not duplicated here.
+--
+-- The gallery catalog is NOT seeded here — it is populated from the scraped
+-- Instagram portfolio by `npm run seed:gallery` (scripts/seed-gallery.ts),
+-- which uploads images to Supabase Storage and inserts gallery + gallery_images
+-- rows.
 --
 -- Synthetic appointment/customer history is intentionally excluded — the app
 -- runs on real bookings only (real-data-only decision).
@@ -21,32 +26,6 @@ INSERT INTO public.services (id, slug, name, short_description, description, pri
 ('svc-nail-art', 'nail-art', 'Nail Art', 'Hand-painted nail art detail, dari minimalis sampai 3D charm.', 'Layanan tambahan di atas manicure/gel base untuk desain hand-painted, ombre, chrome, sampai 3D charm. Setiap desain dikerjakan manual sesuai referensi dari gallery atau ide kamu sendiri.', 120000, 60, '[{"key":"simple","label":"Simple","priceFrom":120000,"durationMinutes":45},{"key":"complex","label":"Complex","priceFrom":220000,"durationMinutes":90}]'::jsonb, false, true, true, 'denailss-nailart-hero', '["denailss-nailart-1","denailss-nailart-2","denailss-nailart-3","denailss-nailart-4"]'::jsonb, '[{"question":"Harga nail art dihitung per kuku atau per set?","answer":"Harga dasar untuk satu set (10 jari), dengan tambahan biaya untuk desain 3D charm atau detail extra rumit."}]'::jsonb, NULL)
 
 ON CONFLICT (id) DO UPDATE SET slug = EXCLUDED.slug, name = EXCLUDED.name, short_description = EXCLUDED.short_description, description = EXCLUDED.description, price_from = EXCLUDED.price_from, duration_minutes = EXCLUDED.duration_minutes, tiers = EXCLUDED.tiers, requires_pickup = EXCLUDED.requires_pickup, deposit_applicable = EXCLUDED.deposit_applicable, active = EXCLUDED.active, hero_image = EXCLUDED.hero_image, gallery_seeds = EXCLUDED.gallery_seeds, faq = EXCLUDED.faq, price_note = EXCLUDED.price_note, updated_at = now();
-
--- Gallery metadata. Image order/labels are backfilled into gallery_images by
--- migration 0004 (semantic seeds resolved by src/lib/images.ts).
-INSERT INTO public.gallery (id, slug, title, description, aspect, style, color, occasion, shape, difficulty, price) VALUES
-('des-01', 'korean-milk-nail', 'Korean Milk Nail', 'Base putih susu translucent dengan sedikit shimmer di ujung kuku. Simple tapi tetap terlihat premium, cocok dipakai harian.', 'portrait', 'korean', 'white', 'daily', 'almond', 'easy', 100000),
-('des-02', 'classic-french-tip', 'Classic French Tip', 'French tip klasik dengan garis putih bersih di atas base nude natural.', 'square', 'french', 'nude', 'daily', 'square', 'easy', 100000),
-('des-03', 'chrome-mirror-silver', 'Chrome Mirror Silver', 'Efek chrome mengilap seperti cermin, favorit anak Y2K revival.', 'tall', 'chrome', 'white', 'party', 'coffin', 'medium', 140000),
-('des-04', 'sunset-ombre-coral', 'Sunset Ombre Coral', 'Gradasi oranye ke pink coral yang lembut, terinspirasi warna langit senja.', 'landscape', 'ombre', 'pink', 'daily', 'almond', 'medium', 140000),
-('des-05', '3d-bow-charm-pink', '3D Bow Charm Pink', 'Pita 3D lucu di atas base pink pastel, girly banget buat acara spesial.', 'portrait', '3d-art', 'pastel', 'party', 'almond', 'complex', 190000),
-('des-06', 'minimalist-line-art', 'Minimalist Line Art', 'Garis-garis halus abstrak di atas base nude, cocok untuk daily look yang tetap artsy.', 'square', 'minimalist', 'nude', 'daily', 'round', 'medium', 140000),
-('des-07', 'wedding-pearl-french', 'Wedding Pearl French', 'French tip elegan dengan aksen pearl kecil, dibuat khusus untuk hari pernikahan.', 'tall', 'french', 'white', 'wedding', 'almond', 'very-complex', 240000),
-('des-08', 'gold-foil-luxe', 'Gold Foil Luxe', 'Serpihan gold foil di atas base merah marun, terasa mewah untuk acara formal.', 'landscape', '3d-art', 'gold', 'festive', 'coffin', 'very-complex', 240000),
-('des-09', 'cherry-red-glossy', 'Cherry Red Glossy', 'Merah cherry glossy klasik yang selalu terlihat chic di semua kesempatan.', 'square', 'minimalist', 'red', 'party', 'square', 'easy', 100000),
-('des-10', 'pastel-cloud-korean', 'Pastel Cloud Korean', 'Motif awan lembut warna pastel biru dan pink, super cute buat sehari-hari.', 'portrait', 'korean', 'pastel', 'daily', 'round', 'very-complex', 240000),
-('des-11', 'graduation-star-charm', 'Graduation Star Charm', 'Aksen bintang emas kecil dengan base putih bersih, spesial untuk momen wisuda.', 'tall', '3d-art', 'white', 'graduation', 'almond', 'very-complex', 240000),
-('des-12', 'black-chrome-edge', 'Black Chrome Edge', 'Base hitam matte dengan tepi chrome tajam, bold dan edgy.', 'square', 'chrome', 'black', 'party', 'stiletto', 'complex', 190000),
-('des-13', 'milky-french-almond', 'Milky French Almond', 'Versi lembut dari french tip dengan base milky semi-transparan.', 'landscape', 'french', 'nude', 'daily', 'almond', 'medium', 140000),
-('des-14', 'festive-red-gold-flake', 'Festive Red Gold Flake', 'Merah cerah dengan taburan gold flake, cocok untuk perayaan tahun baru atau lebaran.', 'portrait', '3d-art', 'red', 'festive', 'coffin', 'complex', 190000),
-('des-15', 'sky-blue-ombre', 'Sky Blue Ombre', 'Gradasi biru langit yang menyegarkan, populer buat liburan pantai.', 'square', 'ombre', 'pastel', 'daily', 'round', 'medium', 140000),
-('des-16', 'matte-nude-minimal', 'Matte Nude Minimal', 'Base nude matte polos tanpa dekorasi berlebihan, clean girl aesthetic.', 'tall', 'minimalist', 'nude', 'daily', 'square', 'easy', 100000),
-('des-17', 'party-glitter-fuchsia', 'Party Glitter Fuchsia', 'Fuchsia cerah dengan glitter chunky, siap menyala di lantai dansa.', 'landscape', '3d-art', 'pink', 'party', 'stiletto', 'complex', 190000),
-('des-18', 'wedding-lace-white', 'Wedding Lace White', 'Motif lace putih halus yang menyerupai detail gaun pengantin.', 'portrait', '3d-art', 'white', 'wedding', 'almond', 'very-complex', 240000),
-('des-19', 'korean-jelly-pink', 'Korean Jelly Pink', 'Tekstur jelly transparan warna pink lembut, tren dari Seoul yang sedang naik.', 'square', 'korean', 'pink', 'daily', 'round', 'easy', 100000),
-('des-20', 'graduation-navy-gold', 'Graduation Navy Gold', 'Navy tua dipadukan garis emas tipis, elegan untuk momen kelulusan.', 'tall', 'minimalist', 'gold', 'graduation', 'square', 'complex', 190000)
-
-ON CONFLICT (id) DO UPDATE SET slug = EXCLUDED.slug, title = EXCLUDED.title, description = EXCLUDED.description, aspect = EXCLUDED.aspect, style = EXCLUDED.style, color = EXCLUDED.color, occasion = EXCLUDED.occasion, shape = EXCLUDED.shape, difficulty = EXCLUDED.difficulty, price = EXCLUDED.price, updated_at = now();
 
 -- Weekly availability templates. Seed-owned rows are replaced before insertion for reruns.
 DELETE FROM public.availability_templates;

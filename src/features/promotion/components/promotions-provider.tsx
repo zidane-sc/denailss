@@ -15,7 +15,7 @@ export function PromotionsProvider({ children }: { children: React.ReactNode }) 
   const [promotions, setPromotions] = useState<Promotion[]>([]);
 
   const refresh = useCallback(() => {
-    fetch("/api/v1/promotions", { cache: "no-store" })
+    fetch("/api/v1/promotions", { cache: "no-cache" })
       .then((res) => (res.ok ? res.json() : null))
       .then((payload: { data?: Promotion[] } | null) => {
         if (payload?.data) setPromotions(payload.data);

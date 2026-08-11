@@ -212,7 +212,6 @@ export function InstagramAdminView() {
                   alt="Postingan Instagram Denailss"
                   fill
                   sizes="(min-width: 1024px) 16rem, 45vw"
-                  unoptimized
                   className="object-cover"
                 />
                 <div className="absolute inset-0 flex items-end justify-between bg-black/0 p-2 transition-colors duration-300 group-hover:bg-black/45">

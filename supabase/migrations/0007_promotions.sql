@@ -37,13 +37,15 @@ CREATE POLICY promotions_owner_write ON public.promotions
   USING (public.current_user_role() = 'owner')
   WITH CHECK (public.current_user_role() = 'owner');
 
--- Seed the existing promotions (idempotent).
+-- Seed the promotions (idempotent). Existing seeded promos are cleared first so
+-- the catalog stays exactly 3: 1 inactive + 2 active, all without images.
+DELETE FROM public.promotions WHERE id IN (
+  'promo-17an', 'promo-weekend', 'promo-newset', 'promo-earlybird',
+  'promo-haritani', 'promo-mayday', 'promo-newclient'
+);
+
 INSERT INTO public.promotions (id, code, title, description, discount_type, discount_value, maximum_discount, start_date, end_date, usage_limit, used_count, minimum_spend, applicable_service_slugs, image_seed, active, created_at, updated_at) VALUES
-  ('promo-17an', 'PROMO17', 'Promo Kemerdekaan', 'Diskon 17% untuk semua layanan Nail Art & Gel Extension sepanjang Agustus.', 'percentage', 17, 75000, '2026-08-01', '2026-08-31', 100, 34, 150000, '["nail-art","gel-extension"]', 'promo-17an-nailart', true, now(), now()),
   ('promo-weekend', 'WEEKEND20', 'Weekend Nail Date', 'Diskon 20% untuk semua layanan, khusus weekend sepanjang Agustus.', 'percentage', 20, 50000, '2026-08-10', '2026-08-31', 50, 12, 200000, '[]', NULL, true, now(), now()),
   ('promo-newset', 'NEWSET30', 'Potongan Set Baru', 'Potongan Rp30.000 untuk setiap set gel extension atau press-on baru.', 'fixed', 30000, NULL, '2026-08-15', '2026-09-30', 0, 0, 180000, '["gel-extension","fake-nail"]', NULL, true, now(), now()),
-  ('promo-earlybird', 'PAGI20', 'Early Bird Pagi', 'Diskon 20% untuk booking pertama di hari itu sebelum pukul 11.00.', 'percentage', 20, 40000, '2026-09-01', '2026-10-31', 30, 0, NULL, '[]', NULL, true, now(), now()),
-  ('promo-haritani', 'HARITANI', 'Promo Hari Tani', 'Diskon 25% untuk semua layanan, khusus tanggal 24 September.', 'percentage', 25, 100000, '2026-09-24', '2026-09-24', 100, 0, NULL, '[]', NULL, true, now(), now()),
-  ('promo-mayday', 'MAYDAY10', 'Promo Hari Buruh', 'Diskon 10% khusus periode Mei.', 'percentage', 10, NULL, '2026-05-01', '2026-05-31', 50, 50, NULL, '[]', 'promo-mayday-flowers', true, now(), now()),
-  ('promo-newclient', 'NEWCLIENT', 'Welcome, First-Timer!', 'Potongan langsung Rp25.000 untuk booking pertamamu di Denailss.', 'fixed', 25000, NULL, '2026-07-01', '2026-09-30', 200, 128, NULL, '[]', 'promo-newclient-presson', true, now(), now())
+  ('promo-inactive', 'SENYUM10', 'Promo Senyum', 'Promo contoh yang sedang tidak aktif.', 'percentage', 10, NULL, '2026-08-01', '2026-08-31', 100, 0, NULL, '[]', NULL, false, now(), now())
 ON CONFLICT (id) DO NOTHING;

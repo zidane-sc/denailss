@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { WhatsappLogoIcon, ListIcon, UserCircleIcon } from "@phosphor-icons/react/dist/ssr";
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { whatsappLink } from "@/constants/site";
 import { cn } from "@/lib/utils";
+import { SiteLogo } from "./site-logo";
 
 const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
@@ -40,9 +40,7 @@ export function SiteHeader() {
           href="/"
           className="flex items-center shrink-0"
         >
-          <Image
-            src="/images/logo-horizontal.png"
-            alt="Denailss"
+          <SiteLogo
             width={120}
             height={48}
             className="h-8.5 w-auto object-contain"
@@ -112,9 +110,7 @@ export function SiteHeader() {
           </SheetTrigger>
           <SheetContent side="right" className="w-[280px] bg-background">
             <SheetTitle className="px-4 pt-4 select-none">
-              <Image
-                src="/images/logo-horizontal.png"
-                alt="Denailss"
+              <SiteLogo
                 width={100}
                 height={40}
                 className="h-7.5 w-auto object-contain"

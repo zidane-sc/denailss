@@ -13,6 +13,11 @@ export interface SettingsBusinessProfile {
   logo: string | null;
   description: string;
   address: string;
+  /** Google Maps URL for directions (footer "Lihat lokasi di Maps" + contact page). */
+  mapsUrl: string | null;
+  /** Map coordinates for the embedded Google Map on the contact page. */
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface SettingsSocialMedia {

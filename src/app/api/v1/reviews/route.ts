@@ -2,11 +2,11 @@ import { createReviewSchema } from "@/features/reviews/schemas/api";
 import { createReview, getReviewSummary, listReviews } from "@/features/reviews/services/review-service";
 import { requireApiCustomer } from "@/lib/supabase/api-auth";
 import { ApiError } from "@/lib/api/errors";
-import { apiFailure, apiSuccess } from "@/lib/api/response";
+import { apiFailure, apiSuccess, cachedApiSuccess } from "@/lib/api/response";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    return apiSuccess(await listReviews(), { summary: await getReviewSummary() });
+    return cachedApiSuccess(await listReviews(), request, { summary: await getReviewSummary() });
   } catch (error) {
     return apiFailure(error);
   }

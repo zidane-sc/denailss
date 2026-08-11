@@ -5,7 +5,7 @@ import { uploadStorageFile, type StorageCategory } from "@/lib/storage";
 import { ApiError } from "@/lib/api/errors";
 import { enforceRateLimit } from "@/lib/rate-limit";
 
-const categories = new Set<StorageCategory>(["gallery", "service", "settings"]);
+const categories = new Set<StorageCategory>(["gallery", "service", "settings", "promotion"]);
 
 export async function POST(request: Request) {
   try {

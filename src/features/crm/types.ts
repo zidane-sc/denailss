@@ -27,6 +27,8 @@ export interface CrmCustomer {
   name: string;
   phone: string;
   email?: string;
+  /** Instagram handle (e.g. "@alya.xx"). */
+  instagram?: string;
   /** First ever contact with Denailss (first booking). */
   since: string; // YYYY-MM-DD
   notes?: string;

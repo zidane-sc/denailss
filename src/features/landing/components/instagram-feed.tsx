@@ -23,8 +23,8 @@ export async function InstagramFeed() {
             src={`/api/instagram/${shortcode}`}
             alt="Postingan Instagram Denailss"
             fill
+            loading="lazy"
             sizes="(min-width: 1024px) 14rem, 33vw"
-            unoptimized
             className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/35">

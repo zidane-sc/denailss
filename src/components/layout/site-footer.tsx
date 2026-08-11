@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   InstagramLogoIcon,
@@ -11,7 +9,8 @@ import {
   MapPinIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { SITE, whatsappLink } from "@/constants/site";
-import type { Settings } from "@/features/settings/types";
+import { useLiveSettings } from "@/features/settings/components/settings-provider";
+import { SiteLogo } from "./site-logo";
 
 const EXPLORE_LINKS = [
   { href: "/gallery", label: "Gallery" },
@@ -29,24 +28,14 @@ const SERVICE_LINKS = [
 
 export function SiteFooter() {
   const pathname = usePathname();
-  const [settings, setSettings] = useState<Settings | null>(null);
-
-  useEffect(() => {
-    fetch("/api/v1/settings", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((payload: { data?: Settings } | null) => {
-        if (payload?.data) setSettings(payload.data);
-      })
-      .catch(() => {
-        // keep the SITE fallback
-      });
-  }, []);
+  const settings = useLiveSettings();
 
   if (pathname.startsWith("/customer") || pathname.startsWith("/backoffice")) return null;
 
   const name = settings?.businessProfile.name ?? SITE.name;
   const description = settings?.businessProfile.description ?? SITE.description;
   const address = settings?.businessProfile.address ?? SITE.address;
+  const mapsUrl = settings?.businessProfile.mapsUrl ?? SITE.mapsUrl;
   const instagramHandle = settings?.socialMedia.instagram || SITE.instagramHandle;
   const tiktokHandle = settings?.socialMedia.tiktok || SITE.tiktokHandle;
   const whatsappNumber = settings?.socialMedia.whatsapp || SITE.whatsappNumber;
@@ -55,9 +44,7 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-background-tint">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:px-8 lg:py-16">
         <div className="max-w-sm">
-          <Image
-            src="/images/logo-horizontal.png"
-            alt={name}
+          <SiteLogo
             width={130}
             height={52}
             className="h-9.5 w-auto object-contain"
@@ -136,7 +123,7 @@ export function SiteFooter() {
           </div>
           <p className="mt-3 text-sm text-muted-foreground">{SITE.hoursNote}</p>
           <a
-            href={SITE.mapsUrl}
+            href={mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline"

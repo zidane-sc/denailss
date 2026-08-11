@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   PlusIcon,
   CheckIcon,
@@ -282,10 +283,11 @@ export function GalleryDesignForm({
                       "border-border/60 hover:border-primary/50 hover:ring-2 hover:ring-primary/30"
                     )}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={imageUrl(seed)}
                       alt={`Foto desain ${index + 1}`}
+                      fill
+                      sizes="(min-width: 1024px) 7rem, 30vw"
                       className="size-full object-cover"
                     />
                     <span className="absolute left-1 top-1 rounded bg-black/60 px-1.5 text-[10px] font-semibold text-white">
@@ -334,10 +336,11 @@ export function GalleryDesignForm({
                   onClick={(e) => e.stopPropagation()}
                   className="flex w-full max-w-lg flex-col gap-3 rounded-2xl bg-card p-3 shadow-xl"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={imageUrl(previewSeed)}
                     alt="Pratinjau foto desain"
+                    width={512}
+                    height={512}
                     className="max-h-[70vh] w-full rounded-xl object-contain bg-muted/20"
                   />
                   <div className="flex items-center justify-between px-1">

@@ -1,5 +1,6 @@
 import type { Service } from "@/types";
 import { SITE, whatsappLink } from "@/constants/site";
+import { imageUrl } from "@/lib/images";
 import type { Settings } from "@/features/settings/types";
 
 /**
@@ -34,6 +35,9 @@ function resolveValues(settings: Settings) {
   const businessName = settings.businessProfile.name || SITE.name;
   const description = settings.businessProfile.description || SITE.description;
   const address = settings.businessProfile.address || SITE.address;
+  const mapsUrl = settings.businessProfile.mapsUrl || SITE.mapsUrl;
+  const latitude = settings.businessProfile.latitude ?? SITE.latitude;
+  const longitude = settings.businessProfile.longitude ?? SITE.longitude;
   const instagramHandle = settings.socialMedia.instagram || SITE.instagramHandle;
   const tiktokHandle = settings.socialMedia.tiktok || SITE.tiktokHandle;
   const whatsappNumber = settings.socialMedia.whatsapp || SITE.whatsappNumber;
@@ -41,6 +45,9 @@ function resolveValues(settings: Settings) {
     name: businessName,
     description,
     address,
+    mapsUrl,
+    latitude,
+    longitude,
     instagramUrl: `https://www.instagram.com/${instagramHandle}/`,
     tiktokUrl: `https://www.tiktok.com/@${tiktokHandle}`,
     whatsappLink: whatsappLink("Halo Denailss, aku mau tanya-tanya~", whatsappNumber),
@@ -67,10 +74,10 @@ export function localBusinessJsonLd(settings: Settings) {
     },
     geo: {
       "@type": "GeoCoordinates",
-      latitude: -6.2088,
-      longitude: 106.8456,
+      latitude: v.latitude,
+      longitude: v.longitude,
     },
-    hasMap: SITE.mapsUrl,
+    hasMap: v.mapsUrl,
     sameAs: [v.instagramUrl, v.tiktokUrl, v.whatsappLink],
     priceRange: "Rp",
     openingHoursSpecification: {
@@ -115,7 +122,7 @@ export function serviceJsonLd(service: Service, settings: Settings) {
     name: service.name,
     description: service.description,
     url: url(`/services/${service.slug}`),
-    image: url(imagePath(service.heroImage)),
+    image: imagePath(service.heroImage),
     provider: {
       "@type": "LocalBusiness",
       name: businessName,
@@ -174,8 +181,8 @@ export function websiteJsonLd() {
 }
 
 function imagePath(seed: string): string {
-  if (seed.startsWith("upload:")) {
-    return seed.replace(/^upload:/, "/images/uploads/");
-  }
-  return `/images/instagram/glazed-french-ombre.jpg`;
+  // Resolve storage refs / seed-map keys to the actual asset, then make the
+  // URL absolute so crawlers can fetch it from the JSON-LD payload.
+  const resolved = imageUrl(seed);
+  return resolved.startsWith("http") ? resolved : `${SITE.url}${resolved}`;
 }

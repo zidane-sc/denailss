@@ -4,6 +4,7 @@ import { customerInfoSchema } from "@/features/booking/validators/booking.schema
 export const createBookingSchema = z.object({
   serviceSlugs: z.array(z.string().trim().min(1)).min(1),
   tierByServiceSlug: z.record(z.string(), z.string()).default({}),
+  bodyPartByServiceSlug: z.record(z.string(), z.enum(["hand", "foot"])).default({}),
   designSlug: z.string().trim().min(1).nullable().optional(),
   dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
   time: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),

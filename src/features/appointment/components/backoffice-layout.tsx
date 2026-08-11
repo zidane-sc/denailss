@@ -18,6 +18,7 @@ import {
   GearIcon,
   SparkleIcon,
   InstagramLogoIcon,
+  EnvelopeSimpleIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
   { href: "/backoffice/instagram", label: "Grid Instagram", icon: InstagramLogoIcon },
   { href: "/backoffice/promotions", label: "Promosi", icon: TicketIcon },
   { href: "/backoffice/finance", label: "Keuangan", icon: WalletIcon },
+  { href: "/backoffice/messages", label: "Pesan Masuk", icon: EnvelopeSimpleIcon },
   { href: "/backoffice/analytics", label: "Analytics", icon: ChartLineUpIcon },
   { href: "/backoffice/settings", label: "Pengaturan", icon: GearIcon },
   { href: "/backoffice/customers", label: "Pelanggan", icon: UsersThreeIcon },
@@ -118,6 +120,7 @@ export function BackofficeLayoutContent({ children }: { children: React.ReactNod
     if (pathname.startsWith("/backoffice/instagram")) return "Grid Instagram";
     if (pathname.startsWith("/backoffice/promotions")) return "Promosi";
     if (pathname.startsWith("/backoffice/finance")) return "Keuangan";
+    if (pathname.startsWith("/backoffice/messages")) return "Pesan Masuk";
     if (pathname.startsWith("/backoffice/analytics")) return "Analytics";
     if (pathname.startsWith("/backoffice/settings")) return "Pengaturan";
     if (pathname.startsWith("/backoffice/customers")) return "Buku Pelanggan";

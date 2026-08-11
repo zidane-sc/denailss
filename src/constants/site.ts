@@ -12,6 +12,8 @@ export const SITE = {
   tiktokHandle: "denails10",
   tiktokUrl: "https://www.tiktok.com/@denails10",
   mapsUrl: "https://maps.google.com/?q=Denailss+Nail+Art+Jakarta+Selatan",
+  latitude: -6.2088,
+  longitude: 106.8456,
   address: "Jl. Petojo Binatu, Jakarta Pusat",
   hoursNote: "Jadwal buka berubah tiap minggu, cek kalender booking untuk slot terbaru",
 } as const;

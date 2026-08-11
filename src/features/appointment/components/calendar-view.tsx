@@ -11,7 +11,7 @@ import {
   dayNamesId,
   monthNamesId,
 } from "@/lib/format";
-import { serviceNamesLabel } from "@/features/appointment/lib/labels";
+import { serviceNamesLabel, addOnsLabel } from "@/features/appointment/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -392,6 +392,9 @@ export function CalendarView() {
                       </p>
                       <p className="text-[10px] text-muted-foreground truncate">
                         {serviceNamesLabel(appt.services)}
+                        {appt.addOns.length > 0 && (
+                          <span className="text-secondary font-semibold"> · + {addOnsLabel(appt.addOns)}</span>
+                        )}
                       </p>
                       <div className="flex items-center justify-between gap-1 mt-2 pt-1.5 border-t border-border/40">
                         <span className="text-[9px] font-bold text-foreground/70">
@@ -503,7 +506,9 @@ export function CalendarView() {
                               {getStatusBadge(appt.status)}
                             </div>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              {serviceNamesLabel(appt.services)} {appt.designTitle && `· ${appt.designTitle}`}
+                              {serviceNamesLabel(appt.services)}
+                              {appt.addOns.length > 0 && <span className="text-secondary font-semibold"> · + {addOnsLabel(appt.addOns)}</span>}
+                              {appt.designTitle && ` · ${appt.designTitle}`}
                             </p>
                           </div>
                         </div>
@@ -515,7 +520,9 @@ export function CalendarView() {
                             {getStatusBadge(appt.status)}
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {serviceNamesLabel(appt.services)} {appt.designTitle && `· ${appt.designTitle}`}
+                            {serviceNamesLabel(appt.services)}
+                            {appt.addOns.length > 0 && <span className="text-secondary font-semibold"> · + {addOnsLabel(appt.addOns)}</span>}
+                            {appt.designTitle && ` · ${appt.designTitle}`}
                           </p>
                         </div>
 
@@ -654,6 +661,11 @@ export function CalendarView() {
                       ✉️ {selectedAppointment.customer.email}
                     </p>
                   )}
+                  {selectedAppointment.customer.instagram && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      📷 {selectedAppointment.customer.instagram}
+                    </p>
+                  )}
                 </div>
                 {selectedAppointment.customer.notes && (
                   <div className="bg-secondary-soft/50 border border-secondary/20 p-2.5 rounded-lg text-xs text-secondary-foreground">
@@ -724,6 +736,11 @@ export function CalendarView() {
                   <div>
                     <p className="text-muted-foreground">Layanan</p>
                     <p className="font-semibold text-primary mt-0.5">{serviceNamesLabel(selectedAppointment.services)}</p>
+                    {selectedAppointment.addOns.length > 0 && (
+                      <p className="text-secondary font-semibold mt-0.5 text-[11px]">
+                        + {addOnsLabel(selectedAppointment.addOns)}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <p className="text-muted-foreground">Desain Seni</p>

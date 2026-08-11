@@ -2,11 +2,11 @@ import { createGalleryDesignSchema } from "@/features/gallery/schemas/api";
 import { createGalleryDesign, listCatalogGalleryWithImages } from "@/features/gallery/services/gallery-service";
 import { requireApiOwner } from "@/lib/supabase/api-auth";
 import { ApiError } from "@/lib/api/errors";
-import { apiFailure, apiSuccess } from "@/lib/api/response";
+import { apiFailure, apiSuccess, cachedApiSuccess } from "@/lib/api/response";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    return apiSuccess(await listCatalogGalleryWithImages());
+    return cachedApiSuccess(await listCatalogGalleryWithImages(), request);
   } catch (error) {
     return apiFailure(error);
   }

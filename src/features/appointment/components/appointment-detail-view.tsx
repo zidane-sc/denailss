@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useBackoffice } from "../context/backoffice-context";
 import { formatIDR, formatDateId, parseDateKey } from "@/lib/format";
-import { serviceNamesLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
+import { serviceNamesLabel, addOnsLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -269,6 +269,12 @@ export function AppointmentDetailView({ id }: AppointmentDetailViewProps) {
                     <p className="text-sm font-semibold text-foreground mt-0.5 truncate">{appt.customer.email}</p>
                   </div>
                 )}
+                {appt.customer.instagram && (
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Instagram</p>
+                    <p className="text-sm font-semibold text-foreground mt-0.5 truncate">{appt.customer.instagram}</p>
+                  </div>
+                )}
               </div>
 
               {appt.customer.notes && (
@@ -403,6 +409,9 @@ export function AppointmentDetailView({ id }: AppointmentDetailViewProps) {
                 <div>
                   <p className="text-muted-foreground">Layanan</p>
                   <p className="text-sm font-semibold text-primary mt-0.5">{serviceNamesLabel(appt.services)}</p>
+                  {appt.addOns.length > 0 && (
+                    <p className="text-xs font-semibold text-secondary mt-0.5">+ {addOnsLabel(appt.addOns)}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-muted-foreground">Desain Seni</p>

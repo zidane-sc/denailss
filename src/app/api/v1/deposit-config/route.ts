@@ -2,11 +2,11 @@ import { depositConfigSchema } from "@/features/booking/schemas/deposit";
 import { getDepositConfig, saveDepositConfig } from "@/features/booking/services/deposit-service";
 import { requireApiOwner } from "@/lib/supabase/api-auth";
 import { ApiError } from "@/lib/api/errors";
-import { apiFailure, apiSuccess } from "@/lib/api/response";
+import { apiFailure, apiSuccess, cachedApiSuccess } from "@/lib/api/response";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    return apiSuccess(await getDepositConfig());
+    return cachedApiSuccess(await getDepositConfig(), request);
   } catch (error) {
     return apiFailure(error);
   }

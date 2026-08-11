@@ -106,6 +106,7 @@ export function BackofficeProvider({ children }: { children: React.ReactNode }) 
     const newId = `BKG-2026-${String(appointments.length + 1).padStart(3, "0")}`;
     const newAppt: Appointment = {
       ...appointmentData,
+      addOns: appointmentData.addOns ?? [],
       id: newId,
     };
     setAppointments((prev) => [...prev, newAppt]);

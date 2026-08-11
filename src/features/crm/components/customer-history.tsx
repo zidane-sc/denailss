@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   StarIcon,
   ArrowUpRightIcon,
@@ -149,11 +150,12 @@ function ReviewCard({ review }: { review: CrmReview }) {
       <p className="mt-2 text-sm leading-relaxed text-foreground/85">{review.comment}</p>
       <div className="mt-3 flex items-center gap-3">
         {review.photoSeed && (
-          <span className="size-12 shrink-0 overflow-hidden rounded-lg border border-border/60">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <span className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-border/60">
+            <Image
               src={imageUrl(review.photoSeed)}
               alt="Foto hasil nail art dalam review"
+              fill
+              sizes="3rem"
               className="size-full object-cover"
             />
           </span>

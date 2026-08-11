@@ -52,7 +52,7 @@ export function CustomerListView() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const rows = useMemo(
-    () => allRows.filter((row) => matchesCustomerQuery(row.customer.name, row.customer.phone, row.customer.email, query)).filter((row) => segment === "all" || row.segment === segment),
+    () => allRows.filter((row) => matchesCustomerQuery(row.customer.name, row.customer.phone, row.customer.email, query, row.customer.instagram)).filter((row) => segment === "all" || row.segment === segment),
     [allRows, query, segment]
   );
 
@@ -322,6 +322,11 @@ function CustomerTableRow({ row }: { row: CustomerRow }) {
       </td>
       <td className="p-3">
         <p className="font-medium">{customer.phone}</p>
+        {customer.instagram && (
+          <p className="mt-0.5 max-w-[180px] truncate text-[10px] text-muted-foreground">
+            {customer.instagram}
+          </p>
+        )}
         {customer.email && (
           <p className="mt-0.5 max-w-[180px] truncate text-[10px] text-muted-foreground">
             {customer.email}
@@ -370,6 +375,9 @@ function CustomerMobileCard({
             <div>
               <p className="text-sm font-semibold text-foreground">{customer.name}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{customer.phone}</p>
+              {customer.instagram && (
+                <p className="text-[11px] text-muted-foreground mt-0.5">{customer.instagram}</p>
+              )}
             </div>
           </div>
           <CustomerStatusBadge status={status} />

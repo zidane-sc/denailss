@@ -179,7 +179,19 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       <Reveal delay={0.1}>
         <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
           <div className="border-b border-border/50 bg-muted/30 p-6">
-            <h2 className="font-heading text-xl font-semibold">{booking.services.map((s) => s.name).join(", ")}</h2>
+            <h2 className="font-heading text-xl font-semibold">
+              {booking.services.map((s) => {
+                const label = [s.name, s.tierLabel, s.bodyPart === "hand" ? "Tangan" : s.bodyPart === "foot" ? "Kaki" : null]
+                  .filter(Boolean)
+                  .join(" · ");
+                return <span key={s.slug} className="block">{label}</span>;
+              })}
+            </h2>
+            {booking.addOns.length > 0 && (
+              <p className="mt-1 text-sm font-medium text-secondary">
+                {booking.addOns.map((a) => `${a.name} (Gratis)`).join(" + ")}
+              </p>
+            )}
             {booking.designTitle && (
               <p className="mt-1 text-sm text-muted-foreground">Desain: {booking.designTitle}</p>
             )}

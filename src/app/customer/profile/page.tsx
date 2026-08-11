@@ -14,13 +14,13 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<CustomerProfile>(CUSTOMER_PROFILE_FALLBACK);
-  const [formData, setFormData] = useState({ name: "", phone: "", email: "", notes: "" });
+  const [formData, setFormData] = useState({ name: "", phone: "", email: "", instagram: "", notes: "" });
 
   useEffect(() => {
     fetchCustomerProfile()
       .then((nextProfile) => {
         setProfile(nextProfile);
-        setFormData({ name: nextProfile.name, phone: nextProfile.phone, email: nextProfile.email, notes: nextProfile.notes || "" });
+        setFormData({ name: nextProfile.name, phone: nextProfile.phone, email: nextProfile.email, instagram: nextProfile.instagram || "", notes: nextProfile.notes || "" });
       })
       .catch(() => toast.error("Profil belum dapat dimuat."))
       .finally(() => setLoading(false));
@@ -30,9 +30,9 @@ export default function ProfilePage() {
     event.preventDefault();
     setSaving(true);
     try {
-      const nextProfile = await updateCustomerProfile({ name: formData.name, phone: formData.phone, notes: formData.notes });
+      const nextProfile = await updateCustomerProfile({ name: formData.name, phone: formData.phone, instagram: formData.instagram, notes: formData.notes });
       setProfile(nextProfile);
-      setFormData({ name: nextProfile.name, phone: nextProfile.phone, email: nextProfile.email, notes: nextProfile.notes || "" });
+      setFormData({ name: nextProfile.name, phone: nextProfile.phone, email: nextProfile.email, instagram: nextProfile.instagram || "", notes: nextProfile.notes || "" });
       setIsEditing(false);
       toast.success("Profil berhasil diperbarui", { description: "Data diri kamu sudah tersimpan." });
     } catch {
@@ -42,7 +42,7 @@ export default function ProfilePage() {
     }
   }
 
-  const resetForm = () => setFormData({ name: profile.name, phone: profile.phone, email: profile.email, notes: profile.notes || "" });
+  const resetForm = () => setFormData({ name: profile.name, phone: profile.phone, email: profile.email, instagram: profile.instagram || "", notes: profile.notes || "" });
 
   return (
     <div className="max-w-2xl space-y-8">
@@ -54,6 +54,7 @@ export default function ProfilePage() {
             <div className="space-y-2"><label htmlFor="name" className="text-sm font-medium">Nama Lengkap</label><input id="name" type="text" disabled={!isEditing || saving} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm disabled:bg-muted/50 disabled:text-muted-foreground" required /></div>
             <div className="space-y-2"><label htmlFor="phone" className="text-sm font-medium">Nomor WhatsApp</label><input id="phone" type="tel" disabled={!isEditing || saving} value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm disabled:bg-muted/50 disabled:text-muted-foreground" required /></div>
             <div className="space-y-2"><label htmlFor="email" className="text-sm font-medium">Email</label><input id="email" type="email" disabled value={formData.email} className="w-full rounded-xl border border-border bg-muted/50 px-4 py-2.5 text-sm text-muted-foreground" /><p className="text-xs text-muted-foreground">Email akun dikelola oleh Supabase Auth.</p></div>
+            <div className="space-y-2"><label htmlFor="instagram" className="text-sm font-medium">Instagram <span className="font-normal text-muted-foreground">(Opsional)</span></label><input id="instagram" type="text" disabled={!isEditing || saving} value={formData.instagram} onChange={(e) => setFormData({ ...formData, instagram: e.target.value })} placeholder="@namakamu" className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm disabled:bg-muted/50 disabled:text-muted-foreground" /></div>
             <div className="space-y-2"><label htmlFor="notes" className="text-sm font-medium">Catatan Khusus <span className="font-normal text-muted-foreground">(Opsional)</span></label><textarea id="notes" disabled={!isEditing || saving} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Contoh: Kuku tipis, alergi produk tertentu..." className="h-24 w-full resize-none rounded-xl border border-border bg-background px-4 py-2.5 text-sm disabled:bg-muted/50 disabled:text-muted-foreground" /><p className="text-xs text-muted-foreground">Catatan ini akan otomatis disertakan setiap kali kamu melakukan booking.</p></div>
             <div className="flex justify-end pt-4">{isEditing ? <div className="flex gap-3"><Button type="button" variant="outline" disabled={saving} onClick={() => { resetForm(); setIsEditing(false); }}>Batal</Button><Button type="submit" disabled={saving}>{saving ? "Menyimpan..." : "Simpan Perubahan"}</Button></div> : <Button type="button" onClick={() => setIsEditing(true)}>Edit Profil</Button>}</div>
           </form>}

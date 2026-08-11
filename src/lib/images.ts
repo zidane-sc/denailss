@@ -14,8 +14,8 @@ const SEED_MAP: Record<string, string> = {
   // Landing hero
   "denailss-hero-main": "glazed-french-ombre.jpg",
   "denailss-hero-detail": "yellow-french-flowers.jpg",
-  "denailss-about-studio": "grey-pink-chrome-stars.jpg",
-  "denailss-contact-studio": "grey-ombre-cross.jpg",
+  "denailss-about-studio": "../dela-1.jpg",
+  "denailss-contact-studio": "../dela-2.jpg",
 
   // Services
   "denailss-gel-extension-hero": "blue-chrome-pearl.jpg",
@@ -81,12 +81,6 @@ const SEED_MAP: Record<string, string> = {
   "review-salsa": "grid-2.jpg",
   "review-farah": "grid-3.jpg",
   "review-michelle": "grid-4.jpg",
-
-  // Promotions
-  "promo-17an-nailart": "grid-5.jpg",
-  "promo-newclient-presson": "grid-7.jpg",
-  "promo-mayday-flowers": "grid-4.jpg",
-  "promo-default": "grid-5.jpg",
 
   // Deposit proof placeholders
   proof1: "../bukti-transfer-dummy.jpg",

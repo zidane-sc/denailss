@@ -1,3 +1,6 @@
+/** Where a body service is applied — hands or feet. */
+export type BodyPart = "hand" | "foot";
+
 export type ServiceTierKey = "simple" | "complex";
 
 /** A price/duration tier within a service (e.g. nail art simple vs complex). */
@@ -34,6 +37,11 @@ export interface Service {
    * Not part of the catalog data — set by the booking flow on the in-memory copy.
    */
   tierLabel?: string;
+  /**
+   * Runtime-only: the body part chosen by the customer during booking
+   * (e.g. nail art on hands vs feet). Not part of the catalog data.
+   */
+  bodyPart?: BodyPart;
   heroImage: string;
   gallerySeeds: string[];
   faq: { question: string; answer: string }[];
@@ -100,6 +108,18 @@ export interface Review {
   photoSeed?: string;
   /** The booking code this review belongs to (server-populated for ownership checks). */
   bookingCode?: string;
+}
+
+/** A message submitted through the public "Kirim Pesan" contact form. */
+export interface ContactMessage {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  instagram?: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
 export type DiscountType = "percentage" | "fixed";

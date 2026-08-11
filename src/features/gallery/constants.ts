@@ -48,4 +48,6 @@ export const SHAPE_LABELS: Record<DesignShape, string> = {
   stiletto: "Stiletto",
 };
 
-export const GALLERY_PAGE_SIZE = 8;
+/** Items revealed per infinite-scroll batch. Windowing via `content-visibility`
+ * keeps the paint cost flat, so larger batches scroll smoother. */
+export const GALLERY_PAGE_SIZE = 24;

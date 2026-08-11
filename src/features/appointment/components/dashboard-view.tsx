@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useBackoffice } from "../context/backoffice-context";
 import { formatIDR, formatDateId, toDateKey, formatDuration } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import { useLiveServices } from "@/features/services/components/services-provider";
-import { serviceNamesLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
+import { serviceNamesLabel, addOnsLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,6 +125,7 @@ export function DashboardView() {
   const [newCustomerPhone, setNewCustomerPhone] = useState("");
   const [newCustomerEmail, setNewCustomerEmail] = useState("");
   const [newServiceSlugs, setNewServiceSlugs] = useState<string[]>(["gel-extension"]);
+  const [newNailArtBodyPart, setNewNailArtBodyPart] = useState<"hand" | "foot" | "">("");
   const [newDesignSlug, setNewDesignSlug] = useState("");
   const [newDesignTitle, setNewDesignTitle] = useState("");
   const [newFulfillment, setNewFulfillment] = useState<"pickup" | "delivery" | "">("");
@@ -190,7 +192,15 @@ export function DashboardView() {
       services: newServiceSlugs.map((slug) => ({
         slug,
         name: serviceNameMap[slug] || slug,
+        bodyPart: slug === "nail-art" && newNailArtBodyPart ? newNailArtBodyPart : undefined,
       })),
+      addOns: newServiceSlugs.includes("nail-art")
+        ? (newNailArtBodyPart === "hand"
+            ? [{ slug: "manicure", name: "Manicure", bodyPart: "hand" as const, price: 0 as const }]
+            : newNailArtBodyPart === "foot"
+              ? [{ slug: "pedicure", name: "Pedicure", bodyPart: "foot" as const, price: 0 as const }]
+              : [])
+        : [],
       designSlug: newDesignSlug || undefined,
       designTitle: newDesignTitle || undefined,
       fulfillment: newFulfillment || undefined,
@@ -381,6 +391,22 @@ export function DashboardView() {
                   </div>
                 </div>
 
+                {newServiceSlugs.includes("nail-art") && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="nailArtBodyPart" className="font-medium text-foreground/90">Bagian Tubuh (Nail Art)</Label>
+                    <select
+                      id="nailArtBodyPart"
+                      className="flex h-9 w-full rounded-xl border border-input bg-card px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                      value={newNailArtBodyPart}
+                      onChange={(e) => setNewNailArtBodyPart(e.target.value as "hand" | "foot" | "")}
+                    >
+                      <option value="">Pilih...</option>
+                      <option value="hand">Tangan (Gratis Manicure)</option>
+                      <option value="foot">Kaki (Gratis Pedicure)</option>
+                    </select>
+                  </div>
+                )}
+
                 {newServiceSlugs.includes("fake-nail") && (
                   <div className="grid gap-2">
                     <Label htmlFor="fulfillment" className="font-medium text-foreground/90">Cara Pengambilan (Kuku Palsu)</Label>
@@ -519,6 +545,9 @@ export function DashboardView() {
                         </div>
                         <p className="text-xs font-medium text-muted-foreground mt-1">
                           Layanan: <span className="text-foreground/80 font-semibold">{serviceNamesLabel(appt.services)}</span>
+                          {appt.addOns.length > 0 && (
+                            <> · <span className="text-secondary font-semibold">+ {addOnsLabel(appt.addOns)}</span></>
+                          )}
                           {appt.designTitle && (
                             <> · Desain: <span className="text-primary font-semibold">{appt.designTitle}</span></>
                           )}
@@ -600,6 +629,9 @@ export function DashboardView() {
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Layanan: <span className="font-semibold text-foreground/80">{serviceNamesLabel(appt.services)}</span>
+                        {appt.addOns.length > 0 && (
+                          <> · <span className="text-secondary font-semibold">+ {addOnsLabel(appt.addOns)}</span></>
+                        )}
                         {appt.fulfillment && (
                           <> · {FULFILLMENT_LABELS[appt.fulfillment]}</>
                         )}
@@ -663,8 +695,7 @@ export function DashboardView() {
                       <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Bukti Transfer:</span>
                       <div className="relative aspect-[3/4] w-full max-w-[140px] rounded-lg overflow-hidden border border-border bg-muted/30">
                         {appt.depositProofUrl ? <DepositProofImage reference={appt.depositProofUrl} /> : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={imageUrl("transfer-proof")} alt="Bukti Transfer" className="h-full w-full object-cover" />
+                          <Image src={imageUrl("transfer-proof")} alt="Bukti Transfer" fill sizes="8.75rem" className="size-full object-cover" />
                         )}
                       </div>
                       <span className="text-[9px] text-muted-foreground italic">Klik gambar untuk memperbesar</span>
@@ -901,6 +932,11 @@ export function DashboardView() {
                     </td>
                     <td className="p-3 font-medium">
                       {serviceNamesLabel(appt.services)}
+                      {appt.addOns.length > 0 && (
+                        <span className="block text-[10px] text-secondary mt-0.5 font-semibold">
+                          + {addOnsLabel(appt.addOns)}
+                        </span>
+                      )}
                       {appt.designTitle && (
                         <span className="block text-[10px] text-primary mt-0.5 font-semibold">({appt.designTitle})</span>
                       )}

@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  doublePrecision,
   index,
   integer,
   jsonb,
@@ -52,6 +53,7 @@ export const customers = pgTable(
     name: text("name").notNull(),
     phone: text("phone").notNull(),
     email: text("email"),
+    instagram: text("instagram"),
     notes: text("notes"),
     preferences: jsonb("preferences"),
     ...timestamps,
@@ -267,11 +269,28 @@ export const appointmentServices = pgTable(
     serviceName: text("service_name").notNull(),
     tierKey: text("tier_key"),
     tierLabel: text("tier_label"),
+    bodyPart: text("body_part"),
     price: integer("price").notNull(),
     durationMinutes: integer("duration_minutes").notNull(),
     ...timestamps,
   },
   (table) => [index("appointment_services_appointment_idx").on(table.appointmentId)]
+);
+
+/** Free add-ons bundled into an appointment (e.g. manicure with nail art on hands). */
+export const appointmentAddOns = pgTable(
+  "appointment_add_ons",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    appointmentId: uuid("appointment_id").notNull().references(() => appointments.id, { onDelete: "cascade" }),
+    serviceId: text("service_id").notNull().references(() => services.id),
+    serviceSlug: text("service_slug").notNull(),
+    serviceName: text("service_name").notNull(),
+    bodyPart: text("body_part").notNull(),
+    price: integer("price").notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [index("appointment_add_ons_appointment_idx").on(table.appointmentId)]
 );
 
 export const settings = pgTable(
@@ -282,6 +301,9 @@ export const settings = pgTable(
     logo: text("logo"),
     description: text("description").notNull().default(""),
     address: text("address").notNull().default(""),
+    mapsUrl: text("maps_url"),
+    latitude: doublePrecision("latitude"),
+    longitude: doublePrecision("longitude"),
     instagram: text("instagram").notNull().default(""),
     tiktok: text("tiktok").notNull().default(""),
     whatsapp: text("whatsapp").notNull().default(""),
@@ -350,6 +372,21 @@ export const reviews = pgTable(
   ]
 );
 
+export const contactMessages = pgTable(
+  "contact_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    phone: text("phone").notNull(),
+    email: text("email").notNull(),
+    instagram: text("instagram"),
+    message: text("message").notNull(),
+    isRead: boolean("is_read").notNull().default(false),
+    ...timestamps,
+  },
+  (table) => [index("contact_messages_read_idx").on(table.isRead, table.createdAt)]
+);
+
 export const customerFavorites = pgTable(
   "customer_favorites",
   {
@@ -378,11 +415,13 @@ export const schema = {
   depositConfig,
   appointments,
   appointmentServices,
+  appointmentAddOns,
   settings,
   depositUploads,
   promotions,
   reviews,
   customerFavorites,
+  contactMessages,
   expenses,
   instagramPosts,
 };
