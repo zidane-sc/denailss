@@ -82,6 +82,20 @@ export const expenses = pgTable(
   (table) => [index("expenses_date_idx").on(table.date)]
 );
 
+export const instagramPosts = pgTable(
+  "instagram_posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    shortcode: text("shortcode").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("instagram_posts_shortcode_unique").on(table.shortcode),
+    index("instagram_posts_order_idx").on(table.sortOrder),
+  ]
+);
+
 export const services = pgTable(
   "services",
   {
@@ -369,6 +383,7 @@ export const schema = {
   reviews,
   customerFavorites,
   expenses,
+  instagramPosts,
 };
 
 export type DatabaseSchema = typeof schema;

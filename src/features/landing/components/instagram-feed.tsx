@@ -1,17 +1,14 @@
 import Image from "next/image";
 import { InstagramLogoIcon } from "@phosphor-icons/react/dist/ssr";
-import {
-  getLiveInstagramPosts,
-  INSTAGRAM_POST_URL,
-} from "@/features/landing/data/instagram-posts.mock";
+import { listInstagramPosts, INSTAGRAM_POST_URL } from "@/features/landing/services/instagram-service";
 
 /**
  * Image-only grid of recent Instagram posts. Each card pulls the post photo
  * through the `/api/instagram/[shortcode]` proxy and links to the original
- * post. The list is managed by the owner in the backoffice.
+ * post. The list is managed by the owner in the backoffice (DB-backed).
  */
-export function InstagramFeed() {
-  const posts = getLiveInstagramPosts();
+export async function InstagramFeed() {
+  const posts = await listInstagramPosts();
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-3">
       {posts.map((shortcode) => (

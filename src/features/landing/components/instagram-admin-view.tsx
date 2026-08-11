@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   ArrowUpRightIcon,
@@ -12,53 +12,92 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import {
-  addInstagramPost,
-  getLiveInstagramPosts,
-  removeInstagramPost,
-  INSTAGRAM_POST_URL,
-  parseInstagramShortcode,
-} from "@/features/landing/data/instagram-posts.mock";
+import { parseInstagramShortcode, INSTAGRAM_POST_URL } from "@/features/landing/logic/instagram";
 
 /**
  * Instagram grid manager — Epic addition. The owner pastes an embed link or
  * embed code from Instagram (post → ⋯ → Embed → Copy embed code), the
- * shortcode is parsed and stored, and the landing grid renders the post photo
- * through the existing `/api/instagram/[shortcode]` proxy.
+ * shortcode is parsed and stored (DB-backed), and the landing grid renders
+ * the post photo through the existing `/api/instagram/[shortcode]` proxy.
  */
 export function InstagramAdminView() {
-  const [posts, setPosts] = useState<string[]>(() => getLiveInstagramPosts());
+  const [posts, setPosts] = useState<string[]>([]);
   const [embedInput, setEmbedInput] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/v1/instagram", { cache: "no-store" })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const payload = (await res.json()) as { data?: { shortcodes?: string[] } };
+        if (active && payload.data?.shortcodes) setPosts(payload.data.shortcodes);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleInput = (value: string) => {
     setEmbedInput(value);
     setPreview(parseInstagramShortcode(value));
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!preview) {
       toast.error("Link embed Instagram tidak dikenali.", {
         description: "Tempel URL post atau kode embed dari Instagram.",
       });
       return;
     }
-    const { list, added } = addInstagramPost(preview);
-    setPosts(list);
-    if (!added) {
-      toast.info("Postingan ini sudah ada di grid.");
-    } else {
-      toast.success("Postingan ditambahkan ke grid.");
+    try {
+      const res = await fetch("/api/v1/instagram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shortcode: preview }),
+      });
+      const payload = (await res.json().catch(() => ({}))) as { data?: { list?: string[]; added?: boolean }; error?: { message?: string } };
+      if (!res.ok) throw new Error(payload.error?.message ?? "Gagal menambahkan postingan.");
+      if (payload.data?.list) setPosts(payload.data.list);
+      if (!payload.data?.added) {
+        toast.info("Postingan ini sudah ada di grid.");
+      } else {
+        toast.success("Postingan ditambahkan ke grid.");
+      }
+      setEmbedInput("");
+      setPreview(null);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menambahkan postingan.");
     }
-    setEmbedInput("");
-    setPreview(null);
   };
 
-  const handleRemove = (shortcode: string) => {
-    const next = removeInstagramPost(shortcode);
-    setPosts(next);
-    toast.success("Postingan dihapus dari grid.");
+  const handleRemove = async (shortcode: string) => {
+    try {
+      const res = await fetch("/api/v1/instagram", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shortcode }),
+      });
+      const payload = (await res.json().catch(() => ({}))) as { data?: { shortcodes?: string[] }; error?: { message?: string } };
+      if (!res.ok) throw new Error(payload.error?.message ?? "Gagal menghapus postingan.");
+      if (payload.data?.shortcodes) setPosts(payload.data.shortcodes);
+      toast.success("Postingan dihapus dari grid.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menghapus postingan.");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-5xl space-y-6 animate-in fade-in duration-300">
+        <p className="py-16 text-center text-sm text-muted-foreground">Memuat grid Instagram...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 animate-in fade-in duration-300">
