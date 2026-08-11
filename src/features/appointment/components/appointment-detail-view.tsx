@@ -47,6 +47,20 @@ export function AppointmentDetailView({ id }: AppointmentDetailViewProps) {
 
   const appt = appointments.find((a) => a.id === id);
 
+  // Real customer history derived from the appointment list (matched by
+  // customerId, falling back to phone for the mock-seeded rows).
+  const customerAppointments = appt
+    ? appointments.filter(
+        (a) =>
+          (appt.customerId && a.customerId === appt.customerId) ||
+          (!appt.customerId && a.customer.phone === appt.customer.phone)
+      )
+    : [];
+  const customerCompletedCount = customerAppointments.filter((a) => a.status === "completed").length;
+  const customerTotalSpend = customerAppointments
+    .filter((a) => a.status === "completed")
+    .reduce((sum, a) => sum + a.price, 0);
+
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("");
@@ -277,11 +291,11 @@ export function AppointmentDetailView({ id }: AppointmentDetailViewProps) {
               <ul className="space-y-1 text-muted-foreground">
                 <li className="flex items-center justify-between">
                   <span>Booking Selesai</span>
-                  <span className="font-semibold text-foreground">3 kali</span>
+                  <span className="font-semibold text-foreground">{customerCompletedCount} kali</span>
                 </li>
                 <li className="flex items-center justify-between">
-                  <span>Loyalitas</span>
-                  <span className="font-semibold text-primary">Customer Setia (⭐ 5.0)</span>
+                  <span>Total Belanja</span>
+                  <span className="font-semibold text-primary">{formatIDR(customerTotalSpend)}</span>
                 </li>
               </ul>
             </div>
