@@ -185,6 +185,28 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 ### Known fixed bug (don't reintroduce)
 `zodResolver` validation in `step-customer-info.tsx` is async. `formRef.current.submit()` must be `async` and awaited in `booking-flow.tsx`'s `goNext`, or the "Lanjut" button silently blocks progression on the first click after filling the form (reads stale `false` before the validation promise resolves).
 
+### Known gaps (PRD audit — 2026-08-11)
+
+Gaps found by auditing `docs/PRD.md` requirements against the implementation. Tracked here; fixed one by one.
+
+**Feature gaps (docs claim it, not implemented):**
+1. **Service detail gallery** — `Service.gallerySeeds` is stored + editable in backoffice, but no public service page renders it (only `heroImage`).
+2. **Review photo upload** — `photoSeed` displays as avatar, but customers can't upload review photos (`createReviewSchema` has no photo field).
+3. **Calendar drag & drop** — day/week/month + reschedule/cancel/complete exist; drag & drop reschedule is missing (no DnD library).
+4. **Book-from-favorite** — favorites save/remove/list work; no direct book-from-favorite affordance on the favorites page.
+5. **Customer dashboard favorites widget** — dashboard shows upcoming + recent bookings only; no favorites widget.
+6. **Customer-facing deposit status** — approved/rejected is never surfaced to the customer (rejected shows as "Menunggu Pembayaran"); reject reason is owner-only.
+7. **Settings SEO fields** — meta title/description/OG image are hardcoded in `src/app/layout.tsx` + `@/constants/site`; not editable in Settings.
+
+**Structural gaps (running on demo data despite DB-backed APIs):**
+8. **Frozen mock "today" anchors** — `CRM_TODAY` + `ANALYTICS_TODAY` frozen at 2026-08-09; CRM statuses and analytics periods compute against a fixed date, not real now (analytics page labels itself "data mock").
+9. **Mock slot occupancy on customer booking** — `availability.ts` uses `MOCK_APPOINTMENTS` for slot occupancy, not real DB bookings; customer "Limited/Full" slots are fake (backoffice calendar does merge real bookings).
+10. **Hardcoded CRM loyalty stats** — backoffice appointment detail shows static "Booking Selesai 3 kali / Customer Setia ⭐5.0", not computed.
+
+**Minor / by-design:**
+11. **Deposit config location** — implemented fully but lives in `/backoffice/availability` ("Pengaturan Deposit Global"), not `/backoffice/settings` as PRD Epic 9 implies; Settings only echoes the deposit notes.
+12. **Review visit date** — derived from review creation date; no true visit-date column.
+
 ---
 
 ## What's Next
