@@ -65,7 +65,7 @@ export function BackofficeProvider({ children }: { children: React.ReactNode }) 
     ])
       .then(([avail, dep]) => {
         if (cancelled) return;
-        if (avail?.data) setAvailabilityConfig(avail.data as AvailabilityConfig);
+        if (avail?.data?.config) setAvailabilityConfig(avail.data.config as AvailabilityConfig);
         if (dep?.data) setDepositConfig(dep.data as DepositConfig);
       })
       .catch(() => undefined);
