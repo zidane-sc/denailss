@@ -189,7 +189,7 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 
 ## What's Next
 
-1. **Expand test coverage** — unit tests are in place for the pure business logic (see "Verified working" below); next is API auth/ownership tests, RLS verification, booking recalculation/conflict tests against the DB, upload validation, Storage access tests, and E2E persistence coverage.
+1. ~~Expand test coverage beyond the unit tests~~ — **deferred by owner decision**: API/RLS/E2E test layers are out of scope for now. The unit-test foundation (`npm test`, 36 tests) stays as-is.
 
 Implemented backend/auth paths live under `src/db/`, `src/lib/supabase/`, `src/features/booking/services/`, `src/features/customer/services/`, `src/features/booking/schemas/`, `src/features/gallery/services/`, `src/features/services/services/`, `src/features/settings/services/`, `src/features/promotion/services/`, `src/features/reviews/services/`, `src/features/crm/services/`, `src/features/finance/services/`, `src/features/availability/schemas/`, and `src/app/api/v1/`. No config mocks remain — the only `*.mock.ts` files are dev fixtures (backoffice appointment seed, instagram posts).
 
