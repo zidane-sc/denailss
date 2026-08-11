@@ -25,6 +25,7 @@ import {
   WhatsappLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import type { BookingStatus, DepositVerificationStatus } from "@/types";
+import { DepositProofImage } from "./deposit-proof-image";
 import {
   waCustomerChatLink,
   depositApprovedWaMessage,
@@ -329,13 +330,7 @@ export function AppointmentDetailView({ id }: AppointmentDetailViewProps) {
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-muted-foreground">Gambar Bukti Pengiriman:</p>
                     <div className="relative aspect-[3/4] w-full max-w-[200px] rounded-lg overflow-hidden border">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={appt.depositProofUrl}
-                        alt="Bukti Transfer"
-                        className="object-cover w-full h-full cursor-zoom-in hover:scale-105 transition-transform duration-300"
-                        onClick={() => window.open(appt.depositProofUrl, "_blank")}
-                      />
+                      <DepositProofImage reference={appt.depositProofUrl} />
                     </div>
                     <span className="text-[10px] text-muted-foreground italic block">Klik gambar untuk membuka tab baru.</span>
                   </div>

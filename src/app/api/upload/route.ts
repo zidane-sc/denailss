@@ -1,44 +1,34 @@
-import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "node:fs/promises";
-import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { apiFailure, apiSuccess } from "@/lib/api/response";
+import { requireApiOwner } from "@/lib/supabase/api-auth";
+import { uploadStorageFile, type StorageCategory } from "@/lib/storage";
+import { ApiError } from "@/lib/api/errors";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
-/**
- * FE-first image upload endpoint (Epic 5). Saves an uploaded image into
- * `public/images/uploads/` so the server-rendered gallery pages can serve it
- * directly. No real storage backend yet — this is the mock seam for the
- * future object-storage upload (TRD §4/§5).
- */
+const categories = new Set<StorageCategory>(["gallery", "service", "settings"]);
+
 export async function POST(request: Request) {
   try {
+    const auth = await requireApiOwner();
+    enforceRateLimit(request, "catalog-upload", { limit: 20, windowMs: 60 * 60 * 1000, identity: auth.userId });
     const form = await request.formData();
     const file = form.get("file");
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: "File tidak ditemukan." }, { status: 400 });
+    const category = form.get("category");
+    if (!(file instanceof File)) throw new ApiError("VALIDATION_ERROR", "File tidak ditemukan.", 422);
+    if (typeof category !== "string" || !categories.has(category as StorageCategory)) {
+      throw new ApiError("VALIDATION_ERROR", "Kategori upload tidak valid.", 422);
     }
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "File harus berupa gambar." }, { status: 400 });
-    }
+    if (!file.type.startsWith("image/")) throw new ApiError("VALIDATION_ERROR", "File harus berupa gambar.", 422);
+    if (file.size > 6 * 1024 * 1024) throw new ApiError("VALIDATION_ERROR", "Ukuran file maksimal 6 MB.", 422);
 
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const maxBytes = 6 * 1024 * 1024;
-    if (bytes.byteLength > maxBytes) {
-      return NextResponse.json(
-        { error: "Ukuran file maksimal 6 MB." },
-        { status: 400 }
-      );
-    }
-
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const safeExt = /^[a-z0-9]{2,5}$/.test(ext) ? ext : "jpg";
-    const filename = `upload-${Date.now()}-${Math.round(Math.random() * 1e6)}.${safeExt}`;
-
-    const uploadDir = path.join(process.cwd(), "public", "images", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(path.join(uploadDir, filename), bytes);
-
-    return NextResponse.json({ url: `/images/uploads/${filename}` });
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const safeExtension = extension && /^[a-z0-9]{2,5}$/.test(extension) ? extension : "jpg";
+    const path = `${category}/${auth.userId}/${randomUUID()}.${safeExtension}`;
+    const reference = await uploadStorageFile(category as StorageCategory, path, file);
+    const bucket = reference.slice("storage:".length).split("/")[0];
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+    return apiSuccess({ reference, path, bucket, contentType: file.type, url });
   } catch (error) {
-    console.error("Upload gagal:", error);
-    return NextResponse.json({ error: "Terjadi kesalahan saat mengunggah." }, { status: 500 });
+    return apiFailure(error);
   }
 }

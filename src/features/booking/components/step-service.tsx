@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr";
-import { getActiveServices } from "@/features/services/data/services-admin.mock";
+import { useLiveServices } from "@/features/services/components/services-provider";
 import { formatIDR, formatDuration } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ export function StepService({
   onToggle: (slug: string) => void;
   onSelectTier: (slug: string, tierKey: string) => void;
 }) {
+  const activeServices = useLiveServices().filter((s) => s.active);
   return (
     <div>
       <h2 className="text-2xl font-semibold tracking-tight text-foreground">Pilih Layanan</h2>
@@ -26,7 +27,7 @@ export function StepService({
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {getActiveServices().map((service) => {
+        {activeServices.map((service) => {
           const active = selectedSlugs.includes(service.slug);
           const isTiered = service.tiers.length > 0;
           const activeTierKey =

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   CalendarCheckIcon,
   CheckCircleIcon,
@@ -11,6 +12,7 @@ import { formatDateId, formatIDR, parseDateKey } from "@/lib/format";
 import { SITE, whatsappLink } from "@/constants/site";
 import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import type { FulfillmentMethod } from "@/features/booking/types";
+import type { Settings } from "@/features/settings/types";
 import type { Service, GalleryDesign } from "@/types";
 
 const FULFILLMENT_LABELS: Record<FulfillmentMethod, string> = {
@@ -40,6 +42,22 @@ export function StepConfirmation({
   depositRequired: boolean;
 }) {
   const hasEstimate = services.some((s) => s.priceNote);
+  const [address, setAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/v1/settings", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: { data?: Settings } | null) => {
+        if (payload?.data?.businessProfile?.address) {
+          setAddress(payload.data.businessProfile.address);
+        }
+      })
+      .catch(() => {
+        // keep the SITE fallback
+      });
+  }, []);
+
+  const treatmentAddress = address ?? SITE.address;
 
   return (
     <div className="text-center">
@@ -71,7 +89,7 @@ export function StepConfirmation({
         {dateKey ? (
           <div className="mt-2.5 flex items-center gap-2.5">
             <MapPinIcon className="size-4.5 text-primary" />
-            <span className="text-sm text-foreground">{SITE.address}</span>
+            <span className="text-sm text-foreground">{treatmentAddress}</span>
           </div>
         ) : (
           <div className="flex items-start gap-2.5">

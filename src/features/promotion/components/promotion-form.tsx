@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getActiveServices } from "@/features/services/data/services-admin.mock";
+import { useLiveServices } from "@/features/services/components/services-provider";
 import { generatePromoCode, promoDaysBetween, shortDateId } from "../logic/promotion";
 import { PromotionLivePreview } from "./promotion-live-preview";
 import type { Promotion } from "@/types";
@@ -122,6 +122,7 @@ export function PromotionForm({
   onCancel: () => void;
 }) {
   const editing = Boolean(initial.id);
+  const services = useLiveServices();
   const [draft, setDraft] = useState<PromotionDraft>(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -484,7 +485,7 @@ export function PromotionForm({
                 Kosongkan untuk semua layanan.
               </p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {getActiveServices().map((service) => {
+                {services.filter((s) => s.active).map((service) => {
                   const selected = draft.applicableServiceSlugs.includes(service.slug);
                   return (
                     <label

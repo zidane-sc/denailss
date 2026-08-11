@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, useReducedMotion, AnimatePresence } from "motion/react";
-import { getLivePromotions } from "../data/promotions.mock";
+import { useLivePromotions } from "./promotions-provider";
 import {
   discountSummary,
   getPromotionStatus,
@@ -25,7 +25,7 @@ import {
   PromoCodeChip,
   STATUS_LABELS,
 } from "./promotion-shared";
-import type { Promotion, PromotionStatus } from "@/types";
+import type { PromotionStatus } from "@/types";
 
 type StatusFilter = "semua" | PromotionStatus;
 
@@ -47,7 +47,7 @@ const STATUS_ORDER: Record<PromotionStatus, number> = {
 export function PromotionListView() {
   const reduce = useReducedMotion();
   const router = useRouter();
-  const [promotions] = useState<Promotion[]>(() => getLivePromotions());
+  const promotions = useLivePromotions();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("semua");
   const [currentPage, setCurrentPage] = useState(1);

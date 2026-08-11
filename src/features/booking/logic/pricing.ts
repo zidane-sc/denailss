@@ -18,7 +18,7 @@ export function checkPromotion(
   if (now < new Date(promotion.startDate) || now > new Date(`${promotion.endDate}T23:59:59`)) {
     return { valid: false, reason: "Promo ini sudah tidak berlaku pada periode ini.", discount: 0 };
   }
-  if (promotion.usedCount >= promotion.usageLimit) {
+  if (promotion.usageLimit > 0 && promotion.usedCount >= promotion.usageLimit) {
     return { valid: false, reason: "Kuota promo ini sudah habis digunakan.", discount: 0 };
   }
   if (

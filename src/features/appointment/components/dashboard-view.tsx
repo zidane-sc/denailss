@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useBackoffice } from "../context/backoffice-context";
 import { formatIDR, formatDateId, toDateKey, formatDuration } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
-import { getLiveServices } from "@/features/services/data/services-admin.mock";
+import { useLiveServices } from "@/features/services/components/services-provider";
 import { serviceNamesLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { BookingStatus, DepositVerificationStatus } from "@/types";
 import type { Appointment } from "../types";
+import { DepositProofImage } from "./deposit-proof-image";
 import {
   waCustomerChatLink,
   depositApprovedWaMessage,
@@ -333,7 +334,7 @@ export function DashboardView() {
                 <div className="grid gap-2">
                   <Label className="font-medium text-foreground/90">Layanan (bisa pilih lebih dari satu)</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {getLiveServices().map((svc) => {
+                    {useLiveServices().map((svc) => {
                       const active = newServiceSlugs.includes(svc.slug);
                       return (
                         <button
@@ -665,15 +666,7 @@ export function DashboardView() {
                     <div className="flex flex-col gap-2">
                       <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Bukti Transfer:</span>
                       <div className="relative aspect-[3/4] w-full max-w-[140px] rounded-lg overflow-hidden border border-border bg-muted/30">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={appt.depositProofUrl || imageUrl("transfer-proof")}
-                          alt="Bukti Transfer"
-                          className="object-cover w-full h-full hover:scale-110 transition-transform duration-300 cursor-zoom-in"
-                          onClick={() => {
-                            window.open(appt.depositProofUrl || imageUrl("transfer-proof"), "_blank");
-                          }}
-                        />
+                        {appt.depositProofUrl ? <DepositProofImage reference={appt.depositProofUrl} /> : <img src={imageUrl("transfer-proof")} alt="Bukti Transfer" className="h-full w-full object-cover" />}
                       </div>
                       <span className="text-[9px] text-muted-foreground italic">Klik gambar untuk memperbesar</span>
                     </div>

@@ -1,6 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import { imageUrl } from "@/lib/images";
-import { getAnalyticsDesignBySlug } from "../data/designs-analytics.mock";
+import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-designs-provider";
 import type { DesignPopularityItem } from "../logic/analytics";
 import type { RankedItem } from "../types";
 
@@ -44,14 +46,15 @@ export function PopularServicesList({ items }: { items: RankedItem[] }) {
 
 /**
  * Popular designs — the one place analytics shows photos, because nail art is
- * a visual business. Ranked list with the shared gallery thumbnail; only
- * designs that resolve through the gallery seed are counted.
+ * a visual business. Ranked list with the live gallery thumbnail; designs that
+ * don't resolve through the catalog render without a visual.
  */
 export function PopularDesignsList({ items }: { items: DesignPopularityItem[] }) {
+  const designs = useLiveGalleryDesigns();
   return (
     <ol className="space-y-3">
       {items.map((item, idx) => {
-        const design = getAnalyticsDesignBySlug(item.slug);
+        const design = designs.find((d) => d.slug === item.slug);
         const src = design ? imageUrl(design.imageSeeds[0] ?? "denailss-fallback") : null;
         return (
           <li key={item.slug} className="flex items-center gap-3">
@@ -61,7 +64,7 @@ export function PopularDesignsList({ items }: { items: DesignPopularityItem[] })
             {src ? (
               <Image
                 src={src}
-                alt={item.title}
+                alt={design?.title ?? item.title}
                 width={48}
                 height={48}
                 className="size-11 shrink-0 rounded-xl object-cover"
@@ -70,7 +73,9 @@ export function PopularDesignsList({ items }: { items: DesignPopularityItem[] })
               <span className="size-11 shrink-0 rounded-xl bg-muted" aria-hidden="true" />
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground/90">{item.title}</p>
+              <p className="truncate text-sm font-medium text-foreground/90">
+                {design?.title ?? item.title}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {item.count} booking
               </p>

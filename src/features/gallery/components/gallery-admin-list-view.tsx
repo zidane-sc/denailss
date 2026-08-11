@@ -22,10 +22,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { useReducedMotion, motion, AnimatePresence } from "motion/react";
 import {
-  getGalleryDesigns,
-  upsertGalleryDesign,
-  deleteGalleryDesign,
-} from "../data/gallery-admin.mock";
+  createGalleryDesignApi,
+  deleteGalleryDesignApi,
+  updateGalleryDesignApi,
+} from "../services/gallery-admin-api";
+import {
+  useGalleryDesignsLoading,
+  useGalleryDesignsRefresh,
+  useLiveGalleryDesigns,
+} from "./gallery-designs-provider";
 import { GalleryDesignForm } from "./gallery-design-form";
 import {
   COLOR_LABELS,
@@ -70,7 +75,10 @@ const COLUMNS: {
 
 export function GalleryAdminListView() {
   const reduce = useReducedMotion();
-  const [designs, setDesigns] = useState<GalleryDesign[]>(() => getGalleryDesigns());
+  const isLoading = useGalleryDesignsLoading();
+  const designs = useLiveGalleryDesigns();
+  const refreshDesigns = useGalleryDesignsRefresh();
+  const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Partial<Record<FilterKey, string>>>({});
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -144,18 +152,37 @@ export function GalleryAdminListView() {
     setFormOpen(true);
   };
 
-  const handleSubmit = (design: GalleryDesign, mode: "create" | "update") => {
-    const next = upsertGalleryDesign(design, mode);
-    setDesigns(next);
-    toast.success(mode === "create" ? "Desain baru ditambahkan." : "Perubahan desain disimpan.");
+  const handleSubmit = async (design: GalleryDesign, mode: "create" | "update") => {
+    setSaving(true);
+    try {
+      if (mode === "create") {
+        await createGalleryDesignApi(design);
+        toast.success("Desain baru ditambahkan.");
+      } else {
+        await updateGalleryDesignApi(design);
+        toast.success("Perubahan desain disimpan.");
+      }
+      refreshDesigns();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menyimpan desain.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const design = designs.find((d) => d.id === id);
-    const next = deleteGalleryDesign(id);
-    setDesigns(next);
-    setConfirmDeleteId(null);
-    toast.success(`"${design?.title}" dihapus dari katalog.`);
+    setSaving(true);
+    try {
+      await deleteGalleryDesignApi(id);
+      setConfirmDeleteId(null);
+      toast.success(`"${design?.title}" dihapus dari katalog.`);
+      refreshDesigns();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menghapus desain.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -171,7 +198,7 @@ export function GalleryAdminListView() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" className="gap-1.5 rounded-full" onClick={openCreate}>
+          <Button size="sm" className="gap-1.5 rounded-full" onClick={openCreate} disabled={isLoading || saving}>
             <PlusIcon weight="bold" className="size-4" />
             Tambah Desain
           </Button>
@@ -555,6 +582,7 @@ export function GalleryAdminListView() {
         onOpenChange={setFormOpen}
         initial={editing}
         onSubmit={handleSubmit}
+        saving={saving}
       />
 
       {/* Delete confirm */}
@@ -581,7 +609,8 @@ export function GalleryAdminListView() {
               <Button
                 variant="destructive"
                 className="gap-1.5 rounded-full"
-                onClick={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+                disabled={saving}
+                onClick={() => confirmDeleteId && void handleDelete(confirmDeleteId)}
               >
                 <TrashIcon className="size-4" />
                 Hapus

@@ -6,8 +6,8 @@ import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useBackoffice } from "@/features/appointment/context/backoffice-context";
-import { getAllAppointments } from "../data/finance-appointments.mock";
-import { deleteExpense, getLiveExpenses, subscribeExpenses } from "../data/expenses.mock";
+import { listExpensesApi, deleteExpenseApi } from "../services/expense-admin-api";
+import type { Expense } from "../types";
 import {
   addMonths,
   calculateMonthlyExpense,
@@ -32,15 +32,25 @@ import { FinanceTrendChart } from "./finance-trend-chart";
  */
 export function FinanceDashboardView() {
   const { appointments } = useBackoffice();
-  const [expenses, setExpenses] = useState(() => getLiveExpenses());
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [monthKey, setMonthKey] = useState(() => currentMonthKey());
 
-  // Reflect expense edits made on the expense form route back into the list.
+  // Load expenses from the API on mount.
   useEffect(() => {
-    return subscribeExpenses(() => setExpenses(getLiveExpenses()));
+    let active = true;
+    listExpensesApi()
+      .then((data) => {
+        if (active) setExpenses(data);
+      })
+      .catch(() => {
+        // leave empty
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const allAppointments = useMemo(() => getAllAppointments(appointments), [appointments]);
+  const allAppointments = useMemo(() => appointments, [appointments]);
   const income = useMemo(
     () => calculateMonthlyIncome(allAppointments, monthKey),
     [allAppointments, monthKey]
@@ -74,11 +84,15 @@ export function FinanceDashboardView() {
     [allAppointments, expenses]
   );
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const target = expenses.find((e) => e.id === id);
-    const next = deleteExpense(id);
-    setExpenses(next);
-    toast.success(target ? `"${target.description}" dihapus.` : "Pengeluaran dihapus.");
+    try {
+      await deleteExpenseApi(id);
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
+      toast.success(target ? `"${target.description}" dihapus.` : "Pengeluaran dihapus.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Pengeluaran gagal dihapus.");
+    }
   };
 
   return (

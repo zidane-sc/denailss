@@ -6,7 +6,6 @@ import type {
   RankedItem,
   RevenueTrendPoint,
 } from "../types";
-import { getAnalyticsDesignBySlug } from "../data/designs-analytics.mock";
 
 /**
  * Analytics logic — Epic 8. Pure, deterministic calculations over the shared
@@ -184,8 +183,8 @@ export function calculateRepeatCustomerRate(appointments: Appointment[]): Retent
   const completedByCustomer = new Map<string, number>();
   for (const a of appointments) {
     if (a.status !== "completed") continue;
-    const name = a.customer.name;
-    completedByCustomer.set(name, (completedByCustomer.get(name) ?? 0) + 1);
+    const key = a.customerId ?? a.customer.name;
+    completedByCustomer.set(key, (completedByCustomer.get(key) ?? 0) + 1);
   }
   const uniqueCustomers = completedByCustomer.size;
   const repeatCustomers = Array.from(completedByCustomer.values()).filter((n) => n > 1).length;
@@ -226,9 +225,9 @@ export interface DesignPopularityItem {
 }
 
 /**
- * Most-booked designs. Only counts designs that resolve through the shared
- * gallery seed (so the thumbnail always exists); unknown/uploaded-only slugs
- * are skipped rather than shown without a visual.
+ * Most-booked designs by slug. The count is a pure derivation over
+ * appointments; title/thumbnail resolution happens in the UI so the logic
+ * layer never touches the catalog (server-only repository).
  */
 export function getPopularDesigns(appointments: Appointment[], limit = 4): DesignPopularityItem[] {
   const counts = new Map<string, number>();
@@ -237,12 +236,11 @@ export function getPopularDesigns(appointments: Appointment[], limit = 4): Desig
     counts.set(a.designSlug, (counts.get(a.designSlug) ?? 0) + 1);
   }
   return Array.from(counts.entries())
-    .filter(([slug]) => getAnalyticsDesignBySlug(slug) !== undefined)
     .sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))
     .slice(0, limit)
     .map(([slug, count]) => ({
       slug,
-      title: getAnalyticsDesignBySlug(slug)!.title,
+      title: slug,
       count,
     }));
 }

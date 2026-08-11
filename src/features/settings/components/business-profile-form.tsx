@@ -11,7 +11,7 @@ import type { SettingsErrors } from "../validators/settings";
 import { SettingsField, SettingsSection } from "./settings-shared";
 
 /**
- * Business profile settings — name (required), logo (local preview only, FE),
+ * Business profile settings — name (required), owner-managed Storage logo,
  * short description, and the address used by the public website contact.
  */
 export function BusinessProfileForm({
@@ -33,13 +33,25 @@ export function BusinessProfileForm({
     };
   }, [logo]);
 
-  const handleFile = (file: File | undefined) => {
+  const handleFile = async (file: File | undefined) => {
     if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 6 * 1024 * 1024) return;
     const previewUrl = URL.createObjectURL(file);
-    onChange({
-      ...draft,
-      businessProfile: { ...draft.businessProfile, logo: previewUrl },
-    });
+    onChange({ ...draft, businessProfile: { ...draft.businessProfile, logo: previewUrl } });
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("category", "settings");
+      const response = await fetch("/api/upload", { method: "POST", body });
+      const payload = (await response.json()) as { data?: { reference?: string } };
+      if (!response.ok || !payload.data?.reference) throw new Error("upload");
+      URL.revokeObjectURL(previewUrl);
+      onChange({ ...draft, businessProfile: { ...draft.businessProfile, logo: payload.data.reference } });
+    } catch {
+      URL.revokeObjectURL(previewUrl);
+      onChange({ ...draft, businessProfile: { ...draft.businessProfile, logo: logo ?? null } });
+    }
   };
 
   const removeLogo = () => {
@@ -77,7 +89,7 @@ export function BusinessProfileForm({
 
       <SettingsField
         label="Logo"
-        hint="Gambar persegi atau transparan. Logo tersimpan lokal untuk pratinjau (belum diunggah)."
+        hint="Gambar persegi atau transparan. Logo akan disimpan di Supabase Storage."
       >
         <div className="flex flex-wrap items-center gap-3">
           {logo ? (

@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
 import {
-  GALLERY_DESIGNS,
-  getDesignBySlug,
-} from "@/features/gallery/data/designs.mock";
+  getGalleryDesignBySlug,
+  listCatalogGalleryWithImages,
+} from "@/features/gallery/services/gallery-service";
 import { DesignDetailView } from "@/features/gallery/components/design-detail-view";
 import { imageUrl } from "@/lib/images";
 
-export function generateStaticParams() {
-  return GALLERY_DESIGNS.map((design) => ({ slug: design.slug }));
+export async function generateStaticParams() {
+  const designs = await listCatalogGalleryWithImages();
+  return designs.map((design) => ({ slug: design.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/gallery/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const design = getDesignBySlug(slug);
+  const design = await getGalleryDesignBySlug(slug);
   if (!design) return {};
   const cover = design.imageSeeds[0];
   return {

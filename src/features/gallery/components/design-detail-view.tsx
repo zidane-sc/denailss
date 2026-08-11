@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/format";
 import { JsonLdScript, designBreadcrumbJsonLd } from "@/lib/seo";
+import { FavoriteButton } from "@/features/customer/components/favorite-button";
 
 /**
  * Gallery design detail — reads the LIVE admin catalog (seed + uploaded
@@ -78,9 +79,12 @@ export function DesignDetailView({ slug }: { slug: string }) {
             <Badge className="bg-primary/10 text-primary">{DIFFICULTY_LABELS[design.difficulty]}</Badge>
           </div>
 
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {design.title}
-          </h1>
+          <div className="mt-4 flex items-center gap-3">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              {design.title}
+            </h1>
+            <FavoriteButton designSlug={design.slug} />
+          </div>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">{design.description}</p>
 
           <div className="mt-5 flex items-baseline gap-2">

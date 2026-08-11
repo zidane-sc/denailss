@@ -9,11 +9,8 @@ import { formatIDR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, useReducedMotion, AnimatePresence } from "motion/react";
-import { getCrmCustomers, getCustomerAppointments, getCustomerReviews } from "../data/customers.mock";
+import { useCrmCustomers } from "./use-crm-customers";
 import {
-  computeCustomerStats,
-  getCustomerSegment,
-  getCustomerStatus,
   matchesCustomerQuery,
   shortDateId,
   sortCustomers,
@@ -46,6 +43,7 @@ const COLUMNS: {
 
 export function CustomerListView() {
   const reduce = useReducedMotion();
+  const { rows: allRows, loading } = useCrmCustomers();
   const [query, setQuery] = useState("");
   const [segment, setSegment] = useState<CustomerSegment | "all">("all");
   const [sortField, setSortField] = useState<CustomerSortField>("name");
@@ -53,7 +51,10 @@ export function CustomerListView() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const rows = useMemo(() => buildRows(query, segment), [query, segment]);
+  const rows = useMemo(
+    () => allRows.filter((row) => matchesCustomerQuery(row.customer.name, row.customer.phone, row.customer.email, query)).filter((row) => segment === "all" || row.segment === segment),
+    [allRows, query, segment]
+  );
 
   const totalRows = rows.length;
   const totalPages = Math.max(1, Math.ceil(totalRows / itemsPerPage));
@@ -64,7 +65,23 @@ export function CustomerListView() {
     return sorted.slice(from, from + itemsPerPage);
   }, [rows, sortField, sortDirection, safePage, itemsPerPage]);
 
-  const hasAnyCustomer = getCrmCustomers().length > 0;
+  const hasAnyCustomer = allRows.length > 0;
+
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="flex flex-col gap-1 border-b border-border/50 pb-5">
+          <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground/90">
+            Pelanggan
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Kenali pelangganmu, dari booking pertama sampai kunjungan berikutnya.
+          </p>
+        </div>
+        <p className="py-16 text-center text-sm text-muted-foreground">Memuat buku pelanggan...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -384,28 +401,4 @@ function CustomerMobileCard({
       </Link>
     </motion.div>
   );
-}
-
-// Re-exported helper kept at the bottom for readability — rows for the list.
-function buildRows(query: string, segment: CustomerSegment | "all") {
-  return getCrmCustomers()
-    .map((customer) => {
-      const appointments = getCustomerAppointments(customer.id);
-      const reviews = getCustomerReviews(customer.id);
-      const stats = computeCustomerStats(appointments);
-      const status = getCustomerStatus(stats);
-      const row: CustomerRow = {
-        customer,
-        appointments,
-        reviews,
-        stats,
-        status,
-        segment: getCustomerSegment(stats, status),
-      };
-      return row;
-    })
-    .filter((row) =>
-      matchesCustomerQuery(row.customer.name, row.customer.phone, row.customer.email, query)
-    )
-    .filter((row) => segment === "all" || row.segment === segment);
 }

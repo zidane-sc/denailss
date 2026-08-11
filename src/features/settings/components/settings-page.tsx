@@ -5,7 +5,6 @@ import { CheckIcon, FloppyDiskIcon, WarningCircleIcon } from "@phosphor-icons/re
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { getLiveSettings, saveSettings } from "../data/settings.mock";
 import { normalizeSocialMedia } from "../logic/normalize";
 import { validateSettings, type SettingsErrors } from "../validators/settings";
 import type { SettingsDraft } from "../types";
@@ -15,17 +14,33 @@ import { PoliciesForm } from "./policies-form";
 
 /**
  * Settings page — Epic 9. One focused workspace for the owner to maintain the
- * business profile, social media, and booking policies. FE-only: edits persist
- * to localStorage via the settings mock seam (swap for a real repository later
- * without touching this UI).
+ * business profile, social media, and booking policies. Edits persist through
+ * `GET/PUT /api/v1/settings` (owner-gated, Supabase-backed).
  */
 export function SettingsPageView() {
   const reduce = useReducedMotion();
-  const [draft, setDraft] = useState<SettingsDraft>(() => getLiveSettings());
+  const [draft, setDraft] = useState<SettingsDraft | null>(null);
   const [errors, setErrors] = useState<SettingsErrors>({});
   const [showSaved, setShowSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirty = useRef(false);
+
+  // Load persisted settings on mount.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/v1/settings", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: { data?: SettingsDraft } | null) => {
+        if (active && payload?.data) setDraft(payload.data);
+      })
+      .catch(() => {
+        // leave the draft null; the empty state below shows a retry
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Warn the owner before leaving with unsaved changes (tab close / reload).
   useEffect(() => {
@@ -45,8 +60,9 @@ export function SettingsPageView() {
     };
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!draft) return;
     const nextErrors = validateSettings(draft);
     setErrors(nextErrors);
     if (Object.values(nextErrors).some(Boolean)) {
@@ -58,15 +74,50 @@ export function SettingsPageView() {
 
     const normalized = normalizeSocialMedia(draft);
     setDraft(normalized);
-    saveSettings(normalized);
-    dirty.current = false;
-    setShowSaved(true);
-    if (savedTimer.current) clearTimeout(savedTimer.current);
-    savedTimer.current = setTimeout(() => setShowSaved(false), 2500);
-    toast.success("Pengaturan berhasil disimpan.", {
-      description: "Perubahan akan dipakai di seluruh website Denailss.",
-    });
+    setSaving(true);
+    try {
+      const res = await fetch("/api/v1/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(normalized),
+      });
+      const payload = (await res.json().catch(() => ({}))) as {
+        data?: SettingsDraft;
+        error?: { message?: string };
+      };
+      if (!res.ok) throw new Error(payload.error?.message ?? "Gagal menyimpan pengaturan.");
+      if (payload.data) setDraft(payload.data);
+      dirty.current = false;
+      setShowSaved(true);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setShowSaved(false), 2500);
+      toast.success("Pengaturan berhasil disimpan.", {
+        description: "Perubahan akan dipakai di seluruh website Denailss.",
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menyimpan pengaturan.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (!draft) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6 animate-in fade-in duration-300">
+        <div className="flex flex-col gap-1 border-b border-border/50 pb-5">
+          <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground/90">
+            Pengaturan
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Atur informasi dan kebijakan yang digunakan Denailss.
+          </p>
+        </div>
+        <section className="rounded-2xl border border-border/70 bg-card p-10 text-center shadow-xs">
+          <p className="text-sm font-medium text-foreground/80">Memuat pengaturan...</p>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 animate-in fade-in duration-300">
@@ -111,7 +162,7 @@ export function SettingsPageView() {
                   className="flex items-center gap-1.5 text-sm text-muted-foreground"
                 >
                   <WarningCircleIcon className="size-4" />
-                  Perubahan tersimpan di perangkat ini untuk sementara.
+                  Perubahan tersimpan di server. File logo disimpan di Supabase Storage.
                 </motion.p>
               )}
             </AnimatePresence>
@@ -120,11 +171,16 @@ export function SettingsPageView() {
           <Button
             type="submit"
             className="gap-1.5 rounded-full"
+            disabled={saving}
             onClick={() => {
               dirty.current = true;
             }}
           >
-            <FloppyDiskIcon className="size-4" />
+            {saving ? (
+              <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+            ) : (
+              <FloppyDiskIcon className="size-4" />
+            )}
             Simpan Perubahan
           </Button>
         </div>

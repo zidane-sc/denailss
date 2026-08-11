@@ -24,7 +24,9 @@ export interface Appointment {
   designSlug?: string;
   designTitle?: string;
   fulfillment?: FulfillmentMethod;
+  promoCode?: string;
   price: number;
+  customerId?: string;
   customer: AppointmentCustomer;
   depositRequired: boolean;
   depositAmount?: number;

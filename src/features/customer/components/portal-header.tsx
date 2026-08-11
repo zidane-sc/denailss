@@ -5,12 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { UserCircleIcon, ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
-import { CUSTOMER_PROFILE } from "../data/customer.mock";
+import { CUSTOMER_PROFILE_FALLBACK } from "@/features/customer/constants";
 import { fetchCustomerProfile } from "@/features/customer/data/customer-api";
 import { LogoutDialog } from "@/features/auth/components/logout-dialog";
 
 export function PortalHeader() {
-  const [name, setName] = useState(CUSTOMER_PROFILE.name);
+  const [name, setName] = useState(CUSTOMER_PROFILE_FALLBACK.name);
 
   useEffect(() => {
     fetchCustomerProfile().then((profile) => setName(profile.name)).catch(() => undefined);

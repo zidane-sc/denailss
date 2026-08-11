@@ -11,7 +11,7 @@ export const createBookingSchema = z.object({
   customer: customerInfoSchema,
   promoCode: z.string().trim().min(1).nullable().optional(),
   deposit: z
-    .object({ fileName: z.string().trim().min(1), status: z.enum(["waiting_verification"]) })
+    .object({ fileName: z.string().trim().min(1), storagePath: z.string().trim().regex(/^storage:deposit-proofs\//), status: z.enum(["waiting_verification"]) })
     .nullable()
     .optional(),
 });

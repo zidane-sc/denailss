@@ -19,10 +19,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { motion, useReducedMotion, AnimatePresence } from "motion/react";
 import {
-  getLiveServices,
-  setActiveService,
-  updateService,
-} from "../data/services-admin.mock";
+  useLiveServices,
+  useServicesRefresh,
+} from "./services-provider";
+import { setServiceActiveApi, updateServiceApi } from "../services/service-admin-api";
 import { ServiceForm } from "./service-form";
 import type { Service } from "@/types";
 
@@ -36,7 +36,9 @@ const FILTERS: { value: StatusFilter; label: string }[] = [
 
 export function ServiceAdminListView() {
   const reduce = useReducedMotion();
-  const [services, setServices] = useState<Service[]>(() => getLiveServices());
+  const services = useLiveServices();
+  const refreshServices = useServicesRefresh();
+  const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,25 +74,39 @@ export function ServiceAdminListView() {
       ? service.tiers.map((t) => t.label).join(" / ")
       : "Flat";
 
-  const handleSubmit = (service: Service) => {
-    const next = updateService(service);
-    setServices(next);
-    toast.success("Perubahan layanan disimpan.", {
-      description: `"${service.name}" sekarang dipakai di seluruh website.`,
-    });
+  const handleSubmit = async (service: Service) => {
+    setSaving(true);
+    try {
+      await updateServiceApi(service);
+      toast.success("Perubahan layanan disimpan.", {
+        description: `"${service.name}" sekarang dipakai di seluruh website.`,
+      });
+      refreshServices();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menyimpan layanan.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleToggleActive = (service: Service) => {
-    const next = setActiveService(service.id, !service.active);
-    setServices(next);
-    toast.success(
-      service.active ? `"${service.name}" dinonaktifkan.` : `"${service.name}" diaktifkan kembali.`,
-      {
-        description: service.active
-          ? "Layanan tidak tampil di website dan tidak bisa dibooking."
-          : "Layanan kembali tampil dan bisa dibooking customer.",
-      }
-    );
+  const handleToggleActive = async (service: Service) => {
+    setSaving(true);
+    try {
+      await setServiceActiveApi(service.id, !service.active);
+      toast.success(
+        service.active ? `"${service.name}" dinonaktifkan.` : `"${service.name}" diaktifkan kembali.`,
+        {
+          description: service.active
+            ? "Layanan tidak tampil di website dan tidak bisa dibooking."
+            : "Layanan kembali tampil dan bisa dibooking customer.",
+        }
+      );
+      refreshServices();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal mengubah status layanan.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -258,6 +274,7 @@ export function ServiceAdminListView() {
                           variant="ghost"
                           size="sm"
                           className="h-8 gap-1 rounded-full px-2.5 text-[11px] font-semibold text-muted-foreground hover:text-primary"
+                          disabled={saving}
                           onClick={() => {
                             setEditing(service);
                             setFormOpen(true);
@@ -270,7 +287,8 @@ export function ServiceAdminListView() {
                           variant="ghost"
                           size="sm"
                           className="h-8 gap-1 rounded-full px-2.5 text-[11px] font-semibold text-muted-foreground hover:text-emerald-700"
-                          onClick={() => handleToggleActive(service)}
+                          disabled={saving}
+                          onClick={() => void handleToggleActive(service)}
                         >
                           {service.active ? (
                             <>
@@ -347,6 +365,7 @@ export function ServiceAdminListView() {
                         variant="ghost"
                         size="sm"
                         className="h-7 gap-1 rounded-full px-2 text-[11px] text-muted-foreground hover:text-primary"
+                        disabled={saving}
                         onClick={() => {
                           setEditing(service);
                           setFormOpen(true);
@@ -359,7 +378,8 @@ export function ServiceAdminListView() {
                         variant="ghost"
                         size="sm"
                         className="h-7 gap-1 rounded-full px-2 text-[11px] text-muted-foreground hover:text-emerald-700"
-                        onClick={() => handleToggleActive(service)}
+                        disabled={saving}
+                        onClick={() => void handleToggleActive(service)}
                       >
                         {service.active ? (
                           <>
@@ -443,6 +463,7 @@ export function ServiceAdminListView() {
           onOpenChange={setFormOpen}
           initial={editing}
           onSubmit={handleSubmit}
+          saving={saving}
         />
       )}
     </div>

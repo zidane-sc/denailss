@@ -4,8 +4,8 @@ import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr";
-import { getLiveReviews } from "@/features/reviews/data/reviews.mock";
-import { getActiveServices } from "@/features/services/data/services-admin.mock";
+import { useLiveReviews } from "./reviews-provider";
+import { useLiveServices } from "@/features/services/components/services-provider";
 import { formatDateId } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import { Badge } from "@/components/ui/badge";
@@ -14,8 +14,9 @@ import { cn } from "@/lib/utils";
 export function ReviewsExplorer() {
   const [ratingFilter, setRatingFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
+  const services = useLiveServices();
 
-  const reviews = useMemo(() => getLiveReviews(), []);
+  const reviews = useLiveReviews();
 
   const { average, total, counts } = useMemo(() => {
     const totalCount = reviews.length;
@@ -128,7 +129,7 @@ export function ReviewsExplorer() {
             className="flex h-9 rounded-xl border border-input bg-card px-3 py-1 text-xs shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-primary cursor-pointer"
           >
             <option value="all">Semua Layanan</option>
-            {getActiveServices().map((s) => (
+            {services.filter((s) => s.active).map((s) => (
               <option key={s.slug} value={s.slug}>
                 {s.name}
               </option>
@@ -147,7 +148,7 @@ export function ReviewsExplorer() {
           </div>
         ) : (
           filteredReviews.map((review) => {
-            const service = getActiveServices().find((s) => s.slug === review.serviceSlug);
+            const service = services.find((s) => s.slug === review.serviceSlug && s.active);
             return (
               <div
                 key={review.id}

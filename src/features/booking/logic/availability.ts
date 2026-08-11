@@ -1,7 +1,7 @@
-import { AVAILABILITY_CONFIG } from "@/features/booking/data/availability-config.mock";
 import { MOCK_APPOINTMENTS } from "@/features/booking/data/appointments.mock";
 import { toDateKey } from "@/lib/format";
 import type {
+  AvailabilityConfig,
   AvailabilityWeekday,
   DayAvailabilityStatus,
   SlotGroup,
@@ -30,22 +30,22 @@ function startOfDay(date: Date) {
   return copy;
 }
 
-function isWithinVacation(dateKey: string) {
-  return AVAILABILITY_CONFIG.vacations.some(
+function isWithinVacation(config: AvailabilityConfig, dateKey: string) {
+  return config.vacations.some(
     (vacation) => dateKey >= vacation.start && dateKey <= vacation.end
   );
 }
 
-function getEffectiveRanges(dateKey: string, weekday: AvailabilityWeekday): TimeRange[] {
-  return AVAILABILITY_CONFIG.overrides[dateKey] ?? AVAILABILITY_CONFIG.weeklyTemplate[weekday];
+function getEffectiveRanges(config: AvailabilityConfig, dateKey: string, weekday: AvailabilityWeekday): TimeRange[] {
+  return config.overrides[dateKey] ?? config.weeklyTemplate[weekday];
 }
 
 function getAppointmentsForDate(dateKey: string) {
   return MOCK_APPOINTMENTS.filter((appointment) => appointment.date === dateKey);
 }
 
-function getBlockedRangesForDate(dateKey: string) {
-  return AVAILABILITY_CONFIG.blockedTimes
+function getBlockedRangesForDate(config: AvailabilityConfig, dateKey: string) {
+  return config.blockedTimes
     .filter((block) => block.date === dateKey)
     .map((block) => block.range);
 }
@@ -57,14 +57,15 @@ interface SlotCandidate {
 }
 
 function buildCandidates(
+  config: AvailabilityConfig,
   dateKey: string,
   ranges: TimeRange[],
   durationMinutes: number,
   now: Date
 ): SlotCandidate[] {
-  const { bufferMinutes, minimumNoticeHours, maxBookingsPerDay } = AVAILABILITY_CONFIG.bookingRules;
+  const { bufferMinutes, minimumNoticeHours, maxBookingsPerDay } = config.bookingRules;
   const appointments = getAppointmentsForDate(dateKey);
-  const blocked = getBlockedRangesForDate(dateKey);
+  const blocked = getBlockedRangesForDate(config, dateKey);
   const dayIsMaxedOut = appointments.length >= maxBookingsPerDay;
 
   const isToday = dateKey === toDateKey(now);
@@ -132,22 +133,28 @@ function groupCandidates(candidates: SlotCandidate[]): SlotGroup[] {
     .filter((group) => group.slots.length > 0);
 }
 
-export function getDayTimeSlots(date: Date, durationMinutes: number, now: Date = new Date()): SlotGroup[] {
+export function getDayTimeSlots(
+  date: Date,
+  durationMinutes: number,
+  config: AvailabilityConfig,
+  now: Date = new Date()
+): SlotGroup[] {
   const dateKey = toDateKey(date);
   const weekday = date.getDay() as AvailabilityWeekday;
 
-  if (isWithinVacation(dateKey)) return [];
+  if (isWithinVacation(config, dateKey)) return [];
 
-  const ranges = getEffectiveRanges(dateKey, weekday);
+  const ranges = getEffectiveRanges(config, dateKey, weekday);
   if (ranges.length === 0) return [];
 
-  const candidates = buildCandidates(dateKey, ranges, durationMinutes, now);
+  const candidates = buildCandidates(config, dateKey, ranges, durationMinutes, now);
   return groupCandidates(candidates);
 }
 
 export function getDayStatus(
   date: Date,
   durationMinutes: number,
+  config: AvailabilityConfig,
   now: Date = new Date()
 ): DayAvailabilityStatus {
   const dateKey = toDateKey(date);
@@ -156,18 +163,18 @@ export function getDayStatus(
 
   if (target < today) return "past";
 
-  const { bookingWindowDays } = AVAILABILITY_CONFIG.bookingRules;
+  const { bookingWindowDays } = config.bookingRules;
   const windowEnd = new Date(today);
   windowEnd.setDate(windowEnd.getDate() + bookingWindowDays);
   if (target > windowEnd) return "outside-window";
 
-  if (isWithinVacation(dateKey)) return "closed";
+  if (isWithinVacation(config, dateKey)) return "closed";
 
   const weekday = date.getDay() as AvailabilityWeekday;
-  const ranges = getEffectiveRanges(dateKey, weekday);
+  const ranges = getEffectiveRanges(config, dateKey, weekday);
   if (ranges.length === 0) return "closed";
 
-  const groups = getDayTimeSlots(date, durationMinutes, now);
+  const groups = getDayTimeSlots(date, durationMinutes, config, now);
   const totalSlots = groups.reduce((sum, g) => sum + g.slots.length, 0);
   const availableSlots = groups.reduce(
     (sum, g) => sum + g.slots.filter((s) => s.status === "available").length,
@@ -183,6 +190,7 @@ export function getMonthAvailability(
   year: number,
   month: number,
   durationMinutes: number,
+  config: AvailabilityConfig,
   now: Date = new Date()
 ): Map<string, DayAvailabilityStatus> {
   const map = new Map<string, DayAvailabilityStatus>();
@@ -190,10 +198,8 @@ export function getMonthAvailability(
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
-    map.set(toDateKey(date), getDayStatus(date, durationMinutes, now));
+    map.set(toDateKey(date), getDayStatus(date, durationMinutes, config, now));
   }
 
   return map;
 }
-
-export const BOOKING_RULES = AVAILABILITY_CONFIG.bookingRules;

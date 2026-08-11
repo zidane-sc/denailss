@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { getLiveReviews } from "@/features/reviews/data/reviews.mock";
-import { getActiveServices } from "@/features/services/data/services-admin.mock";
+import { useLiveReviews } from "@/features/reviews/components/reviews-provider";
+import { useLiveServices } from "@/features/services/components/services-provider";
 import { imageUrl } from "@/lib/images";
 import { formatDateId } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,8 @@ const ROTATIONS = ["-rotate-1", "rotate-1", "rotate-0", "-rotate-2", "rotate-2",
 
 export function ReviewsSection() {
   const [filter, setFilter] = useState<string>("all");
-  const reviews = useMemo(() => getLiveReviews(), []);
+  const services = useLiveServices();
+  const reviews = useLiveReviews();
   const total = reviews.length;
   const average = total > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / total : 0;
 
@@ -60,7 +61,7 @@ export function ReviewsSection() {
             Semua
           </button>
           {usedServiceSlugs.map((slug) => {
-            const service = getActiveServices().find((s) => s.slug === slug);
+            const service = services.find((s) => s.slug === slug && s.active);
             if (!service) return null;
             return (
               <button

@@ -7,19 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, useReducedMotion } from "motion/react";
 
-const NOTES_STORAGE_KEY = "denailss.crm.notes";
-
-function readStoredNotes(id: string, fallback: string | undefined) {
-  if (typeof window === "undefined") return fallback ?? "";
-  try {
-    const raw = window.localStorage.getItem(`${NOTES_STORAGE_KEY}.${id}`);
-    if (raw !== null) return raw;
-  } catch {
-    /* storage unavailable — fall back to mock value */
-  }
-  return fallback ?? "";
-}
-
 export function CustomerNotes({
   customerId,
   initialNotes,
@@ -28,21 +15,31 @@ export function CustomerNotes({
   initialNotes?: string;
 }) {
   const reduce = useReducedMotion();
-  const [value, setValue] = useState<string>(() => readStoredNotes(customerId, initialNotes));
+  const [value, setValue] = useState<string>(() => initialNotes ?? "");
   const [draft, setDraft] = useState<string>(() => value);
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const hasNotes = value.trim().length > 0;
 
-  const handleSave = () => {
-    setValue(draft);
+  const handleSave = async () => {
+    setSaving(true);
     try {
-      window.localStorage.setItem(`${NOTES_STORAGE_KEY}.${customerId}`, draft);
-    } catch {
-      /* storage unavailable — keep in-memory only */
+      const res = await fetch(`/api/v1/crm/customers/${encodeURIComponent(customerId)}/notes`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: draft }),
+      });
+      const payload = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+      if (!res.ok) throw new Error(payload.error?.message ?? "Catatan gagal disimpan.");
+      setValue(draft);
+      setEditing(false);
+      toast.success("Catatan tersimpan 💅", { description: "Yang penting tentang pelanggan ini tetap ada di kepalamu." });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Catatan gagal disimpan.");
+    } finally {
+      setSaving(false);
     }
-    setEditing(false);
-    toast.success("Catatan tersimpan 💅", { description: "Yang penting tentang pelanggan ini tetap ada di kepalamu." });
   };
 
   const handleCancel = () => {
@@ -99,8 +96,12 @@ export function CustomerNotes({
               className="min-h-28 rounded-xl bg-background/60 leading-relaxed"
             />
             <div className="flex items-center gap-2">
-              <Button size="sm" className="gap-1.5 rounded-full" onClick={handleSave}>
-                <CheckIcon className="size-4" />
+              <Button size="sm" className="gap-1.5 rounded-full" onClick={handleSave} disabled={saving}>
+                {saving ? (
+                  <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                ) : (
+                  <CheckIcon className="size-4" />
+                )}
                 Simpan Catatan
               </Button>
               <Button size="sm" variant="ghost" className="gap-1.5 rounded-full text-muted-foreground" onClick={handleCancel}>

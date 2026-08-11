@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   WhatsappLogoIcon,
   InstagramLogoIcon,
@@ -11,6 +11,7 @@ import {
   ArrowRightIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { SITE, whatsappLink } from "@/constants/site";
+import type { Settings } from "@/features/settings/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,23 @@ export function ContactView() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [settings, setSettings] = useState<Settings | null>(null);
+
+  useEffect(() => {
+    fetch("/api/v1/settings", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: { data?: Settings } | null) => {
+        if (payload?.data) setSettings(payload.data);
+      })
+      .catch(() => {
+        // keep the SITE fallback
+      });
+  }, []);
+
+  const address = settings?.businessProfile.address ?? SITE.address;
+  const whatsappNumber = settings?.socialMedia.whatsapp || SITE.whatsappNumber;
+  const instagramHandle = settings?.socialMedia.instagram || SITE.instagramHandle;
+  const tiktokHandle = settings?.socialMedia.tiktok || SITE.tiktokHandle;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +79,7 @@ export function ContactView() {
               Alamat Lengkap
             </h2>
             <p className="text-sm font-medium text-foreground/80 leading-relaxed">
-              {SITE.address}
+              {address}
             </p>
 
             {/* Google Map Iframe */}
@@ -99,7 +117,7 @@ export function ContactView() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs text-foreground/85">
               <a
-                href={whatsappLink()}
+                href={whatsappLink(undefined, whatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 border border-border/60 hover:border-primary/45 p-3 rounded-2xl hover:bg-muted/15 transition-all"
@@ -109,12 +127,12 @@ export function ContactView() {
                 </span>
                 <div>
                   <p className="text-[10px] text-muted-foreground leading-none">WhatsApp</p>
-                  <p className="font-semibold text-foreground mt-1">{SITE.whatsappDisplay}</p>
+                  <p className="font-semibold text-foreground mt-1">{whatsappNumber}</p>
                 </div>
               </a>
 
               <a
-                href={SITE.instagramUrl}
+                href={`https://www.instagram.com/${instagramHandle}/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 border border-border/60 hover:border-primary/45 p-3 rounded-2xl hover:bg-muted/15 transition-all"
@@ -124,12 +142,12 @@ export function ContactView() {
                 </span>
                 <div>
                   <p className="text-[10px] text-muted-foreground leading-none">Instagram</p>
-                  <p className="font-semibold text-foreground mt-1">@{SITE.instagramHandle}</p>
+                  <p className="font-semibold text-foreground mt-1">@{instagramHandle}</p>
                 </div>
               </a>
 
               <a
-                href={SITE.tiktokUrl}
+                href={`https://www.tiktok.com/@${tiktokHandle}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 border border-border/60 hover:border-primary/45 p-3 rounded-2xl hover:bg-muted/15 transition-all"
@@ -139,7 +157,7 @@ export function ContactView() {
                 </span>
                 <div>
                   <p className="text-[10px] text-muted-foreground leading-none">TikTok</p>
-                  <p className="font-semibold text-foreground mt-1">@{SITE.tiktokHandle}</p>
+                  <p className="font-semibold text-foreground mt-1">@{tiktokHandle}</p>
                 </div>
               </a>
 

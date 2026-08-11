@@ -4,10 +4,10 @@ import { useMemo, useRef, useState } from "react";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { getServiceBySlug } from "@/features/services/data/services-admin.mock";
-import { getDesignBySlug } from "@/features/gallery/data/designs.mock";
-import { findPromotionByCode } from "@/features/promotion/data/promotion-booking";
-import { DEPOSIT_CONFIG } from "@/features/booking/data/deposit-config.mock";
+import { useLiveServices } from "@/features/services/components/services-provider";
+import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-designs-provider";
+import { useFindPromotionByCode } from "@/features/promotion/data/promotion-booking";
+import { useDepositConfig } from "@/features/booking/components/deposit-config-provider";
 import { checkPromotion, calculateDeposit } from "@/features/booking/logic/pricing";
 import { BookingStepper, type StepMeta } from "@/features/booking/components/booking-stepper";
 import { BookingSummary } from "@/features/booking/components/booking-summary";
@@ -33,6 +33,8 @@ export function BookingFlow({
   initialDesignSlug: string | null;
   initialPromoCode: string | null;
 }) {
+  const services = useLiveServices();
+  const galleryDesigns = useLiveGalleryDesigns();
   const [selections, setSelections] = useState<BookingSelections>({
     ...INITIAL_SELECTIONS,
     serviceSlugs: initialServiceSlug ? [initialServiceSlug] : [],
@@ -62,17 +64,19 @@ export function BookingFlow({
 
   const selectedServices = useMemo(() => {
     return selections.serviceSlugs
-      .map((slug) => getServiceBySlug(slug))
+      .map((slug) => services.find((s) => s.slug === slug))
       .filter((s): s is Service => Boolean(s && s.active))
       .map(effectiveService);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selections.serviceSlugs, selections.tierByServiceSlug]);
+  }, [selections.serviceSlugs, selections.tierByServiceSlug, services]);
 
   const totalDuration = useMemo(() => {
     return selectedServices.reduce((sum, s) => sum + s.durationMinutes, 0);
   }, [selectedServices]);
 
-  const design = selections.designSlug ? getDesignBySlug(selections.designSlug) ?? null : null;
+  const design = selections.designSlug
+    ? galleryDesigns.find((d) => d.slug === selections.designSlug) ?? null
+    : null;
 
   const hasEstimate = selectedServices.some((s) => s.priceNote);
 
@@ -80,7 +84,7 @@ export function BookingFlow({
     return selectedServices.reduce((sum, s) => sum + s.priceFrom, 0);
   }, [selectedServices]);
 
-  const promotion = selections.promoCode ? findPromotionByCode(selections.promoCode) : undefined;
+  const promotion = useFindPromotionByCode(selections.promoCode);
   
   const promoResult = useMemo(() => {
     if (!promotion || selectedServices.length === 0) return null;
@@ -88,16 +92,18 @@ export function BookingFlow({
       serviceSlugs: selections.serviceSlugs,
       subtotal,
     });
-  }, [promotion, selections.serviceSlugs, subtotal]);
+  }, [promotion, selections.serviceSlugs, subtotal, selectedServices.length]);
 
   const discount = promoResult?.valid ? promoResult.discount : 0;
   const total = Math.max(subtotal - discount, 0);
 
-  const depositRequired = useMemo(() => {
-    return DEPOSIT_CONFIG.enabled && selectedServices.some((s) => s.depositApplicable);
-  }, [selectedServices]);
+  const depositConfig = useDepositConfig();
 
-  const depositAmount = depositRequired ? calculateDeposit(total, DEPOSIT_CONFIG) : 0;
+  const depositRequired = useMemo(() => {
+    return Boolean(depositConfig?.enabled && selectedServices.some((s) => s.depositApplicable));
+  }, [depositConfig, selectedServices]);
+
+  const depositAmount = depositRequired && depositConfig ? calculateDeposit(total, depositConfig) : 0;
 
   const selectedSlugs = selections.serviceSlugs;
 
@@ -195,7 +201,7 @@ export function BookingFlow({
         customer: selections.customer,
         promoCode: selections.promoCode,
         deposit: selections.deposit
-          ? { fileName: selections.deposit.fileName, status: selections.deposit.status }
+          ? { fileName: selections.deposit.fileName, storagePath: selections.deposit.storagePath, status: selections.deposit.status }
           : null,
       }),
     });

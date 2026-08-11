@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Reveal } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
-import { CUSTOMER_PROFILE } from "@/features/customer/data/customer.mock";
+import { CUSTOMER_PROFILE_FALLBACK } from "@/features/customer/constants";
 import { fetchCustomerProfile, updateCustomerProfile } from "@/features/customer/data/customer-api";
 import { UserCircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<CustomerProfile>(CUSTOMER_PROFILE);
+  const [profile, setProfile] = useState<CustomerProfile>(CUSTOMER_PROFILE_FALLBACK);
   const [formData, setFormData] = useState({ name: "", phone: "", email: "", notes: "" });
 
   useEffect(() => {

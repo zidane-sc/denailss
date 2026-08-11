@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { getExpenseById, upsertExpense } from "../data/expenses.mock";
+import { listExpensesApi, createExpenseApi, updateExpenseApi } from "../services/expense-admin-api";
 import { ExpenseForm, draftFromExpense, emptyDraft } from "./expense-form";
 import type { Expense } from "../types";
 
@@ -19,22 +19,44 @@ export function ExpenseCreateView() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
 
-  const initial = useMemo(() => {
-    if (editId) {
-      const existing = getExpenseById(editId);
-      if (existing) return draftFromExpense(existing);
-    }
-    return emptyDraft();
+  const [initial, setInitial] = useState(() => emptyDraft());
+  const [loading, setLoading] = useState(Boolean(editId));
+
+  useEffect(() => {
+    if (!editId) return;
+    let active = true;
+    listExpensesApi()
+      .then((expenses) => {
+        const existing = expenses.find((e) => e.id === editId);
+        if (active && existing) setInitial(draftFromExpense(existing));
+      })
+      .catch(() => {
+        toast.error("Pengeluaran tidak ditemukan.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [editId]);
 
   const editing = Boolean(initial.id);
 
-  const handleSubmit = (expense: Expense, mode: "create" | "update") => {
-    upsertExpense(expense, mode);
-    toast.success(mode === "create" ? "Pengeluaran dicatat." : "Perubahan disimpan.", {
-      description: `"${expense.description}" ${mode === "create" ? "ditambahkan" : "diperbarui"} ke buku keuangan.`,
-    });
-    router.push("/backoffice/finance");
+  const handleSubmit = async (expense: Expense, mode: "create" | "update") => {
+    try {
+      if (mode === "create") {
+        await createExpenseApi(expense);
+      } else {
+        await updateExpenseApi(expense);
+      }
+      toast.success(mode === "create" ? "Pengeluaran dicatat." : "Perubahan disimpan.", {
+        description: `"${expense.description}" ${mode === "create" ? "ditambahkan" : "diperbarui"} ke buku keuangan.`,
+      });
+      router.push("/backoffice/finance");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Pengeluaran gagal disimpan.");
+    }
   };
 
   return (
@@ -61,11 +83,15 @@ export function ExpenseCreateView() {
         </p>
       </div>
 
-      <ExpenseForm
-        initial={initial}
-        onSubmit={handleSubmit}
-        onCancel={() => router.push("/backoffice/finance")}
-      />
+      {loading ? (
+        <p className="py-10 text-center text-sm text-muted-foreground">Memuat pengeluaran...</p>
+      ) : (
+        <ExpenseForm
+          initial={initial}
+          onSubmit={handleSubmit}
+          onCancel={() => router.push("/backoffice/finance")}
+        />
+      )}
     </div>
   );
 }

@@ -1,9 +1,15 @@
 import { z } from "zod";
 
 export const updateCustomerProfileSchema = z.object({
-  name: z.string().trim().min(3, "Nama minimal 3 karakter."),
-  phone: z.string().trim().min(9, "Nomor WhatsApp tidak valid."),
-  notes: z.string().trim().max(300, "Catatan maksimal 300 karakter.").optional(),
+  name: z.string().trim().min(1, "Nama wajib diisi."),
+  phone: z.string().trim().min(1, "Nomor WhatsApp wajib diisi."),
+  notes: z.string().trim().max(500).optional(),
 });
 
 export type UpdateCustomerProfileInput = z.infer<typeof updateCustomerProfileSchema>;
+
+export const favoriteDesignSchema = z.object({
+  designSlug: z.string().trim().min(1, "Slug desain wajib diisi."),
+});
+
+export type FavoriteDesignInput = z.infer<typeof favoriteDesignSchema>;

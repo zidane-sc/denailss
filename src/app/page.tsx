@@ -7,6 +7,8 @@ import { AboutSection } from "@/features/landing/components/about-section";
 import { FaqSection } from "@/features/landing/components/faq-section";
 import { InstagramSection } from "@/features/landing/components/instagram-section";
 import { ContactSection } from "@/features/landing/components/contact-section";
+import { listCatalogGalleryWithImages } from "@/features/gallery/services/gallery-service";
+import { getPublicSettings } from "@/features/settings/services/settings-public";
 import {
   JsonLdScript,
   faqJsonLd,
@@ -18,28 +20,34 @@ import {
   SERVICE_FAQ,
 } from "@/features/landing/data/faq.mock";
 
-export default function Home() {
-  const faqLd = faqJsonLd([...BOOKING_FAQ, ...SERVICE_FAQ]);
+export default async function Home() {
+  const [faqLd, designs, settings] = await Promise.all([
+    faqJsonLd([...BOOKING_FAQ, ...SERVICE_FAQ]),
+    listCatalogGalleryWithImages(),
+    getPublicSettings(),
+  ]);
+  const businessLd = localBusinessJsonLd(settings);
+  const siteLd = websiteJsonLd();
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(localBusinessJsonLd()).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(businessLd).replace(/</g, "\\u003c"),
         }}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(websiteJsonLd()).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(siteLd).replace(/</g, "\\u003c"),
         }}
       />
       {faqLd && (
         <JsonLdScript data={faqLd} />
       )}
       <Hero />
-      <FeaturedDesigns />
+      <FeaturedDesigns initialDesigns={designs} />
       <ServicesSection />
       <PromotionBanner />
       <ReviewsSection />

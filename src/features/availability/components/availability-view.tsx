@@ -64,19 +64,19 @@ export function AvailabilityView() {
   const [blockReason, setBlockReason] = useState("");
 
   // Booking Rules editing states
-  const [rulesMinNotice, setRulesMinNotice] = useState(availabilityConfig.bookingRules.minimumNoticeHours);
-  const [rulesWindow, setRulesWindow] = useState(availabilityConfig.bookingRules.bookingWindowDays);
-  const [rulesMaxBookings, setRulesMaxBookings] = useState(availabilityConfig.bookingRules.maxBookingsPerDay);
-  const [rulesBuffer, setRulesBuffer] = useState(availabilityConfig.bookingRules.bufferMinutes);
+  const [rulesMinNotice, setRulesMinNotice] = useState(availabilityConfig?.bookingRules.minimumNoticeHours ?? 3);
+  const [rulesWindow, setRulesWindow] = useState(availabilityConfig?.bookingRules.bookingWindowDays ?? 30);
+  const [rulesMaxBookings, setRulesMaxBookings] = useState(availabilityConfig?.bookingRules.maxBookingsPerDay ?? 6);
+  const [rulesBuffer, setRulesBuffer] = useState(availabilityConfig?.bookingRules.bufferMinutes ?? 15);
 
   // Deposit Config editing states
-  const [depEnabled, setDepEnabled] = useState(depositConfig.enabled);
-  const [depType, setDepType] = useState(depositConfig.type);
-  const [depValue, setDepValue] = useState(depositConfig.value);
-  const [depNotes, setDepNotes] = useState(depositConfig.notes);
+  const [depEnabled, setDepEnabled] = useState(depositConfig?.enabled ?? true);
+  const [depType, setDepType] = useState(depositConfig?.type ?? "percentage");
+  const [depValue, setDepValue] = useState(depositConfig?.value ?? 30);
+  const [depNotes, setDepNotes] = useState(depositConfig?.notes ?? "");
 
   // Dynamic Payment Methods list
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(depositConfig.paymentMethods || []);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(depositConfig?.paymentMethods || []);
 
   // Add payment method form states
   const [newPmType, setNewPmType] = useState<"bank" | "ewallet" | "other">("bank");
@@ -84,10 +84,20 @@ export function AvailabilityView() {
   const [newPmNumber, setNewPmNumber] = useState("");
   const [newPmOwner, setNewPmOwner] = useState("");
 
+  // Availability + deposit configs hydrate from the API on mount; guard before any use.
+  if (!availabilityConfig || !depositConfig) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto">
+        <p className="py-16 text-center text-sm text-muted-foreground">Memuat pengaturan ketersediaan...</p>
+      </div>
+    );
+  }
+  const config = availabilityConfig;
+
   // Weekly edit trigger
   const handleStartEditDay = (day: number) => {
     setEditingDay(day);
-    setTempRanges([...(availabilityConfig.weeklyTemplate[day as 0 | 1 | 2 | 3 | 4 | 5 | 6] || [])]);
+    setTempRanges([...(config.weeklyTemplate[day as 0 | 1 | 2 | 3 | 4 | 5 | 6] || [])]);
   };
 
   const handleAddTempRange = () => {

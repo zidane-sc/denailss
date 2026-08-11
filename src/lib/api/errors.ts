@@ -4,7 +4,8 @@ export type ApiErrorCode =
   | "CONFLICT"
   | "UNAUTHORIZED"
   | "FORBIDDEN"
-  | "INTERNAL_ERROR";
+  | "INTERNAL_ERROR"
+  | "RATE_LIMITED";
 
 export class ApiError extends Error {
   constructor(

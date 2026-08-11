@@ -2,16 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { Appointment } from "../types";
-import { AVAILABILITY_CONFIG } from "@/features/booking/data/availability-config.mock";
-import { DEPOSIT_CONFIG } from "@/features/booking/data/deposit-config.mock";
 import { INITIAL_APPOINTMENTS } from "../data/appointments.mock";
-import { getBookings, subscribeBookings } from "@/features/booking/store/bookings-store";
 import type { AvailabilityConfig, TimeRange, BookingStatus, DepositVerificationStatus, DepositConfig } from "@/types";
 
 interface BackofficeContextType {
   appointments: Appointment[];
-  availabilityConfig: AvailabilityConfig;
-  depositConfig: DepositConfig;
+  availabilityConfig: AvailabilityConfig | null;
+  depositConfig: DepositConfig | null;
   
   // Appointment actions
   addAppointment: (appointment: Omit<Appointment, "id">) => void;
@@ -37,11 +34,8 @@ interface BackofficeContextType {
 const BackofficeContext = createContext<BackofficeContextType | undefined>(undefined);
 
 export function BackofficeProvider({ children }: { children: React.ReactNode }) {
-  // Keep the FE-first seed visible while hydrating persisted appointments when configured.
-  const [appointments, setAppointments] = useState<Appointment[]>(() => [
-    ...INITIAL_APPOINTMENTS,
-    ...getBookings(),
-  ]);
+  // Seed from the FE-first fixture while hydrating persisted appointments.
+  const [appointments, setAppointments] = useState<Appointment[]>(() => [...INITIAL_APPOINTMENTS]);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,30 +54,52 @@ export function BackofficeProvider({ children }: { children: React.ReactNode }) 
       cancelled = true;
     };
   }, []);
-  const [availabilityConfig, setAvailabilityConfig] = useState<AvailabilityConfig>(AVAILABILITY_CONFIG);
-  const [depositConfig, setDepositConfig] = useState<DepositConfig>(DEPOSIT_CONFIG);
+  const [availabilityConfig, setAvailabilityConfig] = useState<AvailabilityConfig | null>(null);
+  const [depositConfig, setDepositConfig] = useState<DepositConfig | null>(null);
 
-  // Reflect new bookings from the booking flow into the backoffice.
+  // Hydrate availability + deposit configs from the API.
   useEffect(() => {
-    return subscribeBookings(() => {
-      setAppointments((prev) => {
-        const store = getBookings();
-        const storeIds = new Set(store.map((b) => b.id));
-        const merged = [
-          ...prev.filter((a) => !storeIds.has(a.id)),
-          ...store,
-        ];
-        // Keep stable ordering: mock first (by insertion), then store bookings.
-        return merged.length === prev.length ? prev : merged;
-      });
-    });
+    let cancelled = false;
+    Promise.all([
+      fetch("/api/v1/availability", { cache: "no-store" }).then(async (r) => (r.ok ? (await r.json()) : null)),
+      fetch("/api/v1/deposit-config", { cache: "no-store" }).then(async (r) => (r.ok ? (await r.json()) : null)),
+    ])
+      .then(([avail, dep]) => {
+        if (cancelled) return;
+        if (avail?.data) setAvailabilityConfig(avail.data as AvailabilityConfig);
+        if (dep?.data) setDepositConfig(dep.data as DepositConfig);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
+  /** Persist the availability config via the API (fire-and-forget after optimistic update). */
+  const persistAvailability = (next: AvailabilityConfig) => {
+    void fetch("/api/v1/availability", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    }).catch(() => undefined);
+  };
+
+  /** Persist the deposit config via the API (fire-and-forget after optimistic update). */
+  const persistDeposit = (next: DepositConfig) => {
+    void fetch("/api/v1/deposit-config", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    }).catch(() => undefined);
+  };
+
   const updateDepositConfig = (updates: Partial<DepositConfig>) => {
-    setDepositConfig((prev) => ({
-      ...prev,
-      ...updates,
-    }));
+    setDepositConfig((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...updates };
+      persistDeposit(next);
+      return next;
+    });
   };
 
   // Sync backoffice appointments to the global memory (optional / client session only)
@@ -174,72 +190,110 @@ export function BackofficeProvider({ children }: { children: React.ReactNode }) 
   };
 
   const updateWeeklyTemplate = (weekday: number, ranges: TimeRange[]) => {
-    setAvailabilityConfig((prev) => ({
-      ...prev,
-      weeklyTemplate: {
-        ...prev.weeklyTemplate,
-        [weekday]: ranges,
-      },
-    }));
+    setAvailabilityConfig((prev) => {
+      if (!prev) return prev;
+      const next = {
+        ...prev,
+        weeklyTemplate: {
+          ...prev.weeklyTemplate,
+          [weekday]: ranges,
+        },
+      };
+      persistAvailability(next);
+      return next;
+    });
   };
 
   const addOverride = (dateKey: string, ranges: TimeRange[]) => {
-    setAvailabilityConfig((prev) => ({
-      ...prev,
-      overrides: {
-        ...prev.overrides,
-        [dateKey]: ranges,
-      },
-    }));
+    setAvailabilityConfig((prev) => {
+      if (!prev) return prev;
+      const next = {
+        ...prev,
+        overrides: {
+          ...prev.overrides,
+          [dateKey]: ranges,
+        },
+      };
+      persistAvailability(next);
+      return next;
+    });
   };
 
   const removeOverride = (dateKey: string) => {
     setAvailabilityConfig((prev) => {
+      if (!prev) return prev;
       const overrides = { ...prev.overrides };
       delete overrides[dateKey];
-      return {
+      const next = {
         ...prev,
         overrides,
       };
+      persistAvailability(next);
+      return next;
     });
   };
 
   const addVacation = (vacation: { start: string; end: string; reason: string }) => {
-    setAvailabilityConfig((prev) => ({
-      ...prev,
-      vacations: [...prev.vacations, vacation],
-    }));
+    setAvailabilityConfig((prev) => {
+      if (!prev) return prev;
+      const next = {
+        ...prev,
+        vacations: [...prev.vacations, vacation],
+      };
+      persistAvailability(next);
+      return next;
+    });
   };
 
   const removeVacation = (index: number) => {
-    setAvailabilityConfig((prev) => ({
-      ...prev,
-      vacations: prev.vacations.filter((_, i) => i !== index),
-    }));
+    setAvailabilityConfig((prev) => {
+      if (!prev) return prev;
+      const next = {
+        ...prev,
+        vacations: prev.vacations.filter((_, i) => i !== index),
+      };
+      persistAvailability(next);
+      return next;
+    });
   };
 
   const addBlockedTime = (blocked: { date: string; range: TimeRange; reason: string }) => {
-    setAvailabilityConfig((prev) => ({
-      ...prev,
-      blockedTimes: [...prev.blockedTimes, blocked],
-    }));
+    setAvailabilityConfig((prev) => {
+      if (!prev) return prev;
+      const next = {
+        ...prev,
+        blockedTimes: [...prev.blockedTimes, blocked],
+      };
+      persistAvailability(next);
+      return next;
+    });
   };
 
   const removeBlockedTime = (index: number) => {
-    setAvailabilityConfig((prev) => ({
-      ...prev,
-      blockedTimes: prev.blockedTimes.filter((_, i) => i !== index),
-    }));
+    setAvailabilityConfig((prev) => {
+      if (!prev) return prev;
+      const next = {
+        ...prev,
+        blockedTimes: prev.blockedTimes.filter((_, i) => i !== index),
+      };
+      persistAvailability(next);
+      return next;
+    });
   };
 
   const updateBookingRules = (rules: Partial<AvailabilityConfig["bookingRules"]>) => {
-    setAvailabilityConfig((prev) => ({
-      ...prev,
-      bookingRules: {
-        ...prev.bookingRules,
-        ...rules,
-      },
-    }));
+    setAvailabilityConfig((prev) => {
+      if (!prev) return prev;
+      const next = {
+        ...prev,
+        bookingRules: {
+          ...prev.bookingRules,
+          ...rules,
+        },
+      };
+      persistAvailability(next);
+      return next;
+    });
   };
 
   return (

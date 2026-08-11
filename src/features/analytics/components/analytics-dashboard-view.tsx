@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { formatIDR } from "@/lib/format";
 import { useBackoffice } from "@/features/appointment/context/backoffice-context";
-import { getAllAnalyticsAppointments } from "../data/appointments-analytics.mock";
 import {
   ANALYTICS_TODAY,
   analyticsAnchorDate,
@@ -46,10 +45,7 @@ export function AnalyticsDashboardView() {
   const { appointments: liveAppointments } = useBackoffice();
   const [period, setPeriod] = useState<AnalyticsPeriodKey>("30d");
 
-  const allAppointments = useMemo(
-    () => getAllAnalyticsAppointments(liveAppointments),
-    [liveAppointments]
-  );
+  const allAppointments = liveAppointments;
   const start = useMemo(() => analyticsPeriodStart(period), [period]);
   const end = useMemo(() => analyticsAnchorDate(), []);
   const periodAppointments = useMemo(

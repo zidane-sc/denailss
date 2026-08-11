@@ -16,11 +16,13 @@ export function ServiceForm({
   onOpenChange,
   initial,
   onSubmit,
+  saving = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initial: Service;
   onSubmit: (service: Service) => void;
+  saving?: boolean;
 }) {
   const [name, setName] = useState(initial.name);
   const [priceText, setPriceText] = useState(String(initial.priceFrom));
@@ -58,13 +60,14 @@ export function ServiceForm({
     try {
       const body = new FormData();
       body.append("file", file);
+      body.append("category", "service");
       const res = await fetch("/api/upload", { method: "POST", body });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
-        setError(data.error ?? "Gagal mengunggah gambar.");
+      const data = (await res.json()) as { data?: { reference?: string }; error?: { message?: string } };
+      if (!res.ok || !data.data?.reference) {
+        setError(data.error?.message ?? "Gagal mengunggah gambar.");
         return;
       }
-      const seed = `upload:${data.url.replace("/images/uploads/", "")}`;
+      const seed = data.data.reference;
       setHeroImage(seed);
     } catch {
       setError("Gagal mengunggah gambar. Coba lagi.");
@@ -73,7 +76,7 @@ export function ServiceForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = name.trim();
     if (!trimmedName) {
@@ -114,26 +117,33 @@ export function ServiceForm({
 
     const minTierPrice = finalTiers.length > 0 ? Math.min(...finalTiers.map((t) => t.priceFrom)) : 0;
 
-    onSubmit({
-      id: initial.id,
-      slug: initial.slug,
-      name: trimmedName,
-      shortDescription: shortDescription.trim(),
-      description: description.trim(),
-      priceFrom: tiered ? minTierPrice : Math.round(flatPrice),
-      priceNote: priceNote.trim() || undefined,
-      durationMinutes: tiered ? (finalTiers[0]?.durationMinutes ?? initial.durationMinutes) : Math.round(flatDuration),
-      tiers: finalTiers,
-      requiresPickup,
-      heroImage,
-      gallerySeeds: [heroImage],
-      faq: faq
-        .map((f) => ({ question: f.question.trim(), answer: f.answer.trim() }))
-        .filter((f) => f.question && f.answer),
-      depositApplicable,
-      active: initial.active,
-    });
-    onOpenChange(false);
+    setError("");
+    try {
+      await onSubmit({
+        id: initial.id,
+        slug: initial.slug,
+        name: trimmedName,
+        shortDescription: shortDescription.trim(),
+        description: description.trim(),
+        priceFrom: tiered ? minTierPrice : Math.round(flatPrice),
+        priceNote: priceNote.trim() || undefined,
+        durationMinutes: tiered ? (finalTiers[0]?.durationMinutes ?? initial.durationMinutes) : Math.round(flatDuration),
+        tiers: finalTiers,
+        requiresPickup,
+        heroImage,
+        gallerySeeds: [heroImage],
+        faq: faq
+          .map((f) => ({ question: f.question.trim(), answer: f.answer.trim() }))
+          .filter((f) => f.question && f.answer),
+        depositApplicable,
+        active: initial.active,
+      });
+      onOpenChange(false);
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error ? submitError.message : "Gagal menyimpan layanan. Coba lagi."
+      );
+    }
   };
 
   return (
@@ -465,9 +475,15 @@ export function ServiceForm({
             >
               Batal
             </Button>
-            <Button type="submit" className="gap-1.5 rounded-full">
-              <PlusIcon className="size-4" />
-              Simpan Perubahan
+            <Button type="submit" className="gap-1.5 rounded-full" disabled={saving}>
+              {saving ? (
+                <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+              ) : (
+                <>
+                  <PlusIcon className="size-4" />
+                  Simpan Perubahan
+                </>
+              )}
             </Button>
           </div>
         </form>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircleIcon, TicketIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
-import { findPromotionByCode } from "@/features/promotion/data/promotion-booking";
+import { useFindPromotionByCode, useLivePromotionList } from "@/features/promotion/data/promotion-booking";
 import { checkPromotion } from "@/features/booking/logic/pricing";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,14 @@ export function StepPromo({
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const appliedPromotion = appliedCode ? findPromotionByCode(appliedCode) : undefined;
+  const appliedPromotion = useFindPromotionByCode(appliedCode);
   const appliedResult =
     appliedPromotion && checkPromotion(appliedPromotion, { serviceSlugs, subtotal });
+  const livePromotions = useLivePromotionList();
 
   const handleApply = () => {
-    const promotion = findPromotionByCode(input);
+    const normalized = input.trim().toLowerCase();
+    const promotion = livePromotions.find((promo) => promo.code.toLowerCase() === normalized);
     if (!promotion) {
       setError("Kode promo tidak ditemukan.");
       return;

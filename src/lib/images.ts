@@ -101,7 +101,11 @@ const SEED_MAP: Record<string, string> = {
 };
 
 export function imageUrl(seed: string) {
-  // Uploaded files are stored as real paths under /images/uploads/.
+  if (seed.startsWith("storage:")) {
+    const [bucket, ...pathParts] = seed.slice("storage:".length).split("/");
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${pathParts.join("/")}`;
+  }
+  // Legacy uploaded files remain supported during migration.
   if (seed.startsWith("upload:")) {
     return seed.replace(/^upload:/, "/images/uploads/");
   }

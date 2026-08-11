@@ -5,6 +5,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { GalleryDesignsProvider } from "@/features/gallery/components/gallery-designs-provider";
+import { ServicesProvider } from "@/features/services/components/services-provider";
+import { PromotionsProvider } from "@/features/promotion/components/promotions-provider";
+import { ReviewsProvider } from "@/features/reviews/components/reviews-provider";
+import { AvailabilityProvider } from "@/features/booking/components/availability-provider";
+import { DepositConfigProvider } from "@/features/booking/components/deposit-config-provider";
 import { SITE } from "@/constants/site";
 import "./globals.css";
 
@@ -67,9 +72,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <TooltipProvider delay={150}>
           <GalleryDesignsProvider>
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
+            <ServicesProvider>
+              <PromotionsProvider>
+                <ReviewsProvider>
+                  <AvailabilityProvider>
+                    <DepositConfigProvider>
+                      <SiteHeader />
+                      <main className="flex-1">{children}</main>
+                      <SiteFooter />
+                    </DepositConfigProvider>
+                  </AvailabilityProvider>
+                </ReviewsProvider>
+              </PromotionsProvider>
+            </ServicesProvider>
           </GalleryDesignsProvider>
           <Toaster position="bottom-center" />
         </TooltipProvider>

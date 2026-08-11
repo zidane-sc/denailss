@@ -3,10 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowRightIcon, ClockIcon } from "@phosphor-icons/react/dist/ssr";
-import {
-  getActiveServices,
-  getServiceBySlug,
-} from "@/features/services/data/services-admin.mock";
+import { getServiceBySlug, listCatalogServicesAll } from "@/features/services/services/service-service";
+import { getPublicSettings } from "@/features/settings/services/settings-public";
 import {
   Accordion,
   AccordionContent,
@@ -23,15 +21,16 @@ import {
   serviceJsonLd,
 } from "@/lib/seo";
 
-export function generateStaticParams() {
-  return getActiveServices().map((service) => ({ slug: service.slug }));
+export async function generateStaticParams() {
+  const services = await listCatalogServicesAll();
+  return services.map((service) => ({ slug: service.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/services/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const service = getServiceBySlug(slug);
+  const service = await getServiceBySlug(slug);
   if (!service) return {};
   return {
     title: service.name,
@@ -62,17 +61,20 @@ export async function generateMetadata({
 
 export default async function ServiceDetailPage({ params }: PageProps<"/services/[slug]">) {
   const { slug } = await params;
-  const service = getServiceBySlug(slug);
+  const service = await getServiceBySlug(slug);
   if (!service) notFound();
 
   const bookingHref = `/booking?service=${service.slug}`;
   const serviceFaqLd = faqJsonLd(service.faq);
+  const settings = await getPublicSettings();
+  const breadcrumbLd = serviceBreadcrumbJsonLd(service.slug, service.name);
+  const serviceLd = serviceJsonLd(service, settings);
   const inactive = !service.active;
 
   return (
     <div>
-      <JsonLdScript data={serviceBreadcrumbJsonLd(service.slug, service.name)} />
-      <JsonLdScript data={serviceJsonLd(service)} />
+      <JsonLdScript data={breadcrumbLd} />
+      <JsonLdScript data={serviceLd} />
       {serviceFaqLd && <JsonLdScript data={serviceFaqLd} />}
       <div className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
         <Link href="/services" className="text-sm font-medium text-muted-foreground hover:text-primary">

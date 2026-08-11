@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   InstagramLogoIcon,
@@ -10,6 +11,7 @@ import {
   MapPinIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { SITE, whatsappLink } from "@/constants/site";
+import type { Settings } from "@/features/settings/types";
 
 const EXPLORE_LINKS = [
   { href: "/gallery", label: "Gallery" },
@@ -27,8 +29,27 @@ const SERVICE_LINKS = [
 
 export function SiteFooter() {
   const pathname = usePathname();
-  
+  const [settings, setSettings] = useState<Settings | null>(null);
+
+  useEffect(() => {
+    fetch("/api/v1/settings", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: { data?: Settings } | null) => {
+        if (payload?.data) setSettings(payload.data);
+      })
+      .catch(() => {
+        // keep the SITE fallback
+      });
+  }, []);
+
   if (pathname.startsWith("/customer") || pathname.startsWith("/backoffice")) return null;
+
+  const name = settings?.businessProfile.name ?? SITE.name;
+  const description = settings?.businessProfile.description ?? SITE.description;
+  const address = settings?.businessProfile.address ?? SITE.address;
+  const instagramHandle = settings?.socialMedia.instagram || SITE.instagramHandle;
+  const tiktokHandle = settings?.socialMedia.tiktok || SITE.tiktokHandle;
+  const whatsappNumber = settings?.socialMedia.whatsapp || SITE.whatsappNumber;
 
   return (
     <footer className="border-t border-border bg-background-tint">
@@ -36,38 +57,38 @@ export function SiteFooter() {
         <div className="max-w-sm">
           <Image
             src="/images/logo-horizontal.png"
-            alt="Denailss"
+            alt={name}
             width={130}
             height={52}
             className="h-9.5 w-auto object-contain"
           />
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            {SITE.description}
+            {description}
           </p>
           <div className="mt-5 flex items-center gap-3">
             <a
-              href={SITE.instagramUrl}
+              href={`https://www.instagram.com/${instagramHandle}/`}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram Denailss"
+              aria-label={`Instagram ${name}`}
               className="flex size-9 items-center justify-center rounded-full border border-border bg-card text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
             >
               <InstagramLogoIcon className="size-4" />
             </a>
             <a
-              href={SITE.tiktokUrl}
+              href={`https://www.tiktok.com/@${tiktokHandle}`}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="TikTok Denailss"
+              aria-label={`TikTok ${name}`}
               className="flex size-9 items-center justify-center rounded-full border border-border bg-card text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
             >
               <TiktokLogoIcon className="size-4" />
             </a>
             <a
-              href={whatsappLink("Halo Denailss, aku mau tanya-tanya~")}
+              href={whatsappLink("Halo Denailss, aku mau tanya-tanya~", whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="WhatsApp Denailss"
+              aria-label={`WhatsApp ${name}`}
               className="flex size-9 items-center justify-center rounded-full border border-border bg-card text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
             >
               <WhatsappLogoIcon className="size-4" />
@@ -111,7 +132,7 @@ export function SiteFooter() {
           <p className="text-sm font-semibold text-foreground">Lokasi Kami</p>
           <div className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
             <MapPinIcon className="mt-0.5 size-4 shrink-0 text-primary" />
-            <span>{SITE.address}</span>
+            <span>{address}</span>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">{SITE.hoursNote}</p>
           <a
@@ -127,7 +148,7 @@ export function SiteFooter() {
 
       <div className="border-t border-border/70">
         <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
-          <p>&copy; {new Date().getFullYear()} Denailss. Semua hak dilindungi.</p>
+          <p>&copy; {new Date().getFullYear()} {name}. Semua hak dilindungi.</p>
           <p>Made with love by Zidane Sc</p>
         </div>
       </div>

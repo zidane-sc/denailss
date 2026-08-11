@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/motion/reveal";
-import { getActivePromotions } from "@/features/promotion/data/promotion-booking";
+import { useActivePromotionBanners } from "@/features/promotion/data/promotion-booking";
 import { formatDateId, formatIDR } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import type { ReactNode } from "react";
@@ -90,7 +90,7 @@ function PromotionSlide({ promotion }: { promotion: Promotion }) {
 }
 
 export function PromotionBanner() {
-  const promotions = getActivePromotions();
+  const promotions = useActivePromotionBanners();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const reduce = useReducedMotion();

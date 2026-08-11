@@ -53,12 +53,14 @@ export function GalleryDesignForm({
   onOpenChange,
   initial,
   onSubmit,
+  saving = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Pass an existing design to edit; omit for create mode. */
   initial?: GalleryDesign | null;
   onSubmit: (design: GalleryDesign, mode: "create" | "update") => void;
+  saving?: boolean;
 }) {
   const editing = Boolean(initial);
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -94,13 +96,14 @@ export function GalleryDesignForm({
     try {
       const body = new FormData();
       body.append("file", file);
+      body.append("category", "gallery");
       const res = await fetch("/api/upload", { method: "POST", body });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
-        setError(data.error ?? "Gagal mengunggah gambar.");
+      const data = (await res.json()) as { data?: { reference?: string }; error?: { message?: string } };
+      if (!res.ok || !data.data?.reference) {
+        setError(data.error?.message ?? "Gagal mengunggah gambar.");
         return;
       }
-      const seed = `upload:${data.url.replace("/images/uploads/", "")}`;
+      const seed = data.data.reference;
       setImageSeeds((prev) => (prev.includes(seed) ? prev : [...prev, seed]));
     } catch {
       setError("Gagal mengunggah gambar. Coba lagi.");
@@ -115,7 +118,7 @@ export function GalleryDesignForm({
     e.target.value = "";
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedTitle = title.trim();
     const slug = slugify(trimmedTitle);
@@ -137,24 +140,31 @@ export function GalleryDesignForm({
       return;
     }
 
-    onSubmit(
-      {
-        id: initial?.id ?? `des-${Date.now()}`,
-        slug: editing ? initial!.slug : slug,
-        title: trimmedTitle,
-        description: description.trim(),
-        imageSeeds,
-        aspect,
-        style,
-        color,
-        occasion,
-        shape,
-        difficulty,
-        price: Math.round(price),
-      },
-      editing ? "update" : "create"
-    );
-    onOpenChange(false);
+    setError("");
+    try {
+      await onSubmit(
+        {
+          id: initial?.id ?? `des-${Date.now()}`,
+          slug: editing ? initial!.slug : slug,
+          title: trimmedTitle,
+          description: description.trim(),
+          imageSeeds,
+          aspect,
+          style,
+          color,
+          occasion,
+          shape,
+          difficulty,
+          price: Math.round(price),
+        },
+        editing ? "update" : "create"
+      );
+      onOpenChange(false);
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error ? submitError.message : "Gagal menyimpan desain. Coba lagi."
+      );
+    }
   };
 
   return (
@@ -512,8 +522,10 @@ export function GalleryDesignForm({
               <XIcon className="size-4" />
               Batal
             </Button>
-            <Button type="submit" className="gap-1.5 rounded-full">
-              {editing ? (
+            <Button type="submit" className="gap-1.5 rounded-full" disabled={saving}>
+              {saving ? (
+                <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+              ) : editing ? (
                 <>
                   <CheckIcon className="size-4" />
                   Simpan Perubahan

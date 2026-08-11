@@ -15,8 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { motion, useReducedMotion } from "motion/react";
-import { getActiveServices } from "@/features/services/data/services-admin.mock";
-import { upsertPromotion } from "../data/promotions.mock";
+import { useLiveServices } from "@/features/services/components/services-provider";
+import { setPromotionActiveApi, updatePromotionApi } from "../services/promotion-admin-api";
+import { usePromotionsRefresh } from "./promotions-provider";
 import {
   formatRp,
   getPromotionStatus,
@@ -53,37 +54,51 @@ function InfoRow({
 
 export function PromotionDetailView({ promotion }: { promotion: Promotion }) {
   const reduce = useReducedMotion();
+  const services = useLiveServices();
+  const refreshPromotions = usePromotionsRefresh();
   const [draft, setDraft] = useState(promotion);
   const [editing, setEditing] = useState(false);
   const [confirmAction, setConfirmAction] = useState<"deactivate" | "activate" | null>(null);
 
   const status = getPromotionStatus(draft);
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     const next = { ...draft, active: !draft.active };
-    upsertPromotion(next, "update");
-    setDraft(next);
-    setConfirmAction(null);
-    toast.success(
-      next.active ? "Promo diaktifkan." : "Promo dinonaktifkan.",
-      {
-        description: next.active
-          ? "Customer sekarang bisa memakai kode ini untuk booking baru."
-          : "Customer tidak akan bisa memakai kode ini untuk booking baru.",
-      }
-    );
+    try {
+      await setPromotionActiveApi(draft.id, next.active);
+      setDraft(next);
+      setConfirmAction(null);
+      refreshPromotions();
+      toast.success(
+        next.active ? "Promo diaktifkan." : "Promo dinonaktifkan.",
+        {
+          description: next.active
+            ? "Customer sekarang bisa memakai kode ini untuk booking baru."
+            : "Customer tidak akan bisa memakai kode ini untuk booking baru.",
+        }
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal mengubah status promo.");
+    }
   };
 
-  const handleSave = (saved: Promotion) => {
-    upsertPromotion(saved, "update");
-    setDraft(saved);
-    setEditing(false);
-    toast.success("Perubahan promo disimpan.");
+  const handleSave = async (saved: Promotion) => {
+    try {
+      await updatePromotionApi(saved);
+      setDraft(saved);
+      setEditing(false);
+      refreshPromotions();
+      toast.success("Perubahan promo disimpan.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menyimpan promo.");
+    }
   };
 
   const servicesLabel = !draft.applicableServiceSlugs?.length
     ? "Semua layanan"
-    : getActiveServices().filter((s) => draft.applicableServiceSlugs!.includes(s.slug))
+    : services
+        .filter((s) => s.active)
+        .filter((s) => draft.applicableServiceSlugs!.includes(s.slug))
         .map((s) => s.name)
         .join(", ");
 

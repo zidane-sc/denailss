@@ -20,11 +20,12 @@ import {
 import { cn } from "@/lib/utils";
 import { formatIDR, formatDateId, parseDateKey } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
-import { getDesignBySlug } from "@/features/gallery/data/designs.mock";
+import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-designs-provider";
 import { COLOR_LABELS, SHAPE_LABELS } from "@/features/gallery/constants";
 import { Button } from "@/components/ui/button";
 import { motion, useReducedMotion } from "motion/react";
-import { getCrmCustomer, getCustomerAppointments, getCustomerReviews } from "../data/customers.mock";
+import { useEffect, useState } from "react";
+import type { CrmCustomerWithData } from "./use-crm-customers";
 import {
   computeCustomerStats,
   getCustomerStatus,
@@ -56,7 +57,36 @@ const SWATCH: Record<DesignColor, string> = {
 
 export function CustomerDetailView({ id }: { id: string }) {
   const reduce = useReducedMotion();
-  const customer = getCrmCustomer(id);
+  const galleryDesigns = useLiveGalleryDesigns();
+  const [customer, setCustomer] = useState<CrmCustomerWithData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    fetch(`/api/v1/crm/customers/${encodeURIComponent(id)}`, { cache: "no-store" })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const payload = (await res.json()) as { data?: CrmCustomerWithData };
+        if (active && payload.data) setCustomer(payload.data);
+      })
+      .catch(() => {
+        // leave null
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-5xl space-y-6 animate-in fade-in duration-300">
+        <p className="py-16 text-center text-sm text-muted-foreground">Memuat profil pelanggan...</p>
+      </div>
+    );
+  }
 
   if (!customer) {
     return (
@@ -80,14 +110,14 @@ export function CustomerDetailView({ id }: { id: string }) {
     );
   }
 
-  const appointments = getCustomerAppointments(customer.id);
-  const reviews = getCustomerReviews(customer.id);
+  const appointments = customer.appointments;
+  const reviews = customer.reviews;
   const stats: CustomerStats = computeCustomerStats(appointments);
   const status = getCustomerStatus(stats);
 
   const next = stats.nextAppointment;
   const favoriteDesign = stats.favoriteDesignSlug
-    ? getDesignBySlug(stats.favoriteDesignSlug)
+    ? galleryDesigns.find((d) => d.slug === stats.favoriteDesignSlug)
     : undefined;
 
   return (

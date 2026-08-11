@@ -35,7 +35,7 @@ function DesignTile({ design, className, aspectClass, index }: DesignTileProps) 
       >
         <div className={`relative w-full overflow-hidden ${aspectClass}`}>
           <Image
-            src={imageUrl(design.imageSeeds[0])}
+            src={imageUrl(design.imageSeeds[0] ?? "denailss-fallback")}
             alt={design.title}
             fill
             sizes="(min-width: 1024px) 50vw, (min-width: 640px) 50vw, 90vw"
@@ -68,9 +68,13 @@ function DesignTile({ design, className, aspectClass, index }: DesignTileProps) 
   );
 }
 
-export function FeaturedDesigns() {
+export function FeaturedDesigns({ initialDesigns = [] }: { initialDesigns?: GalleryDesign[] }) {
   const designs = useLiveGalleryDesigns();
-  const featured = designs.slice(0, 6);
+  const featured = (designs.length > 0 ? designs : initialDesigns).slice(0, 6);
+
+  if (featured.length === 0) {
+    return null;
+  }
 
   const [hero, ...rest] = featured;
 

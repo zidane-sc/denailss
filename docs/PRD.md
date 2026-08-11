@@ -3,9 +3,9 @@
 # Denailss Platform
 
 **Version:** 1.0
-**Status:** Draft
+**Status:** Implemented (core)
 **Author:** Zidane
-**Last Updated:** 2026-08-07
+**Last Updated:** 2026-08-10
 
 ---
 
@@ -1043,7 +1043,7 @@ Avoid
 * Customer and owner role separation
 * Protected Customer Portal and Backoffice routes
 
-Authentication is implemented for the current vertical slice. Password reset and additional providers remain future work.
+Authentication is implemented for the core flow. Password reset and additional providers remain future work.
 
 ---
 

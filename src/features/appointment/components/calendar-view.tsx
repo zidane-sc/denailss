@@ -44,7 +44,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import type { BookingStatus, DepositVerificationStatus, TimeRange } from "@/types";
 import type { Appointment } from "../types";
-import { getCrmCustomers } from "@/features/crm/data/customers.mock";
+import { DepositProofImage } from "./deposit-proof-image";
 import {
   waCustomerChatLink,
   depositApprovedWaMessage,
@@ -52,16 +52,6 @@ import {
 } from "../lib/whatsapp";
 
 type ViewMode = "day" | "week" | "month";
-
-function normalizePhone(phone: string) {
-  const digits = phone.replace(/\D/g, "");
-  return digits.startsWith("0") ? `62${digits.slice(1)}` : digits;
-}
-
-function findCrmCustomerByPhone(phone: string) {
-  const target = normalizePhone(phone);
-  return getCrmCustomers().find((c) => normalizePhone(c.phone) === target);
-}
 
 export function CalendarView() {
   const {
@@ -89,12 +79,18 @@ export function CalendarView() {
   // WhatsApp notify panel after approve / reschedule
   const [notifWa, setNotifWa] = useState<{ type: "approved" | "rescheduled"; oldDate?: string; oldTime?: string } | null>(null);
 
-  // CRM customer matching the selected appointment's phone (if any)
-  const selectedCrmCustomer = selectedAppointment
-    ? findCrmCustomerByPhone(selectedAppointment.customer.phone)
+  // CRM customer detail link for the selected appointment (if it has a DB customer).
+  const selectedCrmCustomer = selectedAppointment?.customerId
+    ? { id: selectedAppointment.customerId }
     : undefined;
 
   const todayKey = toDateKey(new Date()); // real today
+
+  // Availability config hydrates from the API on mount; guard before any use.
+  if (!availabilityConfig) {
+    return <p className="py-16 text-center text-sm text-muted-foreground">Memuat kalender...</p>;
+  }
+  const config = availabilityConfig;
 
   // Week helper: start of the week (Sunday)
   const getStartOfWeek = (d: Date) => {
@@ -142,7 +138,7 @@ export function CalendarView() {
 
   // Check if date falls in vacation
   const checkIsVacation = (dateKey: string) => {
-    return availabilityConfig.vacations.find(
+    return config.vacations.find(
       (v) => dateKey >= v.start && dateKey <= v.end
     );
   };
@@ -150,12 +146,12 @@ export function CalendarView() {
   // Check if date is closed (weekly template has no ranges)
   const checkIsWeeklyClosed = (date: Date) => {
     const weekday = date.getDay();
-    return availabilityConfig.weeklyTemplate[weekday as keyof typeof availabilityConfig.weeklyTemplate]?.length === 0;
+    return config.weeklyTemplate[weekday as keyof typeof config.weeklyTemplate]?.length === 0;
   };
 
   // Get blocked ranges
   const getBlockedForDate = (dateKey: string) => {
-    return availabilityConfig.blockedTimes.filter((b) => b.date === dateKey);
+    return config.blockedTimes.filter((b) => b.date === dateKey);
   };
 
   // Formatter for heading
@@ -761,13 +757,7 @@ export function CalendarView() {
                       <div className="space-y-1">
                         <p className="text-[10px] text-muted-foreground">Bukti Pengiriman:</p>
                         <div className="relative aspect-video w-full max-w-[200px] rounded-lg overflow-hidden border">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={selectedAppointment.depositProofUrl}
-                            alt="Bukti Transfer"
-                            className="object-cover w-full h-full cursor-zoom-in"
-                            onClick={() => window.open(selectedAppointment.depositProofUrl, "_blank")}
-                          />
+                          <DepositProofImage reference={selectedAppointment.depositProofUrl} />
                         </div>
                       </div>
                     )}

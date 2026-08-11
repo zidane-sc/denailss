@@ -1,29 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { StorefrontIcon, PackageIcon, CheckCircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { SITE } from "@/constants/site";
+import type { Settings } from "@/features/settings/types";
 import { cn } from "@/lib/utils";
 import type { FulfillmentMethod } from "@/features/booking/types";
-
-const OPTIONS: {
-  value: FulfillmentMethod;
-  title: string;
-  description: string;
-  icon: typeof StorefrontIcon;
-}[] = [
-  {
-    value: "pickup",
-    title: "Ambil di Lokasi",
-    description: `Ambil langsung di ${SITE.address}. Siap dalam 1-2 hari.`,
-    icon: StorefrontIcon,
-  },
-  {
-    value: "delivery",
-    title: "Dikirim via Kurir",
-    description: "Dikirim ke alamatmu (ongkir sesuai ekspedisi, dikonfirmasi via WhatsApp).",
-    icon: PackageIcon,
-  },
-];
 
 export function StepPickup({
   value,
@@ -32,6 +14,43 @@ export function StepPickup({
   value: FulfillmentMethod | null;
   onSelect: (method: FulfillmentMethod) => void;
 }) {
+  const [address, setAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/v1/settings", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: { data?: Settings } | null) => {
+        if (payload?.data?.businessProfile?.address) {
+          setAddress(payload.data.businessProfile.address);
+        }
+      })
+      .catch(() => {
+        // keep the SITE fallback
+      });
+  }, []);
+
+  const pickupAddress = address ?? SITE.address;
+
+  const OPTIONS: {
+    value: FulfillmentMethod;
+    title: string;
+    description: string;
+    icon: typeof StorefrontIcon;
+  }[] = [
+    {
+      value: "pickup",
+      title: "Ambil di Lokasi",
+      description: `Ambil langsung di ${pickupAddress}. Siap dalam 1-2 hari.`,
+      icon: StorefrontIcon,
+    },
+    {
+      value: "delivery",
+      title: "Dikirim via Kurir",
+      description: "Dikirim ke alamatmu (ongkir sesuai ekspedisi, dikonfirmasi via WhatsApp).",
+      icon: PackageIcon,
+    },
+  ];
+
   return (
     <div>
       <h2 className="text-2xl font-semibold tracking-tight text-foreground">

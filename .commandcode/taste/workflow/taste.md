@@ -16,7 +16,7 @@
 
 - Wants competitive/market research grounded in authoritative sources (official studio price lists, reputable articles like Kompas, market-data sites) before deciding whether the current service/feature set is complete and what to add — e.g., "check our services, is it enough? can you do research what service should we add?" Confidence: 0.7
 
-- Prefers a propose-then-approve workflow for significant features (and notable doc/implementation additions): the assistant researches, presents a concrete plan/recommendation, and waits for explicit go-ahead before implementing — rather than jumping straight to code. Gives terse single-word approvals to greenlight execution (e.g., "yeah", "go", "iya" — approving the image-upload feature proposal). Confidence: 0.9
+- Prefers a propose-then-approve workflow for significant features (and notable doc/implementation additions): the assistant researches, presents a concrete plan/recommendation, and waits for explicit go-ahead before implementing — rather than jumping straight to code. Gives terse single-word approvals to greenlight execution (e.g., "yeah", "go", "iya", "continue" — approving the image-upload feature proposal and greenlighting the next roadmap epic after the assistant described it). Confidence: 0.93
 
 - Overrides the assistant's reasoned recommendation with terse, decisive instructions when they already know what they want — e.g., after the assistant recommended keeping "related services" because public pages use it, the user simply said "hapus 2-2nya, hapus juga yang existing" (delete both, including existing data) and expected the full removal executed without further debate. Confidence: 0.7
 
@@ -26,11 +26,13 @@
 
 - Wants the assistant to apply fixes directly once a problem is diagnosed, rather than stopping at explanation — explicitly directs action with terse commands (e.g., "fix it") and expects the fix to be implemented and verified, not just described. Confidence: 0.6
 
-- Delegates next-step/roadmap planning to the assistant: asks "whats next" while pointing at the project's progress doc, expecting the assistant to read the doc, check existing plans and recent commits, and propose the next concrete epic/task (with a suggested approach) rather than asking the user what to do. Repeatedly confirmed — asked "what's next" again with no extra context (then "so what's next?" once more after an epic wrapped) and expected the assistant to pull next steps from `docs/PROGRESS.md` on its own. Confirmed again when the assistant proposed SEO polish as the next item: the user replied with a terse go-ahead ("okay GO to the SEO polish!!!") rather than re-planning; and once more with a bare "okay then what's next" right after the service-tiers epic wrapped. Confidence: 0.9
+- Delegates next-step/roadmap planning to the assistant: asks "whats next" while pointing at the project's progress doc, expecting the assistant to read the doc, check existing plans and recent commits, and propose the next concrete epic/task (with a suggested approach) rather than asking the user what to do. Repeatedly confirmed — asked "what's next" again with no extra context (then "so what's next?" once more after an epic wrapped) and expected the assistant to pull next steps from `docs/PROGRESS.md` on its own. Confirmed again when the assistant proposed SEO polish as the next item: the user replied with a terse go-ahead ("okay GO to the SEO polish!!!") rather than re-planning; and once more with a bare "okay then what's next" right after the service-tiers epic wrapped; then approved the next roadmap epic (deposit cleanup) with a bare "go"; greenlit the following epic (deposit-config persistence, the last config mock) with a bare "continue!"; then greenlit the next roadmap item (overlap-aware booking validation) with "go! continue" and let the assistant pick, implement, verify, and doc it end-to-end. Confidence: 0.97
 
 - Drives backlog expansion directly from the product: identifies missing admin menus/features terse-ly as follow-up requests after an epic ships ("next, ada menu yang kurang: menu untuk manage services layanan, menu untuk insert instagram last post (input embeded link)"), expecting the assistant to map the blast radius and build both additions without a formal proposal step. Confidence: 0.5
 
 - Accepts (implicitly greenlights) the assistant's standard verification protocol — typecheck, lint, production build, and dev-server smoke tests of new routes — as the definition of done for shipped features. Confidence: 0.4
+
+- Appreciates the assistant using plan mode for a large, decision-heavy migration: when a big chunk of work (e.g., migrating the last mock domains) has pivotal either/or decisions, the assistant entered plan mode, asked a single concise decision set up front (via structured multi-choice questions), then wrote a detailed plan file (`~/.commandcode/plans/...`) covering schema, repositories, routes, consumer migration, deletions, type changes, verification steps, and explicit non-goals — and the user approved it without changes ("continue"). This exact cycle repeated across four consecutive milestones in one stretch of work (catalog persistence, promos/reviews/favorites, CRM/finance/analytics, availability config) — each time the user answered the scope questions, then approved the plan tersely. Confidence: 0.65
 
 - Expects backend migrations to preserve a usable frontend during incremental rollout: keep explicit local/mock fallback seams until infrastructure credentials and deployment setup exist, while making the API authoritative when configured. Confidence: 0.8
 
@@ -52,4 +54,9 @@
 
 - When offered a prioritized menu of next steps (e.g., commit-first, start the deferred backend phase, or close the current phase's feature gaps), picks closing the loose ends/gaps of just-shipped FE work over housekeeping and over starting the next large phase — replied "okay fix the gap first" (tier-aware booking pricing) and again "go fix thegap!" (customer review submission), each time expecting the named gap implemented end-to-end without further planning. Prefers functional completion of in-scope work before moving on. Confidence: 0.75
  now-unused `deletePromotion` function to keep the codebase free of dead code. Confidence: 0.35
+fidence: 0.35
+-to-end without further planning. Prefers functional completion of in-scope work before moving on. Confidence: 0.75
+ now-unused `deletePromotion` function to keep the codebase free of dead code. Confidence: 0.35
+fidence: 0.35
+.35
 fidence: 0.35

@@ -18,6 +18,7 @@ export type BookingStepId = (typeof BOOKING_STEP_IDS)[number];
 export interface DepositUpload {
   fileName: string;
   previewUrl: string;
+  storagePath?: string;
   status: DepositVerificationStatus;
 }
 

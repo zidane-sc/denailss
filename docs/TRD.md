@@ -3,9 +3,9 @@
 # Denailss Platform
 
 **Version:** 1.0
-**Status:** Draft
+**Status:** Implemented (core)
 **Author:** Zidane
-**Last Updated:** 2026-08-07
+**Last Updated:** 2026-08-10
 
 ---
 
@@ -87,19 +87,31 @@ Response
 
 | Category         | Technology                                 |
 | ---------------- | ------------------------------------------ |
-| Frontend         | Next.js (App Router)                       |
-| Language         | TypeScript                                 |
-| Styling          | Tailwind CSS                               |
-| UI Components    | shadcn/ui                                  |
+| Frontend         | Next.js 16 (App Router, Turbopack)         |
+| Language         | TypeScript (strict)                        |
+| Styling          | Tailwind CSS v4 (CSS-first, `globals.css`) |
+| UI Components    | shadcn/ui on **Base UI** (`@base-ui/react`) |
+| Icons            | `@phosphor-icons/react`                    |
+| Animation        | `motion/react`                             |
 | Backend          | Next.js Route Handlers & Server Actions    |
 | Database         | Supabase PostgreSQL                        |
+| ORM              | Drizzle ORM + `postgres`                   |
 | Authentication   | Supabase Auth                              |
 | Storage          | Supabase Storage                           |
+| Form Validation  | Zod v4                                     |
+| Date/Format      | Custom `src/lib/format.ts` (IDR/date)      |
+| State Management | React Context (providers per domain)       |
+| Notifications    | `sonner`                                   |
 | Deployment       | Vercel                                     |
-| Form Validation  | Zod                                        |
-| ORM              | Drizzle ORM                                |
-| Date Utility     | date-fns                                   |
-| State Management | React Context + TanStack Query (if needed) |
+
+Catatan deviasi dari rencana awal:
+
+* **shadcn/ui memakai Base UI, bukan Radix** — komponen dari `@base-ui/react`; tidak ada prop `asChild`, komposisi memakai `render={<Link ... />}` dan `nativeButton={false}` untuk tombol yang dirender sebagai link.
+* **Icons memakai `@phosphor-icons/react`** — `lucide-react` di-uninstall; `components.json` masih berisi `iconLibrary: "lucide"` (metadata usang, tidak dipakai).
+* **Date utility bukan date-fns** — `date-fns` tidak diimpor di source; helper tanggal/IDR ada di `src/lib/format.ts`. (Jika tidak dipakai, dapat dihapus dari dependencies.)
+* **State management memakai React Context saja** — TanStack Query tidak digunakan; tiap domain punya provider client yang fetch API (gallery, services, promotions, reviews, availability, deposit-config).
+* **Motion memakai `motion/react`** (bukan framer-motion), untuk scroll reveal + micro-interaction.
+* **Server Actions belum dipakai** — seluruh persistence lewat Route Handlers; `server-only` digunakan untuk repository/service layer.
 
 ---
 
@@ -137,6 +149,7 @@ Response
 * Accessible components
 * Easy customization
 * Production-ready
+* **Catatan**: install ini memakai `@base-ui/react` (bukan Radix) — lihat tabel stack.
 
 ---
 
@@ -328,22 +341,35 @@ Tidak boleh mengandung business logic.
 
 ## Entity Overview
 
-Core Entities:
+Core Entities (all implemented as Drizzle tables + migrations):
 
 * users
 * customers
-* appointments
+* customer_notes
 * services
 * gallery
 * gallery_images
 * reviews
 * promotions
-* promotion_usages
+* customer_favorites
 * availability_templates
 * availability_overrides
 * blocked_times
-* deposit_proofs
+* availability_vacations
+* booking_rules
+* appointments
+* appointment_services
 * settings
+* deposit_config
+* deposit_uploads
+* expenses
+
+Notes on deviations from the original plan:
+
+* Promo usage is tracked as an atomic `used_count` column on `promotions` (incremented inside the booking transaction) rather than a separate `promotion_usages` table.
+* Deposit proofs live on the appointment as a `deposit_proof_url` (`storage:deposit-proofs/...` reference); pre-submit uploads are tracked in `deposit_uploads` for abandoned-upload cleanup. There is no `deposit_proofs` table.
+* Settings are a single-row `settings` table (id `site`) with columns for business profile, social media, and policy text, rather than normalized `business_profile`/`social_media`/`policies` tables.
+* `customers.preferences` (jsonb) holds preferred time/shapes/colors; per-customer owner notes live in `customer_notes`.
 
 ---
 
@@ -518,30 +544,69 @@ Endpoint diawali dengan:
 /api/v1
 ```
 
-Endpoint yang sudah berjalan pada vertical slice saat ini:
+Endpoint yang sudah berjalan:
 
 ```text
-GET    /api/v1/services
-GET    /api/v1/gallery
-GET    /api/v1/availability
-POST   /api/v1/bookings              # guest atau customer authenticated
-GET    /api/v1/bookings               # owner semua; customer miliknya sendiri
-GET    /api/v1/bookings/:id           # ownership-scoped
-PATCH  /api/v1/bookings/:id           # owner-only
+GET    /api/v1/services                  # katalog layanan (aktif + nonaktif)
+GET    /api/v1/services/:id
+PATCH  /api/v1/services/:id              # owner-only (edit)
+PATCH  /api/v1/services/:id/active       # owner-only (toggle)
+
+GET    /api/v1/gallery                   # katalog desain + gambar terurut
+POST   /api/v1/gallery                   # owner-only (create)
+GET    /api/v1/gallery/:id
+PUT    /api/v1/gallery/:id               # owner-only (update, reconcile gambar)
+DELETE /api/v1/gallery/:id               # owner-only (delete + storage cleanup)
+
+GET    /api/v1/availability              # public: weekly template, overrides, blocked, vacations, booking rules
+PUT    /api/v1/availability              # owner-only (full config write)
+
+GET    /api/v1/deposit-config            # public
+PUT    /api/v1/deposit-config            # owner-only
+
+POST   /api/v1/bookings                  # guest atau customer authenticated
+GET    /api/v1/bookings                  # owner semua; customer miliknya sendiri
+GET    /api/v1/bookings/:id              # ownership-scoped
+PATCH  /api/v1/bookings/:id              # owner-only (status/reschedule/deposit + slot-conflict check)
+POST   /api/v1/bookings/deposit-proof    # upload bukti transfer (rate-limited 5/jam)
+DELETE /api/v1/bookings/deposit-proof/delete  # hapus bukti sebelum submit
+POST   /api/v1/bookings/deposit-proof/url     # owner-only: signed URL
+
+GET    /api/v1/promotions                # semua promo (admin + provider)
+POST   /api/v1/promotions                # owner-only
+GET    /api/v1/promotions/:id
+PATCH  /api/v1/promotions/:id            # owner-only
+PATCH  /api/v1/promotions/:id/active     # owner-only
+
+GET    /api/v1/reviews                   # public, dengan summary
+POST   /api/v1/reviews                   # customer-only (review booking selesai miliknya)
+
 GET    /api/v1/customer/profile
 PATCH  /api/v1/customer/profile
 GET    /api/v1/customer/bookings
 GET    /api/v1/customer/bookings/:id
+GET    /api/v1/customer/favorites        # customer-only
+POST   /api/v1/customer/favorites        # customer-only
+DELETE /api/v1/customer/favorites        # customer-only
+
+GET    /api/v1/settings                  # public
+PUT    /api/v1/settings                  # owner-only
+
+GET    /api/v1/crm/customers             # owner-only
+GET    /api/v1/crm/customers/:id         # owner-only
+PUT    /api/v1/crm/customers/:id/notes   # owner-only
+PUT    /api/v1/crm/customers/:id/preferences  # owner-only
+
+GET    /api/v1/finance/expenses          # owner-only
+POST   /api/v1/finance/expenses          # owner-only
+PATCH  /api/v1/finance/expenses/:id      # owner-only
+DELETE /api/v1/finance/expenses/:id      # owner-only
+
+POST   /api/upload                       # owner-only, rate-limited (20/jam): gallery | service | settings
+DELETE /api/upload/delete                # owner-only: hapus storage object
 ```
 
-Target domain endpoints lain tetap mengikuti pola REST ini:
-
-```text
-GET    /api/v1/gallery/:id
-DELETE /api/v1/gallery/:id
-GET    /api/v1/settings
-PATCH  /api/v1/settings
-```
+Semua write endpoint memvalidasi input dengan Zod di server dan mengembalikan envelope `{ data, meta }` / `{ error: { code, message } }` yang konsisten.
 
 ---
 
@@ -1061,7 +1126,7 @@ Seluruh data menggunakan UUID sebagai Primary Key.
 
 ### Decision
 
-Frontend dikembangkan FE-first menggunakan mock data (`*.mock.ts` di `src/features/<domain>/data/`) sebagai seam migrasi. Backend wiring sekarang aktif secara bertahap: Auth/RLS, booking ownership, customer profile, persistent customer bookings, dan Route Handlers sudah berjalan; domain admin/content lain tetap mock sampai repository/API-nya dimigrasikan.
+Frontend dikembangkan FE-first menggunakan mock data (`*.mock.ts` di `src/features/<domain>/data/`) sebagai seam migrasi. Backend wiring sekarang aktif: semua domain telah dimigrasikan ke repository/API Supabase, dan mock config telah dihapus.
 
 ### Reason
 
@@ -1071,11 +1136,11 @@ Frontend dikembangkan FE-first menggunakan mock data (`*.mock.ts` di `src/featur
 
 ### Implikasi saat ini
 
-* Booking customer dan profile memakai API + Supabase/Drizzle persistence.
-* Public booking tetap mendukung guest creation melalui server-side service path.
-* Auth memakai Supabase Auth, middleware session refresh, owner/customer guards, dan RLS policies.
-* Settings, promotions, reviews, favorites, CRM, finance, analytics, dan katalog admin masih memakai mock/localStorage seams.
-* Upload gallery, review, deposit proof, dan logo masih lokal/object URL; migrasi ke Supabase Storage belum selesai.
+* Semua domain persisten: booking, customer profile, gallery + gallery_images, services, promotions (dengan enforce kuota + `used_count`), reviews, customer favorites, settings, availability config (template/overrides/blocked/vacations/booking rules), deposit config, CRM (customers + customer_notes + preferences), finance expenses, dan derivasi income/analytics dari appointment nyata.
+* Auth memakai Supabase Auth, middleware session refresh, owner/customer guards, dan RLS policies (defense-in-depth).
+* Upload gallery/service/settings/deposit proof memakai Supabase Storage dengan rate limiting in-memory (20/jam owner catalog, 5/jam deposit proof); deposit-proof lifecycle cleanup aktif (abandoned uploads, replace/delete, rejected).
+* Slot booking divalidasi overlap-aware dengan buffer di server (409 pada konflik), termasuk reschedule.
+* Yang masih memakai data dev (bukan produksi): seed appointment backoffice (`appointments.mock.ts`) dan post Instagram (`instagram-posts.mock.ts`).
 
 ---
 

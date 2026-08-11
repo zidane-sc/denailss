@@ -1,15 +1,41 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Reveal } from "@/components/motion/reveal";
 import { GalleryCard } from "@/features/gallery/components/gallery-card";
-import { CUSTOMER_FAVORITES } from "@/features/customer/data/customer.mock";
-import { getDesignBySlug } from "@/features/gallery/data/designs.mock";
 import { HeartIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
+import type { GalleryDesign } from "@/types";
 
 export default function FavoritesPage() {
-  const favoriteDesigns = CUSTOMER_FAVORITES
-    .map(slug => getDesignBySlug(slug))
-    .filter((d): d is NonNullable<typeof d> => Boolean(d));
+  const [designs, setDesigns] = useState<GalleryDesign[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      fetch("/api/v1/gallery", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/v1/customer/favorites", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)),
+    ])
+      .then(([galleryPayload, favPayload]) => {
+        if (!active) return;
+        const all = (galleryPayload?.data as GalleryDesign[] | undefined) ?? [];
+        const slugs = new Set<string>((favPayload?.data as { slugs?: string[] } | undefined)?.slugs ?? []);
+        setDesigns(all.filter((d) => slugs.has(d.slug)));
+      })
+      .catch(() => {
+        // leave empty
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const favoriteDesigns = designs;
 
   return (
     <div className="space-y-8">
@@ -18,7 +44,9 @@ export default function FavoritesPage() {
         <p className="mt-1 text-muted-foreground">Desain kuku yang kamu simpan untuk inspirasi.</p>
       </Reveal>
 
-      {favoriteDesigns.length > 0 ? (
+      {loading ? (
+        <p className="py-16 text-center text-sm text-muted-foreground">Memuat favorit...</p>
+      ) : favoriteDesigns.length > 0 ? (
         <Reveal delay={0.1}>
           <div className="columns-2 gap-4 sm:columns-3 lg:columns-4">
             {favoriteDesigns.map((design) => (
@@ -36,7 +64,7 @@ export default function FavoritesPage() {
             <p className="mt-2 text-sm text-muted-foreground max-w-sm">
               Kamu belum menyimpan desain apapun. Yuk jelajahi gallery dan simpan inspirasi kuku impianmu!
             </p>
-            <Button 
+            <Button
               className="mt-6"
               nativeButton={false}
               render={<Link href="/gallery" />}

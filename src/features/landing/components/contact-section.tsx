@@ -9,35 +9,43 @@ import {
 import { Reveal } from "@/components/motion/reveal";
 import { imageUrl } from "@/lib/images";
 import { SITE, whatsappLink } from "@/constants/site";
+import { getPublicSettings } from "@/features/settings/services/settings-public";
 
-const CHANNELS = [
-  {
-    icon: WhatsappLogoIcon,
-    label: "WhatsApp",
-    value: SITE.whatsappDisplay,
-    href: whatsappLink("Halo Denailss, aku mau tanya-tanya~"),
-  },
-  {
-    icon: InstagramLogoIcon,
-    label: "Instagram",
-    value: `@${SITE.instagramHandle}`,
-    href: SITE.instagramUrl,
-  },
-  {
-    icon: TiktokLogoIcon,
-    label: "TikTok",
-    value: `@${SITE.tiktokHandle}`,
-    href: SITE.tiktokUrl,
-  },
-  {
-    icon: MapPinIcon,
-    label: "Google Maps",
-    value: SITE.address,
-    href: SITE.mapsUrl,
-  },
-];
+export async function ContactSection() {
+  const settings = await getPublicSettings();
+  const social = settings.socialMedia;
+  const address = settings.businessProfile.address || SITE.address;
+  const instagramHandle = social.instagram || SITE.instagramHandle;
+  const tiktokHandle = social.tiktok || SITE.tiktokHandle;
+  const whatsappNumber = social.whatsapp || SITE.whatsappNumber;
 
-export function ContactSection() {
+  const CHANNELS = [
+    {
+      icon: WhatsappLogoIcon,
+      label: "WhatsApp",
+      value: whatsappNumber,
+      href: whatsappLink("Halo Denailss, aku mau tanya-tanya~", whatsappNumber),
+    },
+    {
+      icon: InstagramLogoIcon,
+      label: "Instagram",
+      value: `@${instagramHandle}`,
+      href: `https://www.instagram.com/${instagramHandle}/`,
+    },
+    {
+      icon: TiktokLogoIcon,
+      label: "TikTok",
+      value: `@${tiktokHandle}`,
+      href: `https://www.tiktok.com/@${tiktokHandle}`,
+    },
+    {
+      icon: MapPinIcon,
+      label: "Google Maps",
+      value: address,
+      href: SITE.mapsUrl,
+    },
+  ];
+
   return (
     <section id="kontak" className="py-16 sm:py-20 lg:py-24">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:gap-16 lg:px-8">

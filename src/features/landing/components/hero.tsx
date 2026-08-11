@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/motion/reveal";
 import { imageUrl } from "@/lib/images";
 import { whatsappLink } from "@/constants/site";
-import { getReviewSummary } from "@/features/reviews/data/reviews.mock";
+import { getReviewSummary } from "@/features/reviews/services/review-service";
 
-export function Hero() {
-  const { average, total } = getReviewSummary();
+export async function Hero() {
+  const { average, total } = await getReviewSummary();
 
   return (
     <section className="relative overflow-hidden pt-10 pb-20 sm:pt-16 lg:pt-24 lg:pb-32 bg-linear-to-b from-background via-background-tint/10 to-background">

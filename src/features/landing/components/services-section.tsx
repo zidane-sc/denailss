@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -7,7 +9,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { imageUrl } from "@/lib/images";
-import { getActiveServices } from "@/features/services/data/services-admin.mock";
+import { useLiveServices } from "@/features/services/components/services-provider";
 import { servicePriceLine } from "@/features/services/logic/service";
 
 const TILE_LABELS: Record<string, string> = {
@@ -20,7 +22,7 @@ const TILE_LABELS: Record<string, string> = {
 };
 
 function PhotoTile({ slug, className }: { slug: string; className: string }) {
-  const service = getActiveServices().find((s) => s.slug === slug);
+  const service = useLiveServices().find((s) => s.slug === slug && s.active);
   if (!service) return null;
   return (
     <RevealItem className={className}>
@@ -65,7 +67,7 @@ const TILE_SURFACES: Record<TileTint, string> = {
 };
 
 function TintedTile({ slug, tint, className }: { slug: string; tint: TileTint; className?: string }) {
-  const service = getActiveServices().find((s) => s.slug === slug);
+  const service = useLiveServices().find((s) => s.slug === slug && s.active);
   if (!service) return null;
   return (
     <RevealItem className={className}>

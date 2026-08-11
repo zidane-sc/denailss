@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
-import { getPromotionSeedById } from "@/features/promotion/data/promotions.seed";
+import { getPromotionById } from "@/features/promotion/services/promotion-service";
 import { PromotionDetailView } from "@/features/promotion/components/promotion-detail-view";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ interface PageProps {
 
 export default async function BackofficePromotionDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const promotion = getPromotionSeedById(id);
+  const promotion = await getPromotionById(id);
 
   if (!promotion) {
     return (

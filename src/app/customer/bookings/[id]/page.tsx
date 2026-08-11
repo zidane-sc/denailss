@@ -8,10 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CUSTOMER_PROFILE } from "@/features/customer/data/customer.mock";
 import { appointmentToCustomerBooking } from "@/features/customer/data/customer-api";
 import type { CustomerBooking } from "@/features/customer/types";
-import { addReview } from "@/features/reviews/data/reviews.mock";
+import type { Review } from "@/types";
 import { formatIDR, formatDateId, parseDateKey } from "@/lib/format";
 import {
   ArrowLeftIcon,
@@ -21,6 +20,7 @@ import {
   StarIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { SITE, whatsappLink } from "@/constants/site";
+import type { Settings } from "@/features/settings/types";
 import {
   Dialog,
   DialogContent,
@@ -50,8 +50,43 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const [dialogOpen, setDialogOpen] = useState(false);
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState("");
+  const [settings, setSettings] = useState<Settings | null>(null);
 
-  const handleSendReview = (e: React.FormEvent) => {
+  // Check whether this booking already has a review (from the live reviews list).
+  useEffect(() => {
+    let active = true;
+    fetch("/api/v1/reviews", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: { data?: Review[] } | null) => {
+        if (active && payload?.data) {
+          const bookingCode = id;
+          setHasReview(payload.data.some((r) => (r as Review & { bookingCode?: string }).bookingCode === bookingCode));
+        }
+      })
+      .catch(() => {
+        // keep hasReview false
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    fetch("/api/v1/settings", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: { data?: Settings } | null) => {
+        if (payload?.data) setSettings(payload.data);
+      })
+      .catch(() => {
+        // keep the SITE fallback
+      });
+  }, []);
+
+  const businessName = settings?.businessProfile.name ?? SITE.name;
+  const businessAddress = settings?.businessProfile.address ?? SITE.address;
+  const whatsappNumber = settings?.socialMedia.whatsapp || SITE.whatsappNumber;
+
+  const handleSendReview = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedComment = comment.trim();
     if (!trimmedComment) {
@@ -59,21 +94,27 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       return;
     }
     if (!booking) return;
-    const primaryService = booking.services[0];
-    addReview({
-      id: `rev-${booking.id.toLowerCase()}`,
-      customerName: CUSTOMER_PROFILE.name,
-      rating: rating as 1 | 2 | 3 | 4 | 5,
-      serviceSlug: primaryService?.slug ?? "manicure",
-      visitDate: booking.date,
-      comment: trimmedComment,
-    });
-    setHasReview(true);
-    setDialogOpen(false);
-    setComment("");
-    toast.success("Ulasan Kakak berhasil dikirim! Terima kasih banyak! 💖", {
-      description: "Ulasanmu sekarang tampil di halaman ulasan Denailss.",
-    });
+    try {
+      const response = await fetch("/api/v1/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingCode: booking.id,
+          rating: rating as 1 | 2 | 3 | 4 | 5,
+          comment: trimmedComment,
+        }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
+      if (!response.ok) throw new Error(payload.error?.message ?? "Ulasan gagal dikirim.");
+      setHasReview(true);
+      setDialogOpen(false);
+      setComment("");
+      toast.success("Ulasan Kakak berhasil dikirim! Terima kasih banyak! 💖", {
+        description: "Ulasanmu sekarang tampil di halaman ulasan Denailss.",
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Ulasan gagal dikirim.");
+    }
   };
 
   function getStatusBadge() {
@@ -179,8 +220,8 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex items-start gap-3 text-sm text-muted-foreground">
               <MapPinIcon className="mt-0.5 size-5 shrink-0 text-primary" />
               <div>
-                <p className="font-medium text-foreground">{SITE.name}</p>
-                <p className="mt-1">{SITE.address}</p>
+                <p className="font-medium text-foreground">{businessName}</p>
+                <p className="mt-1">{businessAddress}</p>
                 <a
                   href={SITE.mapsUrl}
                   target="_blank"
@@ -213,7 +254,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
               size="lg"
               className="w-full"
               nativeButton={false}
-              render={<a href={whatsappLink(`Halo Denailss, aku mau reschedule booking dengan ID ${booking.id}`)} target="_blank" rel="noopener noreferrer" />}
+              render={<a href={whatsappLink(`Halo Denailss, aku mau reschedule booking dengan ID ${booking.id}`, whatsappNumber)} target="_blank" rel="noopener noreferrer" />}
             >
               Minta Reschedule
             </Button>
@@ -223,7 +264,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
             size="lg"
             className="w-full"
             nativeButton={false}
-            render={<a href={whatsappLink(`Halo Denailss, aku mau tanya tentang booking ID ${booking.id}`)} target="_blank" rel="noopener noreferrer" />}
+            render={<a href={whatsappLink(`Halo Denailss, aku mau tanya tentang booking ID ${booking.id}`, whatsappNumber)} target="_blank" rel="noopener noreferrer" />}
           >
             Hubungi Admin
           </Button>

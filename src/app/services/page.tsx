@@ -12,7 +12,7 @@ import {
   ClockIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react";
-import { getActiveServices } from "@/features/services/data/services-admin.mock";
+import { listCatalogServicesAll } from "@/features/services/services/service-service";
 import { formatIDR, formatDuration } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
 import { Button } from "@/components/ui/button";
@@ -41,8 +41,8 @@ function serviceIcon(slug: string): Icon {
   return ICONS[slug] ?? SparkleIcon;
 }
 
-export default function ServicesPage() {
-  const services = getActiveServices();
+export default async function ServicesPage() {
+  const services = (await listCatalogServicesAll()).filter((s) => s.active);
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       {/* Header */}

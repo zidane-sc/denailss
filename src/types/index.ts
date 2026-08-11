@@ -98,6 +98,8 @@ export interface Review {
   visitDate: string;
   comment: string;
   photoSeed?: string;
+  /** The booking code this review belongs to (server-populated for ownership checks). */
+  bookingCode?: string;
 }
 
 export type DiscountType = "percentage" | "fixed";

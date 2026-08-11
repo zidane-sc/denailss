@@ -16,6 +16,12 @@ export type CustomerStatus = "new" | "active" | "inactive";
 export type CustomerSegment = "new" | "repeat" | "inactive";
 export type PreferredTime = "pagi" | "siang" | "sore";
 
+export interface CustomerPreferences {
+  preferredTime?: PreferredTime;
+  preferredShapes?: DesignShape[];
+  preferredColors?: DesignColor[];
+}
+
 export interface CrmCustomer {
   id: string;
   name: string;

@@ -1,5 +1,6 @@
 import type { Service } from "@/types";
 import { SITE, whatsappLink } from "@/constants/site";
+import type { Settings } from "@/features/settings/types";
 
 /**
  * JSON-LD structured data helpers (TRD §9 NFR — SEO).
@@ -8,9 +9,9 @@ import { SITE, whatsappLink } from "@/constants/site";
  * same way Next.js's own docs recommend, so user/owner-provided strings can
  * never break out of the `<script type="application/ld+json">` block.
  *
- * The owner-editable values (business name, description, address, social
- * handles, policies) will eventually flow from the settings feature; today
- * they are read from the single-source business constants.
+ * Owner-editable values (business name, description, address, social handles,
+ * policies) flow from the persisted settings (with a SITE-constant fallback).
+ * This module is client-safe: server callers pass the settings they fetch.
  */
 
 function jsonLdStringify(data: object): string {
@@ -29,21 +30,39 @@ export function JsonLdScript({ data }: { data: object }) {
   );
 }
 
+function resolveValues(settings: Settings) {
+  const businessName = settings.businessProfile.name || SITE.name;
+  const description = settings.businessProfile.description || SITE.description;
+  const address = settings.businessProfile.address || SITE.address;
+  const instagramHandle = settings.socialMedia.instagram || SITE.instagramHandle;
+  const tiktokHandle = settings.socialMedia.tiktok || SITE.tiktokHandle;
+  const whatsappNumber = settings.socialMedia.whatsapp || SITE.whatsappNumber;
+  return {
+    name: businessName,
+    description,
+    address,
+    instagramUrl: `https://www.instagram.com/${instagramHandle}/`,
+    tiktokUrl: `https://www.tiktok.com/@${tiktokHandle}`,
+    whatsappLink: whatsappLink("Halo Denailss, aku mau tanya-tanya~", whatsappNumber),
+  };
+}
+
 /** Organization + LocalBusiness description of Denailss (used on the landing page). */
-export function localBusinessJsonLd() {
+export function localBusinessJsonLd(settings: Settings) {
+  const v = resolveValues(settings);
   return {
     "@context": "https://schema.org",
     "@type": ["LocalBusiness", "NailSalon", "BeautySalon"],
     "@id": SITE.url,
-    name: SITE.name,
-    description: SITE.description,
+    name: v.name,
+    description: v.description,
     url: SITE.url,
-    telephone: `+${SITE.whatsappNumber}`,
+    telephone: `+${settings.socialMedia.whatsapp || SITE.whatsappNumber}`,
     image: `${SITE.url}/images/logo-horizontal.png`,
     logo: `${SITE.url}/images/logo-horizontal.png`,
     address: {
       "@type": "PostalAddress",
-      streetAddress: SITE.address,
+      streetAddress: v.address,
       addressCountry: "ID",
     },
     geo: {
@@ -52,11 +71,7 @@ export function localBusinessJsonLd() {
       longitude: 106.8456,
     },
     hasMap: SITE.mapsUrl,
-    sameAs: [
-      SITE.instagramUrl,
-      SITE.tiktokUrl,
-      whatsappLink("Halo Denailss, aku mau tanya-tanya~"),
-    ],
+    sameAs: [v.instagramUrl, v.tiktokUrl, v.whatsappLink],
     priceRange: "Rp",
     openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
@@ -92,7 +107,8 @@ export function serviceBreadcrumbJsonLd(slug: string, name: string) {
 }
 
 /** Service offering description (price + duration) for a service detail page. */
-export function serviceJsonLd(service: Service) {
+export function serviceJsonLd(service: Service, settings: Settings) {
+  const businessName = settings.businessProfile.name || SITE.name;
   return {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -102,7 +118,7 @@ export function serviceJsonLd(service: Service) {
     image: url(imagePath(service.heroImage)),
     provider: {
       "@type": "LocalBusiness",
-      name: SITE.name,
+      name: businessName,
       url: SITE.url,
     },
     offers: {

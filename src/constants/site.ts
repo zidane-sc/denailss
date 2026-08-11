@@ -16,7 +16,7 @@ export const SITE = {
   hoursNote: "Jadwal buka berubah tiap minggu, cek kalender booking untuk slot terbaru",
 } as const;
 
-export function whatsappLink(message?: string) {
-  const base = `https://wa.me/${SITE.whatsappNumber}`;
+export function whatsappLink(message?: string, number?: string) {
+  const base = `https://wa.me/${number ?? SITE.whatsappNumber}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }

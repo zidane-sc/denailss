@@ -5,19 +5,23 @@ import Link from "next/link";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { upsertPromotion } from "../data/promotions.mock";
+import { createPromotionApi } from "../services/promotion-admin-api";
 import { PromotionForm, emptyDraft } from "./promotion-form";
 import type { Promotion } from "@/types";
 
 export function PromotionCreateView() {
   const router = useRouter();
 
-  const handleSubmit = (promotion: Promotion) => {
-    upsertPromotion(promotion, "create");
-    toast.success("Promo berhasil dibuat.", {
-      description: `${promotion.code} sekarang aktif untuk booking customer.`,
-    });
-    router.push(`/backoffice/promotions/${promotion.id}`);
+  const handleSubmit = async (promotion: Promotion) => {
+    try {
+      await createPromotionApi(promotion);
+      toast.success("Promo berhasil dibuat.", {
+        description: `${promotion.code} sekarang aktif untuk booking customer.`,
+      });
+      router.push(`/backoffice/promotions/${promotion.id}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal membuat promo.");
+    }
   };
 
   return (
