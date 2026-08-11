@@ -41,6 +41,9 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s · ${SITE.name}`,
     },
     description: metaDescription,
+    alternates: {
+      canonical: "/",
+    },
     icons: {
       icon: "/images/logo-icon.png",
     },

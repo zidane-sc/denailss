@@ -5,6 +5,7 @@ import {
 } from "@/features/gallery/services/gallery-service";
 import { DesignDetailView } from "@/features/gallery/components/design-detail-view";
 import { imageUrl } from "@/lib/images";
+import { SITE } from "@/constants/site";
 
 export async function generateStaticParams() {
   const designs = await listCatalogGalleryWithImages();
@@ -22,7 +23,7 @@ export async function generateMetadata({
     title: design.title,
     description: design.description,
     alternates: {
-      canonical: `/gallery/${design.slug}`,
+      canonical: `${SITE.url}/gallery/${design.slug}`,
     },
     openGraph: {
       title: design.title,

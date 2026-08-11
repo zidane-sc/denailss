@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatDuration, formatIDR } from "@/lib/format";
 import { imageUrl } from "@/lib/images";
+import { SITE } from "@/constants/site";
 import {
   JsonLdScript,
   faqJsonLd,
@@ -36,7 +37,7 @@ export async function generateMetadata({
     title: service.name,
     description: service.shortDescription,
     alternates: {
-      canonical: `/services/${service.slug}`,
+      canonical: `${SITE.url}/services/${service.slug}`,
     },
     openGraph: {
       title: service.name,
