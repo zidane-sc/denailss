@@ -34,7 +34,7 @@ export async function getReviewSummary() {
 /**
  * Create a review for a completed booking owned by the authenticated customer.
  */
-export async function createReview(input: { bookingCode: string; rating: number; comment: string }, customerId: string): Promise<Review> {
+export async function createReview(input: { bookingCode: string; rating: number; comment: string; photoSeed?: string | null }, customerId: string): Promise<Review> {
   const db = getDb();
   const [appointment] = await db
     .select({ id: appointments.id, customerId: appointments.customerId, status: appointments.status })
@@ -71,6 +71,7 @@ export async function createReview(input: { bookingCode: string; rating: number;
       serviceSlug,
       rating: input.rating,
       comment: input.comment.trim(),
+      photoSeed: input.photoSeed ?? null,
     })
     .returning();
   if (!inserted) throw new ApiError("INTERNAL_ERROR", "Ulasan tidak dapat disimpan.", 500);

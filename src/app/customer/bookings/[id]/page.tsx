@@ -52,6 +52,8 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const [dialogOpen, setDialogOpen] = useState(false);
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState("");
+  const [reviewPhoto, setReviewPhoto] = useState<string | null>(null);
+  const [reviewPhotoError, setReviewPhotoError] = useState("");
   const [settings, setSettings] = useState<Settings | null>(null);
 
   // Check whether this booking already has a review (from the live reviews list).
@@ -88,6 +90,29 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const businessAddress = settings?.businessProfile.address ?? SITE.address;
   const whatsappNumber = settings?.socialMedia.whatsapp || SITE.whatsappNumber;
 
+  const handleReviewPhoto = async (file: File | undefined) => {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setReviewPhotoError("Foto ulasan harus JPG, PNG, atau WebP.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setReviewPhotoError("Ukuran foto ulasan maksimal 5 MB.");
+      return;
+    }
+    setReviewPhotoError("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/v1/reviews/photo", { method: "POST", body });
+      const payload = (await res.json()) as { data?: { reference?: string }; error?: { message?: string } };
+      if (!res.ok || !payload.data?.reference) throw new Error(payload.error?.message ?? "Gagal mengunggah foto.");
+      setReviewPhoto(payload.data.reference);
+    } catch (error) {
+      setReviewPhotoError(error instanceof Error ? error.message : "Gagal mengunggah foto.");
+    }
+  };
+
   const handleSendReview = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedComment = comment.trim();
@@ -104,6 +129,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
           bookingCode: booking.id,
           rating: rating as 1 | 2 | 3 | 4 | 5,
           comment: trimmedComment,
+          photoSeed: reviewPhoto,
         }),
       });
       const payload = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
@@ -111,6 +137,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       setHasReview(true);
       setDialogOpen(false);
       setComment("");
+      setReviewPhoto(null);
       toast.success("Ulasan Kakak berhasil dikirim! Terima kasih banyak! 💖", {
         description: "Ulasanmu sekarang tampil di halaman ulasan Denailss.",
       });
@@ -340,6 +367,25 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                 rows={4}
                 required
               />
+            </div>
+
+            {/* Optional review photo */}
+            <div className="grid gap-2">
+              <Label htmlFor="reviewPhoto" className="text-xs font-bold text-foreground/80">Foto Hasil (opsional)</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="reviewPhoto"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary"
+                  onChange={(e) => {
+                    void handleReviewPhoto(e.target.files?.[0]);
+                    e.target.value = "";
+                  }}
+                />
+                {reviewPhoto && <span className="shrink-0 text-xs font-medium text-emerald-600">✓ terpasang</span>}
+              </div>
+              {reviewPhotoError && <p className="text-xs text-destructive">{reviewPhotoError}</p>}
             </div>
 
             <DialogFooter>

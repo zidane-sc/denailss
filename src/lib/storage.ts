@@ -6,6 +6,7 @@ export const STORAGE_BUCKETS = {
   service: "service-images",
   settings: "business-assets",
   deposit: "deposit-proofs",
+  review: "review-images",
 } as const;
 
 export type StorageCategory = keyof typeof STORAGE_BUCKETS;
