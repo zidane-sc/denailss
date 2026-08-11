@@ -214,6 +214,22 @@ export function CalendarView() {
     setNotifWa({ type: "rescheduled", oldDate, oldTime });
   };
 
+  /** Drag & drop reschedule: move an appointment to another day (keeps its time). */
+  const handleDropOnDay = (e: React.DragEvent, dateKey: string) => {
+    e.preventDefault();
+    const appointmentId = e.dataTransfer.getData("text/plain");
+    if (!appointmentId) return;
+    const target = appointments.find((a) => a.id === appointmentId);
+    if (!target || target.date === dateKey) return;
+    rescheduleAppointment(target.id, dateKey, target.time);
+    toast.success("Jadwal dipindahkan ke hari lain! 📅");
+  };
+
+  const handleDragOverDay = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
   return (
     <div className="space-y-6">
       {/* Calendar Control Bar */}
@@ -284,6 +300,8 @@ export function CalendarView() {
             return (
               <div
                 key={dateKey}
+                onDrop={(e) => handleDropOnDay(e, dateKey)}
+                onDragOver={handleDragOverDay}
                 className={cn(
                   "rounded-2xl border bg-card p-4 min-h-[300px] flex flex-col gap-3 transition-colors",
                   isToday ? "border-primary/50 shadow-sm shadow-primary/5 bg-background-tint/10" : "border-border/60",
@@ -350,8 +368,13 @@ export function CalendarView() {
                   {!vacation && dayAppts.map((appt) => (
                     <button
                       key={appt.id}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", appt.id);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
                       className={cn(
-                        "rounded-xl border p-2.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs scale-[0.99] active:scale-[0.97]",
+                        "rounded-xl border p-2.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs scale-[0.99] active:scale-[0.97] cursor-grab",
                         appt.status === "completed"
                           ? "bg-muted/30 border-border/40 text-muted-foreground"
                           : appt.status === "confirmed"
@@ -461,6 +484,11 @@ export function CalendarView() {
                     {dayAppts.map((appt) => (
                       <div
                         key={appt.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData("text/plain", appt.id);
+                          e.dataTransfer.effectAllowed = "move";
+                        }}
                         className={cn(
                           "flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3.5 rounded-xl border cursor-pointer hover:bg-muted/10 transition-all",
                           appt.status === "completed" ? "bg-muted/10 border-border/50 text-muted-foreground" : "border-border bg-card"
@@ -553,6 +581,8 @@ export function CalendarView() {
               cells.push(
                 <div
                   key={dKey}
+                  onDrop={(e) => handleDropOnDay(e, dKey)}
+                  onDragOver={handleDragOverDay}
                   className={cn(
                     "min-h-[80px] border border-border/40 p-1.5 rounded-lg flex flex-col justify-between hover:bg-muted/15 cursor-pointer transition-colors",
                     isToday ? "bg-background-tint/15 border-primary/50" : "bg-card",
