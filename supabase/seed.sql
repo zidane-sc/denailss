@@ -1,6 +1,13 @@
 -- Idempotent development seed for the current Denailss catalog and availability configuration.
--- Gallery image files remain local semantic seeds until Supabase Storage is implemented.
--- Vacations, global deposit settings, promotions, and synthetic appointment fixtures are intentionally excluded.
+--
+-- Covers the dev catalog (services, gallery, gallery_images, availability
+-- template/overrides/blocked). The remaining config tables (availability
+-- vacations + booking rules, deposit_config, settings + FAQ/SEO, promotions,
+-- instagram_posts) are seeded idempotently by their own migrations
+-- (supabase/migrations/0005…0017), so they are not duplicated here.
+--
+-- Synthetic appointment/customer history is intentionally excluded — the app
+-- runs on real bookings only (real-data-only decision).
 
 BEGIN;
 
@@ -15,7 +22,8 @@ INSERT INTO public.services (id, slug, name, short_description, description, pri
 
 ON CONFLICT (id) DO UPDATE SET slug = EXCLUDED.slug, name = EXCLUDED.name, short_description = EXCLUDED.short_description, description = EXCLUDED.description, price_from = EXCLUDED.price_from, duration_minutes = EXCLUDED.duration_minutes, tiers = EXCLUDED.tiers, requires_pickup = EXCLUDED.requires_pickup, deposit_applicable = EXCLUDED.deposit_applicable, active = EXCLUDED.active, hero_image = EXCLUDED.hero_image, gallery_seeds = EXCLUDED.gallery_seeds, faq = EXCLUDED.faq, price_note = EXCLUDED.price_note, updated_at = now();
 
--- Gallery metadata; imageSeeds stay in the frontend until Storage migration.
+-- Gallery metadata. Image order/labels are backfilled into gallery_images by
+-- migration 0004 (semantic seeds resolved by src/lib/images.ts).
 INSERT INTO public.gallery (id, slug, title, description, aspect, style, color, occasion, shape, difficulty, price) VALUES
 ('des-01', 'korean-milk-nail', 'Korean Milk Nail', 'Base putih susu translucent dengan sedikit shimmer di ujung kuku. Simple tapi tetap terlihat premium, cocok dipakai harian.', 'portrait', 'korean', 'white', 'daily', 'almond', 'easy', 100000),
 ('des-02', 'classic-french-tip', 'Classic French Tip', 'French tip klasik dengan garis putih bersih di atas base nude natural.', 'square', 'french', 'nude', 'daily', 'square', 'easy', 100000),

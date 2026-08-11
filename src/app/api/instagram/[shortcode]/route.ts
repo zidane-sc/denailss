@@ -16,11 +16,16 @@ export async function GET(
   }
 
   const url = `https://www.instagram.com/p/${shortcode}/media/?size=l`;
-  const upstream = await fetch(url, {
-    headers: { "user-agent": "Mozilla/5.0" },
-    cache: "force-cache",
-    next: { revalidate: 86400 },
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(url, {
+      headers: { "user-agent": "Mozilla/5.0" },
+      cache: "force-cache",
+      next: { revalidate: 86400 },
+    });
+  } catch {
+    return new Response("upstream unreachable", { status: 502 });
+  }
 
   if (!upstream.ok) {
     return new Response("upstream error", { status: upstream.status });
