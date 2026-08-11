@@ -133,7 +133,7 @@ export function DashboardView() {
   const [newDesignSlug, setNewDesignSlug] = useState("");
   const [newDesignTitle, setNewDesignTitle] = useState("");
   const [newFulfillment, setNewFulfillment] = useState<"pickup" | "delivery" | "">("");
-  const [newDate, setNewDate] = useState("2026-08-09");
+  const [newDate, setNewDate] = useState(() => toDateKey(new Date()));
   const [newTime, setNewTime] = useState("13:00");
   const [newDuration, setNewDuration] = useState(60);
   const [newPrice, setNewPrice] = useState(120000);
@@ -142,8 +142,8 @@ export function DashboardView() {
   const [newNotes, setNewNotes] = useState("");
 
   // Today's details
-  const todayKey = "2026-08-09";
-  const todayDateObj = new Date(2026, 7, 9); // Sunday, Aug 9, 2026
+  const todayKey = toDateKey(new Date());
+  const todayDateObj = new Date();
 
   const todayAppts = appointments
     .filter((a) => a.date === todayKey)
@@ -160,10 +160,12 @@ export function DashboardView() {
 
   // Pulse Stats
   const todayBookingsCount = todayAppts.length;
+  const thisWeekStart = new Date();
+  thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay()); // Sunday
+  const thisWeekEnd = new Date(thisWeekStart);
+  thisWeekEnd.setDate(thisWeekStart.getDate() + 6);
   const thisWeekBookingsCount = appointments.filter((a) => {
-    const apptDate = new Date(a.date);
-    // Rough estimate for the week of Aug 9 - Aug 15
-    return a.date >= "2026-08-09" && a.date <= "2026-08-15";
+    return a.date >= toDateKey(thisWeekStart) && a.date <= toDateKey(thisWeekEnd);
   }).length;
   const pendingDepositsCount = pendingVerificationAppts.length;
 

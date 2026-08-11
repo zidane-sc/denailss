@@ -63,7 +63,7 @@ export function CalendarView() {
     rejectDeposit,
   } = useBackoffice();
 
-  const [currentDate, setCurrentDate] = useState<Date>(new Date(2026, 7, 9)); // Default to Aug 9, 2026
+  const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   
@@ -133,7 +133,7 @@ export function CalendarView() {
   };
 
   const handleJumpToToday = () => {
-    setCurrentDate(new Date(2026, 7, 9)); // studio "today"
+    setCurrentDate(new Date());
   };
 
   // Check if date falls in vacation
@@ -288,7 +288,7 @@ export function CalendarView() {
         <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           {weekDates.map((date) => {
             const dateKey = toDateKey(date);
-            const isToday = dateKey === "2026-08-09"; // Studio "today"
+            const isToday = dateKey === todayKey;
             const dayAppts = appointments
               .filter((a) => a.date === dateKey)
               .sort((a, b) => a.time.localeCompare(b.time));
@@ -572,7 +572,7 @@ export function CalendarView() {
             for (let d = 1; d <= totalDays; d++) {
               const dDate = new Date(year, month, d);
               const dKey = toDateKey(dDate);
-              const isToday = dKey === "2026-08-09";
+              const isToday = dKey === todayKey;
               
               const dayAppts = appointments.filter((a) => a.date === dKey);
               const vacation = checkIsVacation(dKey);

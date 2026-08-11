@@ -57,6 +57,8 @@
 - Decisively defers/skips proposed roadmap scope that would require significant new infrastructure or a new strategy (e.g., "skip it" for the API/RLS/E2E test layer, which would need a test-DB setup) rather than taking it on partially — expects the item to be marked as deferred by owner decision in the progress doc and the roadmap closed out as complete, without the item lingering as planned future work. Confidence: 0.55
 
 - Uses the requirement docs (PRD/TRD) as a source-of-truth checklist and proactively requests audits to find features that are unimplemented or have gaps ("check @docs is there task/feature that not implmented or have a gap") — expects the assistant to verify each documented requirement against the actual code with evidence (file paths), separate genuine feature gaps from structural/mock-data gaps, and report findings grouped by severity with a recommended fix priority. Confidence: 0.6
+
+- When a docs audit finds multiple gaps, wants them recorded in `docs/PROGRESS.md` first as a "Known gaps" section and then fixed incrementally, one at a time, each in its own scoped commit, with the progress doc updated to mark each gap resolved (and by-design decisions explicitly left as-is and documented as intentional) — instructed with "write the gap in @docs/PROGRESS.md then do it one by one". The assistant executed exactly this pattern (gap doc commit → 10 per-fix commits → docs "all resolved" commit) without objection. Confidence: 0.85
  now-unused `deletePromotion` function to keep the codebase free of dead code. Confidence: 0.35
 fidence: 0.35
 -to-end without further planning. Prefers functional completion of in-scope work before moving on. Confidence: 0.75

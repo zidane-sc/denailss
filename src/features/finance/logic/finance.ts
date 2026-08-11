@@ -16,7 +16,7 @@ export function toMonthKey(dateKey: string): MonthKey {
   return dateKey.slice(0, 7);
 }
 
-/** "2026-08-09" → { key: "2026-08", label: "Agustus 2026" } */
+/** "2026-08" → { key: "2026-08", label: "Agustus 2026" } */
 export function monthKeyInfo(monthKey: MonthKey): { key: MonthKey; label: string } {
   const [year, month] = monthKey.split("-").map(Number);
   const label = new Intl.DateTimeFormat("id-ID", {

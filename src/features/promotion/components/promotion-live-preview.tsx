@@ -3,7 +3,7 @@
 import { TicketIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import { motion, useReducedMotion } from "motion/react";
-import { formatRp, promoDaysBetween, promotionPeriodLabel, shortDateId } from "../logic/promotion";
+import { formatRp, promoDaysBetween, promoTodayKey, promotionPeriodLabel, shortDateId } from "../logic/promotion";
 
 /**
  * Draft promotion preview — the small customer-facing card that updates live
@@ -71,7 +71,7 @@ export function PromotionLivePreview({
   const limitUnlimited = parsedLimit <= 0;
 
   const valid = !Object.values(errors).some(Boolean) && Boolean(code) && Boolean(title);
-  const todayKey = "2026-08-09";
+  const todayKey = promoTodayKey();
   const isActive =
     valid &&
     active &&
@@ -164,7 +164,7 @@ export function PromotionLivePreview({
 
       <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
         Tampilan yang sama akan dilihat customer di situs &amp; halaman booking. Periode mengikuti
-        tanggal hari ini ({shortDateId("2026-08-09")}).
+        tanggal hari ini ({shortDateId(todayKey)}).
       </p>
     </div>
   );

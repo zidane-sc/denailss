@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { Appointment } from "../types";
-import { INITIAL_APPOINTMENTS } from "../data/appointments.mock";
 import type { AvailabilityConfig, TimeRange, BookingStatus, DepositVerificationStatus, DepositConfig } from "@/types";
 
 interface BackofficeContextType {
@@ -34,8 +33,8 @@ interface BackofficeContextType {
 const BackofficeContext = createContext<BackofficeContextType | undefined>(undefined);
 
 export function BackofficeProvider({ children }: { children: React.ReactNode }) {
-  // Seed from the FE-first fixture while hydrating persisted appointments.
-  const [appointments, setAppointments] = useState<Appointment[]>(() => [...INITIAL_APPOINTMENTS]);
+  // Start empty and hydrate persisted appointments from the API on mount.
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   useEffect(() => {
     let cancelled = false;
