@@ -3,7 +3,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { CaretLeftIcon, CaretRightIcon, ProhibitIcon } from "@phosphor-icons/react/dist/ssr";
 import { getMonthAvailability } from "@/features/booking/logic/availability";
-import { useAvailabilityConfig } from "@/features/booking/components/availability-provider";
+import { useAvailabilityConfig, useOccupiedSlotsByDate } from "@/features/booking/components/availability-provider";
 import { monthLabelId, toDateKey } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { DayAvailabilityStatus } from "@/types";
@@ -23,10 +23,11 @@ export function StepDate({
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const config = useAvailabilityConfig();
+  const occupiedSlotsByDate = useOccupiedSlotsByDate();
 
   const availability = useMemo(
-    () => (config ? getMonthAvailability(viewYear, viewMonth, durationMinutes, config, today) : new Map<string, DayAvailabilityStatus>()),
-    [viewYear, viewMonth, durationMinutes, config, today]
+    () => (config ? getMonthAvailability(viewYear, viewMonth, durationMinutes, config, today, occupiedSlotsByDate) : new Map<string, DayAvailabilityStatus>()),
+    [viewYear, viewMonth, durationMinutes, config, today, occupiedSlotsByDate]
   );
 
   const firstOfMonth = new Date(viewYear, viewMonth, 1);

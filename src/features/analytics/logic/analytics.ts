@@ -12,12 +12,16 @@ import type {
  * appointment seam (see `data/appointments-analytics.mock.ts`). No React, no
  * storage, no randomness. Components only map these results into UI.
  *
- * The reference "today" mirrors the mock timeline (2026-08-09, same date the
- * backoffice/CRM mocks use) so all Epics agree on which period is "now".
+ * The reference "today" is the real current date, so periods and buckets
+ * always reflect "now" (no frozen mock anchor).
  */
-export const ANALYTICS_TODAY = "2026-08-09";
 
-/** "2026-08-09" → { date: Date, weekKey: "2026-W32", monthKey: "2026-08" } */
+/** The anchor date (today) analytics buckets are measured against. */
+export function analyticsAnchorDate(): Date {
+  return new Date();
+}
+
+/** "YYYY-MM-DD" → { date: Date, weekKey: "2026-W32", monthKey: "2026-08" } */
 export function analyticsDateInfo(dateKey: string): {
   date: Date;
   weekKey: string;
@@ -36,15 +40,9 @@ export function analyticsDateInfo(dateKey: string): {
   };
 }
 
-/** The anchor date (today) analytics buckets are measured against. */
-export function analyticsAnchorDate(): Date {
-  const [y, m, d] = ANALYTICS_TODAY.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
 /**
  * Start date for a period preset, inclusive. "3m" means the last 3 calendar
- * months ending with the current month (August) — i.e. June 1.
+ * months ending with the current month — i.e. today's month minus 2, on the 1st.
  */
 export function analyticsPeriodStart(key: AnalyticsPeriodKey): Date {
   const anchor = analyticsAnchorDate();

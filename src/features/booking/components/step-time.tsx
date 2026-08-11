@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { getDayTimeSlots } from "@/features/booking/logic/availability";
-import { useAvailabilityConfig } from "@/features/booking/components/availability-provider";
+import { useAvailabilityConfig, useOccupiedSlotsByDate } from "@/features/booking/components/availability-provider";
 import { formatDateId, parseDateKey } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -25,9 +25,10 @@ export function StepTime({
 }) {
   const date = useMemo(() => parseDateKey(dateKey), [dateKey]);
   const config = useAvailabilityConfig();
+  const occupiedSlotsByDate = useOccupiedSlotsByDate();
   const groups = useMemo(
-    () => (config ? getDayTimeSlots(date, durationMinutes, config) : []),
-    [date, durationMinutes, config]
+    () => (config ? getDayTimeSlots(date, durationMinutes, config, new Date(), occupiedSlotsByDate[dateKey] ?? []) : []),
+    [date, durationMinutes, config, occupiedSlotsByDate, dateKey]
   );
 
   return (

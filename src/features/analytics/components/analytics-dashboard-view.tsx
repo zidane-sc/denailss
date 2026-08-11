@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { formatIDR } from "@/lib/format";
 import { useBackoffice } from "@/features/appointment/context/backoffice-context";
 import {
-  ANALYTICS_TODAY,
   analyticsAnchorDate,
   analyticsPeriodStart,
   calculateBookingStats,
@@ -104,7 +103,7 @@ export function AnalyticsDashboardView() {
             Lihat perkembangan Denailss dan pahami pola booking customer.
           </p>
           <p className="mt-1 text-xs text-muted-foreground/80">
-            Periode mengacu pada {ANALYTICS_TODAY} · data mock
+            Periode mengacu pada data booking nyata
           </p>
         </div>
         <AnalyticsPeriodSelector value={period} onChange={setPeriod} />

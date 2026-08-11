@@ -8,10 +8,16 @@ import type { Promotion, PromotionStatus } from "@/types";
  */
 
 /**
- * Simulated "today" used across the mock phase (matches CRM_TODAY) so the
- * active/scheduled/expired statuses stay stable until a real backend exists.
+ * Today's key (YYYY-MM-DD) using the real clock so active/scheduled/expired
+ * statuses reflect the actual date.
  */
-export const PROMO_TODAY = "2026-08-09";
+export function promoTodayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Backwards-compatible: today's key at module call time. */
+export const PROMO_TODAY = promoTodayKey();
 
 function parseDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split("-").map(Number);

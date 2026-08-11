@@ -53,6 +53,10 @@
 - Challenges delivered work with terse, pointed questions in Indonesian ("btw apakah tidak perlu ada feature hapus promo?") and expects the assistant to defend the design with concrete reasoning (requirements brief, data-integrity tradeoffs) and then immediately act on the conclusion — here, removing the now-unused `deletePromotion` function to keep the codebase free of dead code. Confidence: 0.35
 
 - When offered a prioritized menu of next steps (e.g., commit-first, start the deferred backend phase, or close the current phase's feature gaps), picks closing the loose ends/gaps of just-shipped FE work over housekeeping and over starting the next large phase — replied "okay fix the gap first" (tier-aware booking pricing) and again "go fix thegap!" (customer review submission), each time expecting the named gap implemented end-to-end without further planning. Prefers functional completion of in-scope work before moving on. Confidence: 0.75
+
+- Decisively defers/skips proposed roadmap scope that would require significant new infrastructure or a new strategy (e.g., "skip it" for the API/RLS/E2E test layer, which would need a test-DB setup) rather than taking it on partially — expects the item to be marked as deferred by owner decision in the progress doc and the roadmap closed out as complete, without the item lingering as planned future work. Confidence: 0.55
+
+- Uses the requirement docs (PRD/TRD) as a source-of-truth checklist and proactively requests audits to find features that are unimplemented or have gaps ("check @docs is there task/feature that not implmented or have a gap") — expects the assistant to verify each documented requirement against the actual code with evidence (file paths), separate genuine feature gaps from structural/mock-data gaps, and report findings grouped by severity with a recommended fix priority. Confidence: 0.6
  now-unused `deletePromotion` function to keep the codebase free of dead code. Confidence: 0.35
 fidence: 0.35
 -to-end without further planning. Prefers functional completion of in-scope work before moving on. Confidence: 0.75

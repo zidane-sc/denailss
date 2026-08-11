@@ -12,11 +12,18 @@ import type {
  * customer's appointments — no calculated values are ever hardcoded inside
  * the UI components.
  *
- * `todayKey` defaults to the seeded "today" used across the mock phase
- * (2026-08-09) so computed statuses/last-visits stay stable until a real
- * repository layer exists.
+ * `todayKey` defaults to the real current date so computed statuses and
+ * last-visits always reflect "now".
  */
-export const CRM_TODAY = "2026-08-09";
+
+/** Today's date as YYYY-MM-DD (real clock, no frozen mock anchor). */
+export function crmTodayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Backwards-compatible helper: today's key at module call time. */
+export const CRM_TODAY = crmTodayKey();
 
 const UPCOMING_STATUSES: BookingStatus[] = [
   "pending_deposit",

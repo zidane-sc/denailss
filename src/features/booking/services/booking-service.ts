@@ -307,3 +307,29 @@ export async function updateBooking(bookingCodeValue: string, input: UpdateBooki
   if (!mapped[0]) throw new ApiError("INTERNAL_ERROR", "Booking tidak dapat diperbarui.", 500);
   return mapped[0];
 }
+
+/**
+ * Real booked slots grouped by date, for the customer booking availability
+ * engine. Includes every slot-reserving status (confirmed, waiting
+ * verification, pending deposit, pending) — an appointment's [start, end]
+ * occupies that window.
+ */
+export async function getBookedSlotsByDate(): Promise<Record<string, { start: string; end: string }[]>> {
+  const db = getDb();
+  const rows = await db.select({
+    date: appointments.date,
+    startTime: appointments.time,
+    durationMinutes: appointments.durationMinutes,
+  }).from(appointments).where(
+    inArray(appointments.status, ["confirmed", "waiting_verification", "pending_deposit", "pending"])
+  );
+
+  const byDate: Record<string, { start: string; end: string }[]> = {};
+  for (const row of rows) {
+    if (!row.date || !row.startTime) continue;
+    const end = toMinutes(row.startTime) + (row.durationMinutes ?? 0);
+    const endTime = `${String(Math.floor(end / 60)).padStart(2, "0")}:${String(end % 60).padStart(2, "0")}`;
+    (byDate[row.date] ??= []).push({ start: row.startTime, end: endTime });
+  }
+  return byDate;
+}

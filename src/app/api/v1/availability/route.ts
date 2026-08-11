@@ -1,5 +1,6 @@
 import { availabilityConfigSchema } from "@/features/availability/schemas/api";
 import { getAvailabilityConfig, saveAvailabilityConfig } from "@/features/booking/services/availability-service";
+import { getBookedSlotsByDate } from "@/features/booking/services/booking-service";
 import { requireApiOwner } from "@/lib/supabase/api-auth";
 import { ApiError } from "@/lib/api/errors";
 import { apiFailure, apiSuccess } from "@/lib/api/response";
@@ -7,7 +8,11 @@ import type { AvailabilityConfig } from "@/types";
 
 export async function GET() {
   try {
-    return apiSuccess(await getAvailabilityConfig());
+    const [config, occupiedSlotsByDate] = await Promise.all([
+      getAvailabilityConfig(),
+      getBookedSlotsByDate(),
+    ]);
+    return apiSuccess({ config, occupiedSlotsByDate });
   } catch (error) {
     return apiFailure(error);
   }

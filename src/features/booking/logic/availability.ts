@@ -1,4 +1,3 @@
-import { MOCK_APPOINTMENTS } from "@/features/booking/data/appointments.mock";
 import { toDateKey } from "@/lib/format";
 import type {
   AvailabilityConfig,
@@ -10,6 +9,12 @@ import type {
 } from "@/types";
 
 const SLOT_STEP_MINUTES = 30;
+
+/** An occupied slot (a booked appointment's start/end, or a blocked range). */
+export interface OccupiedSlot {
+  start: string;
+  end: string;
+}
 
 function toMinutes(time: string) {
   const [h, m] = time.split(":").map(Number);
@@ -40,10 +45,6 @@ function getEffectiveRanges(config: AvailabilityConfig, dateKey: string, weekday
   return config.overrides[dateKey] ?? config.weeklyTemplate[weekday];
 }
 
-function getAppointmentsForDate(dateKey: string) {
-  return MOCK_APPOINTMENTS.filter((appointment) => appointment.date === dateKey);
-}
-
 function getBlockedRangesForDate(config: AvailabilityConfig, dateKey: string) {
   return config.blockedTimes
     .filter((block) => block.date === dateKey)
@@ -59,14 +60,13 @@ interface SlotCandidate {
 function buildCandidates(
   config: AvailabilityConfig,
   dateKey: string,
+  occupiedSlots: OccupiedSlot[],
   ranges: TimeRange[],
   durationMinutes: number,
   now: Date
 ): SlotCandidate[] {
   const { bufferMinutes, minimumNoticeHours, maxBookingsPerDay } = config.bookingRules;
-  const appointments = getAppointmentsForDate(dateKey);
-  const blocked = getBlockedRangesForDate(config, dateKey);
-  const dayIsMaxedOut = appointments.length >= maxBookingsPerDay;
+  const dayIsMaxedOut = occupiedSlots.length >= maxBookingsPerDay;
 
   const isToday = dateKey === toDateKey(now);
   const earliestBookableMinutes = isToday
@@ -74,8 +74,8 @@ function buildCandidates(
     : -Infinity;
 
   const occupied = [
-    ...appointments.map((a) => ({ start: toMinutes(a.start) - bufferMinutes, end: toMinutes(a.end) + bufferMinutes })),
-    ...blocked.map((r) => ({ start: toMinutes(r.start), end: toMinutes(r.end) })),
+    ...occupiedSlots.map((slot) => ({ start: toMinutes(slot.start) - bufferMinutes, end: toMinutes(slot.end) + bufferMinutes })),
+    ...getBlockedRangesForDate(config, dateKey).map((r) => ({ start: toMinutes(r.start), end: toMinutes(r.end) })),
   ];
 
   const candidates: SlotCandidate[] = [];
@@ -137,7 +137,8 @@ export function getDayTimeSlots(
   date: Date,
   durationMinutes: number,
   config: AvailabilityConfig,
-  now: Date = new Date()
+  now: Date = new Date(),
+  occupiedSlots: OccupiedSlot[] = []
 ): SlotGroup[] {
   const dateKey = toDateKey(date);
   const weekday = date.getDay() as AvailabilityWeekday;
@@ -147,7 +148,7 @@ export function getDayTimeSlots(
   const ranges = getEffectiveRanges(config, dateKey, weekday);
   if (ranges.length === 0) return [];
 
-  const candidates = buildCandidates(config, dateKey, ranges, durationMinutes, now);
+  const candidates = buildCandidates(config, dateKey, occupiedSlots, ranges, durationMinutes, now);
   return groupCandidates(candidates);
 }
 
@@ -155,7 +156,8 @@ export function getDayStatus(
   date: Date,
   durationMinutes: number,
   config: AvailabilityConfig,
-  now: Date = new Date()
+  now: Date = new Date(),
+  occupiedSlots: OccupiedSlot[] = []
 ): DayAvailabilityStatus {
   const dateKey = toDateKey(date);
   const today = startOfDay(now);
@@ -174,7 +176,7 @@ export function getDayStatus(
   const ranges = getEffectiveRanges(config, dateKey, weekday);
   if (ranges.length === 0) return "closed";
 
-  const groups = getDayTimeSlots(date, durationMinutes, config, now);
+  const groups = getDayTimeSlots(date, durationMinutes, config, now, occupiedSlots);
   const totalSlots = groups.reduce((sum, g) => sum + g.slots.length, 0);
   const availableSlots = groups.reduce(
     (sum, g) => sum + g.slots.filter((s) => s.status === "available").length,
@@ -191,14 +193,16 @@ export function getMonthAvailability(
   month: number,
   durationMinutes: number,
   config: AvailabilityConfig,
-  now: Date = new Date()
+  now: Date = new Date(),
+  occupiedByDate: Record<string, OccupiedSlot[]> = {}
 ): Map<string, DayAvailabilityStatus> {
   const map = new Map<string, DayAvailabilityStatus>();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
-    map.set(toDateKey(date), getDayStatus(date, durationMinutes, config, now));
+    const dateKey = toDateKey(date);
+    map.set(dateKey, getDayStatus(date, durationMinutes, config, now, occupiedByDate[dateKey] ?? []));
   }
 
   return map;

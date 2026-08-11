@@ -86,4 +86,17 @@ describe("getDayTimeSlots", () => {
       expect(h).toBeGreaterThanOrEqual(13);
     }
   });
+
+  it("marks slots overlapping a real booking as full", () => {
+    const config = makeConfig(); // 09:00-17:00 Thursday
+    const occupied = [{ start: "13:00", end: "14:00" }];
+    const groups = getDayTimeSlots(new Date("2026-08-13"), 60, config, now, occupied);
+    const times = groups.flatMap((g) => g.slots);
+    // 13:00-14:00 with 15-min buffer → blocks 12:45-14:15, so 12:00-14:00 slots are full.
+    const overlapping = times.filter((s) => s.time >= "12:00" && s.time < "14:00");
+    expect(overlapping.length).toBeGreaterThan(0);
+    expect(overlapping.every((s) => s.status === "full")).toBe(true);
+    // A morning slot (09:00) stays available.
+    expect(times.find((s) => s.time === "09:00")?.status).toBe("available");
+  });
 });
