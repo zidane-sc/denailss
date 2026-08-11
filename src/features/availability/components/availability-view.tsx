@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useBackoffice } from "@/features/appointment/context/backoffice-context";
-import { formatDateId, monthLabelId, dayNamesId } from "@/lib/format";
+import { dayNamesId } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,14 +11,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   ClockIcon,
-  CalendarBlankIcon,
   SlidersIcon,
   TrashIcon,
   PlusIcon,
-  CheckIcon,
-  InfoIcon,
-  BeachBallIcon,
-  LockIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import type { TimeRange, PaymentMethod } from "@/types";
 

@@ -22,5 +22,6 @@ export function DepositProofImage({ reference }: { reference: string }) {
   }, [reference]);
 
   if (!src) return <p className="text-xs text-muted-foreground">Bukti transfer sedang dimuat...</p>;
+  // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt="Bukti Transfer" className="h-full w-full cursor-zoom-in object-cover" onClick={() => window.open(src, "_blank")} />;
 }

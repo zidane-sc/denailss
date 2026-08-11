@@ -13,18 +13,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeftIcon,
-  UserIcon,
   PhoneIcon,
-  CalendarBlankIcon,
-  ClockIcon,
-  CheckIcon,
   XIcon,
-  InfoIcon,
-  CheckCircleIcon,
-  XCircleIcon,
   WhatsappLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import type { BookingStatus, DepositVerificationStatus } from "@/types";
+import type { BookingStatus } from "@/types";
 import { DepositProofImage } from "./deposit-proof-image";
 import {
   waCustomerChatLink,

@@ -23,19 +23,13 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  CalendarBlankIcon,
-  ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
-  FileTextIcon,
   PlusIcon,
-  WarningIcon,
-  ShieldCheckIcon,
-  UserIcon,
   MagnifyingGlassIcon,
   WhatsappLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import type { BookingStatus, DepositVerificationStatus } from "@/types";
+import type { BookingStatus } from "@/types";
 import type { Appointment } from "../types";
 import { DepositProofImage } from "./deposit-proof-image";
 import {
@@ -668,7 +662,10 @@ export function DashboardView() {
                     <div className="flex flex-col gap-2">
                       <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Bukti Transfer:</span>
                       <div className="relative aspect-[3/4] w-full max-w-[140px] rounded-lg overflow-hidden border border-border bg-muted/30">
-                        {appt.depositProofUrl ? <DepositProofImage reference={appt.depositProofUrl} /> : <img src={imageUrl("transfer-proof")} alt="Bukti Transfer" className="h-full w-full object-cover" />}
+                        {appt.depositProofUrl ? <DepositProofImage reference={appt.depositProofUrl} /> : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={imageUrl("transfer-proof")} alt="Bukti Transfer" className="h-full w-full object-cover" />
+                        )}
                       </div>
                       <span className="text-[9px] text-muted-foreground italic">Klik gambar untuk memperbesar</span>
                     </div>

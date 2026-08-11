@@ -11,8 +11,7 @@ import {
   dayNamesId,
   monthNamesId,
 } from "@/lib/format";
-import { imageUrl } from "@/lib/images";
-import { serviceNamesLabel, FULFILLMENT_LABELS } from "@/features/appointment/lib/labels";
+import { serviceNamesLabel } from "@/features/appointment/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,19 +29,12 @@ import {
   CaretRightIcon,
   UserIcon,
   PhoneIcon,
-  CalendarBlankIcon,
   ClockIcon,
-  CheckIcon,
   XIcon,
-  InfoIcon,
-  ShieldCheckIcon,
   ArrowRightIcon,
-  PlusIcon,
-  BookmarkSimpleIcon,
-  WarningIcon,
   WhatsappLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import type { BookingStatus, DepositVerificationStatus, TimeRange } from "@/types";
+import type { BookingStatus } from "@/types";
 import type { Appointment } from "../types";
 import { DepositProofImage } from "./deposit-proof-image";
 import {

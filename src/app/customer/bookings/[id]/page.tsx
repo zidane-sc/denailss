@@ -2,7 +2,6 @@
 
 import React, { useState, use, useEffect } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Reveal } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
