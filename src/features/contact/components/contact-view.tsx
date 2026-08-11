@@ -193,7 +193,7 @@ export function ContactView() {
                 </span>
                 <div>
                   <p className="text-[10px] text-muted-foreground leading-none">Email</p>
-                  <p className="font-semibold text-foreground mt-1">hello@denailss.id</p>
+                  <p className="font-semibold text-foreground mt-1">hello@denailss.beauty</p>
                 </div>
               </div>
             </div>

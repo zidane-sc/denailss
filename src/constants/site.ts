@@ -4,7 +4,7 @@ export const SITE = {
   taglineId: "Nail art rumahan langgananmu",
   description:
     "Booking nail art, gel extension, dan perawatan tangan-kaki di Denailss, tempat nail art favorit yang bisa kamu book langsung dari HP.",
-  url: "https://denailss.id",
+  url: "https://denailss.beauty",
   whatsappNumber: "6281234567890",
   whatsappDisplay: "+62 812-3456-7890",
   instagramHandle: "denailss_9",
