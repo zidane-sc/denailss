@@ -16,6 +16,11 @@ export const updateSettingsSchema = z.object({
     cancellation: z.string().trim().default(""),
     deposit: z.string().trim().default(""),
   }),
+  seo: z.object({
+    metaTitle: z.string().trim().default(""),
+    metaDescription: z.string().trim().default(""),
+    ogImage: z.string().trim().min(1).nullable().optional(),
+  }),
 });
 
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;

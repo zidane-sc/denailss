@@ -10,6 +10,8 @@ import { PromotionsProvider } from "@/features/promotion/components/promotions-p
 import { ReviewsProvider } from "@/features/reviews/components/reviews-provider";
 import { AvailabilityProvider } from "@/features/booking/components/availability-provider";
 import { DepositConfigProvider } from "@/features/booking/components/deposit-config-provider";
+import { getPublicSettings } from "@/features/settings/services/settings-public";
+import { imageUrl } from "@/lib/images";
 import { SITE } from "@/constants/site";
 import "./globals.css";
 
@@ -25,43 +27,50 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE.url),
-  title: {
-    default: `${SITE.name} · ${SITE.tagline}`,
-    template: `%s · ${SITE.name}`,
-  },
-  description: SITE.description,
-  icons: {
-    icon: "/images/logo-icon.png",
-  },
-  openGraph: {
-    title: `${SITE.name} · ${SITE.tagline}`,
-    description: SITE.description,
-    url: SITE.url,
-    siteName: SITE.name,
-    locale: "id_ID",
-    type: "website",
-    images: [
-      {
-        url: "/images/logo-horizontal.png",
-        width: 800,
-        height: 320,
-        alt: SITE.name,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${SITE.name} · ${SITE.tagline}`,
-    description: SITE.description,
-    images: ["/images/logo-horizontal.png"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getPublicSettings();
+  const metaTitle = settings.seo.metaTitle || `${SITE.name} · ${SITE.tagline}`;
+  const metaDescription = settings.seo.metaDescription || SITE.description;
+  const ogImage = settings.seo.ogImage ? imageUrl(settings.seo.ogImage) : "/images/logo-horizontal.png";
+
+  return {
+    metadataBase: new URL(SITE.url),
+    title: {
+      default: metaTitle,
+      template: `%s · ${SITE.name}`,
+    },
+    description: metaDescription,
+    icons: {
+      icon: "/images/logo-icon.png",
+    },
+    openGraph: {
+      title: metaTitle,
+      description: metaDescription,
+      url: SITE.url,
+      siteName: SITE.name,
+      locale: "id_ID",
+      type: "website",
+      images: [
+        {
+          url: ogImage,
+          width: 800,
+          height: 320,
+          alt: SITE.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: metaTitle,
+      description: metaDescription,
+      images: [ogImage],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

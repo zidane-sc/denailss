@@ -29,10 +29,20 @@ export interface SettingsPolicies {
   deposit: string;
 }
 
+export interface SettingsSeo {
+  /** Page title suffix/brand (e.g. "Denailss · Nail art & beauty space"). */
+  metaTitle: string;
+  /** Meta description shown in search results. */
+  metaDescription: string;
+  /** Open Graph / social share image (storage ref or path). */
+  ogImage: string | null;
+}
+
 export interface Settings {
   businessProfile: SettingsBusinessProfile;
   socialMedia: SettingsSocialMedia;
   policies: SettingsPolicies;
+  seo: SettingsSeo;
 }
 
 /** Settings draft mirrors the persisted model; text inputs are all strings. */

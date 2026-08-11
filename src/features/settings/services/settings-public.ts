@@ -33,5 +33,10 @@ export async function getPublicSettings(): Promise<Settings> {
       cancellation: "",
       deposit: "",
     },
+    seo: {
+      metaTitle: `${SITE.name} · ${SITE.tagline}`,
+      metaDescription: SITE.description,
+      ogImage: "/images/logo-horizontal.png",
+    },
   };
 }

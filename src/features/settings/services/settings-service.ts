@@ -26,6 +26,11 @@ function rowToSettings(row: typeof settings.$inferSelect): Settings {
       cancellation: row.cancellationPolicy,
       deposit: row.depositPolicy,
     },
+    seo: {
+      metaTitle: row.metaTitle,
+      metaDescription: row.metaDescription,
+      ogImage: row.ogImage ?? null,
+    },
   };
 }
 
@@ -49,6 +54,9 @@ export async function updateSettings(input: UpdateSettingsInput): Promise<Settin
     whatsapp: input.socialMedia.whatsapp,
     cancellationPolicy: input.policies.cancellation,
     depositPolicy: input.policies.deposit,
+    metaTitle: input.seo.metaTitle,
+    metaDescription: input.seo.metaDescription,
+    ogImage: input.seo.ogImage ?? null,
     updatedAt: new Date(),
   };
 

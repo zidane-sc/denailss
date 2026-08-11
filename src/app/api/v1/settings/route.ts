@@ -25,6 +25,11 @@ async function defaultSettings() {
       cancellation: "",
       deposit: deposit.notes,
     },
+    seo: {
+      metaTitle: `${SITE.name} · ${SITE.tagline}`,
+      metaDescription: SITE.description,
+      ogImage: "/images/logo-horizontal.png",
+    },
   };
 }
 

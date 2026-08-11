@@ -273,6 +273,9 @@ export const settings = pgTable(
     whatsapp: text("whatsapp").notNull().default(""),
     cancellationPolicy: text("cancellation_policy").notNull().default(""),
     depositPolicy: text("deposit_policy").notNull().default(""),
+    metaTitle: text("meta_title").notNull().default(""),
+    metaDescription: text("meta_description").notNull().default(""),
+    ogImage: text("og_image"),
     ...timestamps,
   },
   (table) => [index("settings_id_idx").on(table.id)]
