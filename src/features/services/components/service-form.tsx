@@ -226,9 +226,8 @@ export function ServiceForm({
                   </Label>
                   <Input
                     id="svc-price"
-                    type="number"
-                    min={0}
-                    step={1000}
+                    type="text"
+                    inputMode="numeric"
                     value={priceText}
                     onChange={(e) => setPriceText(e.target.value)}
                     placeholder="contoh: 150000"
@@ -240,9 +239,8 @@ export function ServiceForm({
                   </Label>
                   <Input
                     id="svc-duration"
-                    type="number"
-                    min={1}
-                    step={5}
+                    type="text"
+                    inputMode="numeric"
                     value={durationText}
                     onChange={(e) => setDurationText(e.target.value)}
                     placeholder="contoh: 60"
@@ -277,9 +275,8 @@ export function ServiceForm({
                         </Label>
                         <Input
                           id={`tier-${tier.key}-price`}
-                          type="number"
-                          min={0}
-                          step={1000}
+                          type="text"
+                          inputMode="numeric"
                           value={tier.priceFrom}
                           onChange={(e) =>
                             setTiers((prev) =>
@@ -294,9 +291,8 @@ export function ServiceForm({
                         </Label>
                         <Input
                           id={`tier-${tier.key}-durasi`}
-                          type="number"
-                          min={1}
-                          step={5}
+                          type="text"
+                          inputMode="numeric"
                           value={tier.durationMinutes}
                           onChange={(e) =>
                             setTiers((prev) =>

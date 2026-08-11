@@ -476,6 +476,7 @@ export function ServiceAdminListView() {
       {/* Edit dialog */}
       {editing && (
         <ServiceForm
+          key={editing.id}
           open={formOpen}
           onOpenChange={setFormOpen}
           initial={editing}
