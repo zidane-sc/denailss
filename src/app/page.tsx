@@ -15,17 +15,15 @@ import {
   localBusinessJsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
-import {
-  BOOKING_FAQ,
-  SERVICE_FAQ,
-} from "@/features/landing/data/faq.mock";
 
 export default async function Home() {
-  const [faqLd, designs, settings] = await Promise.all([
-    faqJsonLd([...BOOKING_FAQ, ...SERVICE_FAQ]),
+  const [designs, settings] = await Promise.all([
     listCatalogGalleryWithImages(),
     getPublicSettings(),
   ]);
+  const faqLd = faqJsonLd(
+    settings.faqs.map((f) => ({ q: f.q, a: f.a }))
+  );
   const businessLd = localBusinessJsonLd(settings);
   const siteLd = websiteJsonLd();
 

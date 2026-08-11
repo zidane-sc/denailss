@@ -1,5 +1,6 @@
 import { updateSettingsSchema } from "@/features/settings/schemas/api";
 import { getSettings, updateSettings } from "@/features/settings/services/settings-service";
+import { DEFAULT_FAQS } from "@/features/settings/services/settings-public";
 import { getDepositConfig } from "@/features/booking/services/deposit-service";
 import { requireApiOwner } from "@/lib/supabase/api-auth";
 import { ApiError } from "@/lib/api/errors";
@@ -30,6 +31,7 @@ async function defaultSettings() {
       metaDescription: SITE.description,
       ogImage: "/images/logo-horizontal.png",
     },
+    faqs: DEFAULT_FAQS,
   };
 }
 

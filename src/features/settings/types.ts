@@ -38,11 +38,19 @@ export interface SettingsSeo {
   ogImage: string | null;
 }
 
+/** A landing FAQ entry. `section` groups it ("booking" | "service"). */
+export interface SettingsFaq {
+  section: "booking" | "service";
+  q: string;
+  a: string;
+}
+
 export interface Settings {
   businessProfile: SettingsBusinessProfile;
   socialMedia: SettingsSocialMedia;
   policies: SettingsPolicies;
   seo: SettingsSeo;
+  faqs: SettingsFaq[];
 }
 
 /** Settings draft mirrors the persisted model; text inputs are all strings. */

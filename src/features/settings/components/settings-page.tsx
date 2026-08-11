@@ -12,6 +12,7 @@ import { BusinessProfileForm } from "./business-profile-form";
 import { SocialMediaForm } from "./social-media-form";
 import { PoliciesForm } from "./policies-form";
 import { SeoForm } from "./seo-form";
+import { FaqForm } from "./faq-form";
 
 /**
  * Settings page — Epic 9. One focused workspace for the owner to maintain the
@@ -137,6 +138,7 @@ export function SettingsPageView() {
         <SocialMediaForm draft={draft} error={errors} onChange={setDraft} />
         <PoliciesForm draft={draft} onChange={setDraft} />
         <SeoForm draft={draft} onChange={setDraft} />
+        <FaqForm draft={draft} onChange={setDraft} />
 
         {/* Save bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-xs sm:p-5">

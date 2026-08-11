@@ -290,6 +290,7 @@ export const settings = pgTable(
     metaTitle: text("meta_title").notNull().default(""),
     metaDescription: text("meta_description").notNull().default(""),
     ogImage: text("og_image"),
+    faqs: jsonb("faqs").notNull().default([]),
     ...timestamps,
   },
   (table) => [index("settings_id_idx").on(table.id)]

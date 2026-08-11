@@ -21,6 +21,13 @@ export const updateSettingsSchema = z.object({
     metaDescription: z.string().trim().default(""),
     ogImage: z.string().trim().min(1).nullable().optional(),
   }),
+  faqs: z.array(
+    z.object({
+      section: z.enum(["booking", "service"]),
+      q: z.string().trim().min(1, "Pertanyaan wajib diisi."),
+      a: z.string().trim().min(1, "Jawaban wajib diisi."),
+    })
+  ).default([]),
 });
 
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;

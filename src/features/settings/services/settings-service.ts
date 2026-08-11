@@ -31,6 +31,7 @@ function rowToSettings(row: typeof settings.$inferSelect): Settings {
       metaDescription: row.metaDescription,
       ogImage: row.ogImage ?? null,
     },
+    faqs: (row.faqs as Settings["faqs"]) ?? [],
   };
 }
 
@@ -57,6 +58,7 @@ export async function updateSettings(input: UpdateSettingsInput): Promise<Settin
     metaTitle: input.seo.metaTitle,
     metaDescription: input.seo.metaDescription,
     ogImage: input.seo.ogImage ?? null,
+    faqs: input.faqs,
     updatedAt: new Date(),
   };
 
