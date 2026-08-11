@@ -5,23 +5,38 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { CalendarCheckIcon, ClockIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
+import { CalendarCheckIcon, ClockIcon, HeartIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { formatDateId, parseDateKey } from "@/lib/format";
+import { imageUrl } from "@/lib/images";
 import { fetchCustomerBookings, fetchCustomerProfile } from "@/features/customer/data/customer-api";
 import type { CustomerBooking, CustomerProfile } from "@/features/customer/types";
+import type { GalleryDesign } from "@/types";
 
 export default function CustomerDashboardPage() {
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [bookings, setBookings] = useState<CustomerBooking[]>([]);
+  const [favoriteDesigns, setFavoriteDesigns] = useState<GalleryDesign[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchCustomerProfile(), fetchCustomerBookings()])
-      .then(([nextProfile, nextBookings]) => {
-        setProfile(nextProfile);
-        setBookings(nextBookings);
-      })
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetchCustomerProfile(),
+      fetchCustomerBookings(),
+      fetch("/api/v1/customer/favorites", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then(async (fav) => {
+          const slugs = new Set<string>(fav?.data?.slugs ?? []);
+          if (slugs.size === 0) return [];
+          const gallery = await fetch("/api/v1/gallery", { cache: "no-store" }).then((g) => (g.ok ? g.json() : null));
+          return ((gallery?.data as GalleryDesign[] | undefined) ?? []).filter((d) => slugs.has(d.slug)).slice(0, 4);
+        })
+        .catch(() => [] as GalleryDesign[]),
+    ]).then(([nextProfile, nextBookings, favorites]) => {
+      setProfile(nextProfile);
+      setBookings(nextBookings);
+      setFavoriteDesigns(favorites);
+      setLoading(false);
+    });
   }, []);
 
   const now = new Date();
@@ -113,6 +128,40 @@ export default function CustomerDashboardPage() {
                   </Link>
                 )) : <p className="text-sm text-muted-foreground">Belum ada riwayat booking.</p>}
               </div>
+            </div>
+
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h2 className="font-heading text-lg font-semibold">Desain Favorit</h2>
+                <Link href="/customer/favorites" className="text-sm text-primary hover:underline">Semua</Link>
+              </div>
+              {favoriteDesigns.length > 0 ? (
+                <div className="mt-6 grid grid-cols-4 gap-2">
+                  {favoriteDesigns.map((design) => (
+                    <div key={design.id} className="group relative">
+                      <Link href={`/gallery/${design.slug}`} className="block">
+                        <div className="relative aspect-square overflow-hidden rounded-xl border border-border/60 bg-muted">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={imageUrl(design.imageSeeds[0] ?? "denailss-fallback")} alt={design.title} className="size-full object-cover" />
+                        </div>
+                      </Link>
+                      <Link
+                        href={`/booking?design=${design.slug}`}
+                        title={`Booking ${design.title}`}
+                        className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/0 opacity-0 transition-all group-hover:bg-black/50 group-hover:opacity-100"
+                      >
+                        <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold text-white">Booking</span>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-6 flex flex-col items-center gap-2 rounded-xl bg-muted/40 py-6 text-center">
+                  <HeartIcon className="size-5 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Belum ada desain favorit.</p>
+                  <Link href="/gallery" className="text-sm font-medium text-primary hover:underline">Jelajahi Gallery</Link>
+                </div>
+              )}
             </div>
           </Reveal>
         </div>
