@@ -12,6 +12,7 @@ export function appointmentToCustomerBooking(appointment: Appointment): Customer
     time: appointment.time,
     status: appointment.status,
     depositStatus: appointment.depositStatus,
+    depositRejectReason: appointment.depositRejectReason,
     totalPrice: appointment.price,
     hasReview: false,
   };

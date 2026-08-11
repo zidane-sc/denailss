@@ -20,6 +20,7 @@ export interface CustomerBooking {
   time: string;
   status: BookingStatus;
   depositStatus?: DepositVerificationStatus;
+  depositRejectReason?: string;
   totalPrice: number;
   promoCode?: string;
   hasReview: boolean;

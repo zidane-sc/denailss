@@ -14,9 +14,11 @@ import type { Review } from "@/types";
 import { formatIDR, formatDateId, parseDateKey } from "@/lib/format";
 import {
   ArrowLeftIcon,
+  CheckCircleIcon,
   ClockIcon,
   MapPinIcon,
   WarningCircleIcon,
+  XCircleIcon,
   StarIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { SITE, whatsappLink } from "@/constants/site";
@@ -193,7 +195,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
           
-          {(booking.status === "pending_deposit" || booking.status === "waiting_verification") && (
+          {booking.status === "pending_deposit" || booking.status === "waiting_verification" ? (
             <div className="border-t border-border/50 p-6 bg-accent-soft/30">
               <div className="flex items-start gap-3">
                 {booking.status === "pending_deposit" ? (
@@ -213,7 +215,33 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
             </div>
-          )}
+          ) : booking.depositStatus === "approved" ? (
+            <div className="border-t border-border/50 p-6 bg-emerald-50">
+              <div className="flex items-start gap-3">
+                <CheckCircleIcon className="size-6 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-emerald-800">Deposit Diterima</h3>
+                  <p className="mt-1 text-sm text-emerald-700/80">
+                    Bukti transfer deposit kamu sudah diverifikasi. Slot booking aman.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : booking.depositStatus === "rejected" ? (
+            <div className="border-t border-border/50 p-6 bg-destructive/5">
+              <div className="flex items-start gap-3">
+                <XCircleIcon className="size-6 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-destructive">Deposit Ditolak</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {booking.depositRejectReason
+                      ? `Alasan: ${booking.depositRejectReason}`
+                      : "Bukti transfer belum bisa diverifikasi. Silakan unggah ulang bukti deposit."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
           
           <div className="border-t border-border/50 p-6">
             <h3 className="font-semibold mb-4">Lokasi Treatment</h3>
