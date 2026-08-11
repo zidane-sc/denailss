@@ -181,6 +181,30 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
         </div>
       </div>
 
+      {service.gallerySeeds.length > 1 && (
+        <div className="mx-auto mt-16 w-full max-w-3xl px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            Contoh hasil {service.name}
+          </h2>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {service.gallerySeeds.map((seed, i) => (
+              <div
+                key={`${seed}-${i}`}
+                className="relative aspect-square overflow-hidden rounded-2xl border border-border/60 bg-muted"
+              >
+                <Image
+                  src={imageUrl(seed)}
+                  alt={`Contoh hasil ${service.name}`}
+                  fill
+                  sizes="(min-width: 1024px) 20rem, (min-width: 640px) 40vw, 90vw"
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto mt-16 w-full max-w-3xl px-4 pb-20 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold tracking-tight text-foreground">
           Pertanyaan seputar {service.name}
