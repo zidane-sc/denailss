@@ -132,13 +132,13 @@ export function promotionToRow(promotion: Promotion) {
 }
 
 /** Map a reviews row to the frontend `Review` (customer name supplied by the caller). */
-export function rowToReview(row: ReviewRow, customerName: string, bookingCode?: string): Review {
+export function rowToReview(row: ReviewRow, customerName: string, visitDate: string, bookingCode?: string): Review {
   return {
     id: row.id,
     customerName,
     rating: row.rating as Review["rating"],
     serviceSlug: row.serviceSlug,
-    visitDate: row.createdAt.toISOString().slice(0, 10),
+    visitDate,
     comment: row.comment,
     photoSeed: row.photoSeed ?? undefined,
     ...(bookingCode ? { bookingCode } : {}),

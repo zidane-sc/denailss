@@ -6,19 +6,20 @@ import { rowToReview } from "@/db/dto";
 import { ApiError } from "@/lib/api/errors";
 import type { Review } from "@/types";
 
-/** Public review list (newest first), customer name + booking code joined. */
+/** Public review list (newest first), customer name + booking code + visit date joined. */
 export async function listReviews(): Promise<Review[]> {
   const rows = await getDb()
     .select({
       review: reviews,
       customerName: customers.name,
       bookingCode: appointments.bookingCode,
+      visitDate: appointments.date,
     })
     .from(reviews)
     .innerJoin(customers, eq(customers.id, reviews.customerId))
     .innerJoin(appointments, eq(appointments.id, reviews.appointmentId))
     .orderBy(desc(reviews.createdAt));
-  return rows.map((r) => rowToReview(r.review, r.customerName, r.bookingCode));
+  return rows.map((r) => rowToReview(r.review, r.customerName, r.visitDate ?? r.review.createdAt.toISOString().slice(0, 10), r.bookingCode));
 }
 
 export async function getReviewSummary() {
@@ -37,7 +38,7 @@ export async function getReviewSummary() {
 export async function createReview(input: { bookingCode: string; rating: number; comment: string; photoSeed?: string | null }, customerId: string): Promise<Review> {
   const db = getDb();
   const [appointment] = await db
-    .select({ id: appointments.id, customerId: appointments.customerId, status: appointments.status })
+    .select({ id: appointments.id, customerId: appointments.customerId, status: appointments.status, date: appointments.date })
     .from(appointments)
     .where(eq(appointments.bookingCode, input.bookingCode));
 
@@ -77,5 +78,5 @@ export async function createReview(input: { bookingCode: string; rating: number;
   if (!inserted) throw new ApiError("INTERNAL_ERROR", "Ulasan tidak dapat disimpan.", 500);
 
   const [customer] = await db.select({ name: customers.name }).from(customers).where(eq(customers.id, customerId));
-  return rowToReview(inserted, customer?.name ?? "Customer");
+  return rowToReview(inserted, customer?.name ?? "Customer", appointment.date ?? inserted.createdAt.toISOString().slice(0, 10), input.bookingCode);
 }
