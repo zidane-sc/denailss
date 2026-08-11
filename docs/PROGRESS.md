@@ -187,25 +187,25 @@ Epic 8 (Analytics) is implemented; Epic 9 (Settings) is implemented FE-first on 
 
 ### Known gaps (PRD audit — 2026-08-11)
 
-Gaps found by auditing `docs/PRD.md` requirements against the implementation. Tracked here; fixed one by one.
+Gaps found by auditing `docs/PRD.md` requirements against the implementation. **All resolved 2026-08-11**:
 
-**Feature gaps (docs claim it, not implemented):**
-1. **Service detail gallery** — `Service.gallerySeeds` is stored + editable in backoffice, but no public service page renders it (only `heroImage`).
-2. **Review photo upload** — `photoSeed` displays as avatar, but customers can't upload review photos (`createReviewSchema` has no photo field).
-3. **Calendar drag & drop** — day/week/month + reschedule/cancel/complete exist; drag & drop reschedule is missing (no DnD library).
-4. **Book-from-favorite** — favorites save/remove/list work; no direct book-from-favorite affordance on the favorites page.
-5. **Customer dashboard favorites widget** — dashboard shows upcoming + recent bookings only; no favorites widget.
-6. **Customer-facing deposit status** — approved/rejected is never surfaced to the customer (rejected shows as "Menunggu Pembayaran"); reject reason is owner-only.
-7. **Settings SEO fields** — meta title/description/OG image are hardcoded in `src/app/layout.tsx` + `@/constants/site`; not editable in Settings.
+**Feature gaps (fixed):**
+1. ✅ **Service detail gallery** — `Service.gallerySeeds` now renders as a "Contoh hasil" grid on `/services/[slug]` when multiple images exist.
+2. ✅ **Review photo upload** — customers can attach a photo via a customer-gated `/api/v1/reviews/photo` route (review-images bucket, migration 0014); dialog has an optional "Foto Hasil" input.
+3. ✅ **Calendar drag & drop** — appointment cards in day/week views are draggable onto week/month day cells, rescheduling via the API.
+4. ✅ **Book-from-favorite** — the customer dashboard favorites widget has a hover-to-booking action; favorites page links through to booking.
+5. ✅ **Customer dashboard favorites widget** — added "Desain Favorit" card (top 4 saved designs + empty state).
+6. ✅ **Customer-facing deposit status** — approved ("Deposit Diterima") and rejected (with reason) states now render on the customer booking detail.
+7. ✅ **Settings SEO fields** — Settings has an SEO section (meta title, description, OG image, migration 0015); root layout metadata reads it via `generateMetadata`.
 
-**Structural gaps (running on demo data despite DB-backed APIs):**
-8. **Frozen mock "today" anchors** — `CRM_TODAY` + `ANALYTICS_TODAY` frozen at 2026-08-09; CRM statuses and analytics periods compute against a fixed date, not real now (analytics page labels itself "data mock").
-9. **Mock slot occupancy on customer booking** — `availability.ts` uses `MOCK_APPOINTMENTS` for slot occupancy, not real DB bookings; customer "Limited/Full" slots are fake (backoffice calendar does merge real bookings).
-10. **Hardcoded CRM loyalty stats** — backoffice appointment detail shows static "Booking Selesai 3 kali / Customer Setia ⭐5.0", not computed.
+**Structural gaps (fixed):**
+8. ✅ **Frozen mock "today" anchors** — `CRM_TODAY`/`PROMO_TODAY`/analytics anchor now use the real current date; analytics header no longer says "data mock".
+9. ✅ **Mock slot occupancy on customer booking** — the engine accepts real booked slots (`getBookedSlotsByDate`) and the AvailabilityProvider exposes them; deleted the booking `MOCK_APPOINTMENTS` fixture.
+10. ✅ **Hardcoded CRM loyalty stats** — backoffice appointment detail now computes real completed count + total spend from the appointment list.
 
 **Minor / by-design:**
-11. **Deposit config location** — implemented fully but lives in `/backoffice/availability` ("Pengaturan Deposit Global"), not `/backoffice/settings` as PRD Epic 9 implies; Settings only echoes the deposit notes.
-12. **Review visit date** — derived from review creation date; no true visit-date column.
+11. ⚠️ **Deposit config location** — implemented fully but lives in `/backoffice/availability` ("Pengaturan Deposit Global"), not `/backoffice/settings`; intentional (deposit is part of the availability/deposit engine, not the business profile). PRD Epic 9 lists it under Settings; left as-is.
+12. ✅ **Review visit date** — now derived from the appointment's date (joined in list + create), not the review creation timestamp.
 
 ---
 
