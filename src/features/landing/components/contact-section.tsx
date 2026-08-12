@@ -14,6 +14,7 @@ import type { Settings } from "@/features/settings/types";
 export async function ContactSection({ settings }: { settings: Settings }) {
   const social = settings.socialMedia;
   const address = settings.businessProfile.address || SITE.address;
+  const mapsUrl = settings.businessProfile.mapsUrl || SITE.mapsUrl;
   const instagramHandle = social.instagram || SITE.instagramHandle;
   const tiktokHandle = social.tiktok || SITE.tiktokHandle;
   const whatsappNumber = social.whatsapp || SITE.whatsappNumber;
@@ -41,7 +42,7 @@ export async function ContactSection({ settings }: { settings: Settings }) {
       icon: MapPinIcon,
       label: "Google Maps",
       value: address,
-      href: SITE.mapsUrl,
+      href: mapsUrl,
     },
   ];
 

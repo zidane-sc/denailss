@@ -11,10 +11,10 @@ import { cn } from "@/lib/utils";
 import { SiteLogo } from "./site-logo";
 
 const NAV_LINKS = [
-  { href: "/gallery", label: "Gallery" },
-  { href: "/services", label: "Layanan" },
-  { href: "/reviews", label: "Ulasan" },
-  { href: "/contact", label: "Kontak" },
+  { href: "/gallery", label: "Gallery", hash: null },
+  { href: "/services", label: "Layanan", hash: "layanan" },
+  { href: "/reviews", label: "Ulasan", hash: "ulasan" },
+  { href: "/contact", label: "Kontak", hash: "kontak" },
 ];
 
 export function SiteHeader() {
@@ -33,6 +33,27 @@ export function SiteHeader() {
 
   if (pathname.startsWith("/customer") || pathname.startsWith("/backoffice")) return null;
 
+  // On the landing page, nav links for existing sections become smooth-scroll
+  // anchors; anywhere else they link to the full page.
+  const getLinkHref = (link: (typeof NAV_LINKS)[number]) =>
+    pathname === "/" && link.hash ? `/#${link.hash}` : link.href;
+
+  const handleNavClick = (link: (typeof NAV_LINKS)[number]) => {
+    if (pathname === "/" && link.hash) {
+      document.getElementById(link.hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveHash(`#${link.hash}`);
+      // Update the URL hash without triggering a native jump (scrollIntoView
+      // already moved the viewport; history.pushState keeps back/forward sane).
+      window.history.pushState(null, "", `#${link.hash}`);
+      setOpen(false);
+    }
+  };
+
+  const isLinkActive = (link: (typeof NAV_LINKS)[number]) => {
+    if (pathname !== "/") return pathname === link.href || pathname.startsWith(link.href + "/");
+    return link.hash ? activeHash === `#${link.hash}` : false;
+  };
+
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center border-b border-border/70 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -50,13 +71,12 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-7 lg:flex">
           {NAV_LINKS.map((link) => {
-            const active = link.href.startsWith("/#")
-              ? pathname === "/" && activeHash === link.href.substring(1)
-              : pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href + "/"));
+            const active = isLinkActive(link);
             return (
               <Link
                 key={link.href}
-                href={link.href}
+                href={getLinkHref(link)}
+                onClick={() => handleNavClick(link)}
                 className={cn(
                   "text-sm font-medium transition-colors hover:text-primary",
                   active ? "text-primary font-semibold" : "text-foreground/80"
@@ -118,14 +138,12 @@ export function SiteHeader() {
             </SheetTitle>
             <nav className="mt-6 flex flex-col gap-1 px-4">
               {NAV_LINKS.map((link) => {
-                const active = link.href.startsWith("/#")
-                  ? pathname === "/" && activeHash === link.href.substring(1)
-                  : pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href + "/"));
+                const active = isLinkActive(link);
                 return (
                   <Link
                     key={link.href}
-                    href={link.href}
-                    onClick={() => setOpen(false)}
+                    href={getLinkHref(link)}
+                    onClick={() => handleNavClick(link)}
                     className={cn(
                       "rounded-xl px-3 py-3 text-base font-medium transition-colors hover:bg-muted hover:text-primary",
                       active ? "bg-muted text-primary font-semibold" : "text-foreground/80"
