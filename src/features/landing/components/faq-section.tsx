@@ -1,4 +1,4 @@
-import { Reveal } from "@/components/motion/reveal";
+import { GsapReveal } from "@/components/motion/gsap-reveal";
 import {
   Accordion,
   AccordionContent,
@@ -14,14 +14,14 @@ export async function FaqSection({ settings }: { settings: Settings }) {
   return (
     <section className="py-16 sm:py-20 lg:py-24">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="max-w-lg">
+        <GsapReveal className="max-w-lg">
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Pertanyaan yang sering ditanyakan
           </h2>
-        </Reveal>
+        </GsapReveal>
 
         <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-16">
-          <Reveal>
+          <GsapReveal>
             <p className="text-sm font-semibold text-foreground">Seputar Booking</p>
             <Accordion className="mt-3">
               {bookingFaqs.map((item, i) => (
@@ -31,9 +31,9 @@ export async function FaqSection({ settings }: { settings: Settings }) {
                 </AccordionItem>
               ))}
             </Accordion>
-          </Reveal>
+          </GsapReveal>
 
-          <Reveal delay={0.1}>
+          <GsapReveal delay={0.1}>
             <p className="text-sm font-semibold text-foreground">Seputar Layanan</p>
             <Accordion className="mt-3">
               {serviceFaqs.map((item, i) => (
@@ -43,7 +43,7 @@ export async function FaqSection({ settings }: { settings: Settings }) {
                 </AccordionItem>
               ))}
             </Accordion>
-          </Reveal>
+          </GsapReveal>
         </div>
       </div>
     </section>

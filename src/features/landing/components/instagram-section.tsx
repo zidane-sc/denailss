@@ -1,5 +1,5 @@
 import { InstagramLogoIcon } from "@phosphor-icons/react/dist/ssr";
-import { Reveal } from "@/components/motion/reveal";
+import { GsapReveal } from "@/components/motion/gsap-reveal";
 import { SITE } from "@/constants/site";
 import { InstagramFeed } from "@/features/landing/components/instagram-feed";
 import type { Settings } from "@/features/settings/types";
@@ -11,7 +11,7 @@ export async function InstagramSection({ settings }: { settings: Settings }) {
   return (
     <section className="py-16 sm:py-20 lg:py-24">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="flex flex-wrap items-center justify-between gap-4">
+        <GsapReveal className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Update terbaru di Instagram
           </h2>
@@ -24,11 +24,11 @@ export async function InstagramSection({ settings }: { settings: Settings }) {
             <InstagramLogoIcon className="size-4" />
             @{handle}
           </a>
-        </Reveal>
+        </GsapReveal>
 
-        <Reveal className="mt-8">
+        <GsapReveal className="mt-8">
           <InstagramFeed />
-        </Reveal>
+        </GsapReveal>
       </div>
     </section>
   );

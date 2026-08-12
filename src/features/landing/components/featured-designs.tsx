@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { GsapReveal, GsapGroup, GsapItem } from "@/components/motion/gsap-reveal";
 import { imageUrl } from "@/lib/images";
 import { DIFFICULTY_LABELS } from "@/features/gallery/constants";
 import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-designs-provider";
@@ -28,7 +28,7 @@ interface DesignTileProps {
 function DesignTile({ design, className, aspectClass, index }: DesignTileProps) {
   const label = STYLE_LABELS[design.style] ?? "Nail Art";
   return (
-    <RevealItem className={className}>
+    <GsapItem className={className}>
       <Link
         href={`/gallery/${design.slug}`}
         className="group relative block w-full overflow-hidden rounded-[1.75rem] border border-border/40 bg-card"
@@ -64,7 +64,7 @@ function DesignTile({ design, className, aspectClass, index }: DesignTileProps) 
           </div>
         </div>
       </Link>
-    </RevealItem>
+    </GsapItem>
   );
 }
 
@@ -84,7 +84,7 @@ export function FeaturedDesigns({ initialDesigns = [] }: { initialDesigns?: Gall
       <div className="absolute right-[-8rem] top-1/3 -z-10 size-96 rounded-full bg-primary/5 blur-3xl" />
 
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="flex flex-wrap items-end justify-between gap-4 border-b border-border/60 pb-6 sm:pb-7">
+        <GsapReveal className="flex flex-wrap items-end justify-between gap-4 border-b border-border/60 pb-6 sm:pb-7">
           <div className="max-w-xl">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
               Pilihan editor
@@ -104,9 +104,9 @@ export function FeaturedDesigns({ initialDesigns = [] }: { initialDesigns?: Gall
             Lihat semua desain
             <ArrowUpRightIcon className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
-        </Reveal>
+        </GsapReveal>
 
-        <RevealGroup className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-5">
+        <GsapGroup className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-5">
           <DesignTile
             design={hero}
             className="sm:col-span-2 lg:col-span-8"
@@ -122,7 +122,7 @@ export function FeaturedDesigns({ initialDesigns = [] }: { initialDesigns?: Gall
           <DesignTile design={rest[2]} index={4} className="lg:col-span-3" aspectClass="aspect-[4/3]" />
           <DesignTile design={rest[3]} index={5} className="lg:col-span-3" aspectClass="aspect-[4/3]" />
           <DesignTile design={rest[4]} index={6} className="sm:col-span-2 lg:col-span-3" aspectClass="aspect-[4/3]" />
-        </RevealGroup>
+        </GsapGroup>
       </div>
     </section>
   );

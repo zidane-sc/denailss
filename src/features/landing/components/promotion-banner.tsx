@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/dist/ssr";
-import { Reveal } from "@/components/motion/reveal";
+import { GsapReveal } from "@/components/motion/gsap-reveal";
 import { useActivePromotionBanners } from "@/features/promotion/data/promotion-booking";
 import { cn } from "@/lib/utils";
 import { formatDateId, formatIDR } from "@/lib/format";
@@ -121,7 +121,7 @@ export function PromotionBanner() {
   return (
     <section className="py-2 sm:py-4" aria-label="Daftar promo">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal>
+        <GsapReveal>
           <div
             className="relative overflow-hidden rounded-[2.5rem] border border-border/70 bg-card shadow-[0_20px_40px_-15px_rgba(23,21,21,0.08)]"
             onMouseEnter={() => setPaused(true)}
@@ -183,7 +183,7 @@ export function PromotionBanner() {
               </div>
             )}
           </div>
-        </Reveal>
+        </GsapReveal>
       </div>
     </section>
   );

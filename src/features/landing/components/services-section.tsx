@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { GsapReveal, GsapGroup, GsapItem } from "@/components/motion/gsap-reveal";
 import { imageUrl } from "@/lib/images";
 import { useLiveServices } from "@/features/services/components/services-provider";
 import { servicePriceLine } from "@/features/services/logic/service";
@@ -22,7 +22,7 @@ function PhotoTile({ slug, className }: { slug: string; className: string }) {
   const service = useLiveServices().find((s) => s.slug === slug);
   if (!service) {
     return (
-      <RevealItem className={className}>
+      <GsapItem className={className}>
         <div className="relative flex h-full flex-col justify-end overflow-hidden rounded-3xl border border-dashed border-border/70 bg-card p-5 sm:p-6">
           <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent" />
           <div className="relative">
@@ -34,14 +34,14 @@ function PhotoTile({ slug, className }: { slug: string; className: string }) {
             </p>
           </div>
         </div>
-      </RevealItem>
+      </GsapItem>
     );
   }
 
   const inactive = !service.active;
 
   return (
-    <RevealItem className={className}>
+    <GsapItem className={className}>
       <Link
         href={`/services/${service.slug}`}
         aria-disabled={inactive}
@@ -84,7 +84,7 @@ function PhotoTile({ slug, className }: { slug: string; className: string }) {
           </span>
         )}
       </Link>
-    </RevealItem>
+    </GsapItem>
   );
 }
 
@@ -95,7 +95,7 @@ export function ServicesSection() {
       <div className="absolute left-[-8rem] top-1/4 -z-10 size-80 rounded-full bg-primary/5 blur-3xl" />
 
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="flex flex-wrap items-end justify-between gap-4 border-b border-border/60 pb-6 sm:pb-7">
+        <GsapReveal className="flex flex-wrap items-end justify-between gap-4 border-b border-border/60 pb-6 sm:pb-7">
           <div className="max-w-xl">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
               Layanan
@@ -114,22 +114,22 @@ export function ServicesSection() {
             Lihat semua layanan
             <ArrowUpRightIcon className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
-        </Reveal>
+        </GsapReveal>
 
-        <RevealGroup className="mt-8 grid gap-4 sm:grid-cols-3 sm:[grid-template-rows:repeat(2,minmax(11rem,1fr))] lg:grid-cols-12 lg:[grid-template-rows:repeat(2,minmax(14rem,1fr))]">
+        <GsapGroup className="mt-8 grid gap-4 sm:grid-cols-3 sm:[grid-template-rows:repeat(2,minmax(11rem,1fr))] lg:grid-cols-12 lg:[grid-template-rows:repeat(2,minmax(14rem,1fr))]">
           <PhotoTile
             slug="gel-extension"
             className="h-64 sm:h-auto sm:col-span-2 sm:row-span-2 lg:col-span-7"
           />
           <PhotoTile slug="manicure" className="h-40 sm:h-auto sm:col-span-1 lg:col-span-5" />
           <PhotoTile slug="pedicure" className="h-40 sm:h-auto sm:col-span-1 lg:col-span-5" />
-        </RevealGroup>
+        </GsapGroup>
 
-        <RevealGroup className="mt-4 grid gap-4 sm:grid-cols-3">
+        <GsapGroup className="mt-4 grid gap-4 sm:grid-cols-3">
           <PhotoTile slug="nail-art" className="h-44 sm:h-52" />
           <PhotoTile slug="fake-nail" className="h-44 sm:h-52" />
           <PhotoTile slug="removal" className="h-44 sm:h-52" />
-        </RevealGroup>
+        </GsapGroup>
       </div>
     </section>
   );

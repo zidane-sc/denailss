@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { StarIcon } from "@phosphor-icons/react/dist/ssr";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { GsapReveal, GsapGroup, GsapItem } from "@/components/motion/gsap-reveal";
 import { useLiveReviews, useReviewSummary } from "@/features/reviews/components/reviews-provider";
 import { useLiveServices } from "@/features/services/components/services-provider";
 import { imageUrl } from "@/lib/images";
@@ -43,7 +43,7 @@ export function ReviewsSection({
   return (
     <section id="ulasan" className="py-16 sm:py-20 lg:py-24">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="flex flex-wrap items-end justify-between gap-6">
+        <GsapReveal className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Ulasan</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -57,7 +57,7 @@ export function ReviewsSection({
             </span>
             <span className="text-sm text-muted-foreground">dari {total} ulasan</span>
           </div>
-        </Reveal>
+        </GsapReveal>
 
         <div className="mt-6 flex flex-wrap gap-2">
           <button
@@ -91,9 +91,9 @@ export function ReviewsSection({
           })}
         </div>
 
-        <RevealGroup className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <GsapGroup className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((review, index) => (
-            <RevealItem
+            <GsapItem
               key={review.id}
               className={cn(
                 "rounded-3xl border border-border bg-card p-5 shadow-sm transition-transform hover:-translate-y-1 hover:rotate-0",
@@ -133,9 +133,9 @@ export function ReviewsSection({
                 ))}
               </div>
               <p className="mt-3 text-sm leading-relaxed text-foreground/85">{review.comment}</p>
-            </RevealItem>
+            </GsapItem>
           ))}
-        </RevealGroup>
+        </GsapGroup>
       </div>
     </section>
   );

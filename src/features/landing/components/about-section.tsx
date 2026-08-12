@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Reveal } from "@/components/motion/reveal";
+import { GsapReveal, GsapParallax } from "@/components/motion/gsap-reveal";
 import { imageUrl } from "@/lib/images";
 
 const STATS = [
@@ -11,17 +11,19 @@ export function AboutSection() {
   return (
     <section className="py-16 sm:py-20 lg:py-24">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16 lg:px-8">
-        <Reveal className="relative order-2 lg:order-1">
-          <div className="relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-[2.5rem] lg:max-w-none">
-            <Image
-              src={imageUrl("denailss-about-studio")}
-              alt="Dela, owner dan nail artist Denailss, sedang mengerjakan nail art"
-              fill
-              loading="lazy"
-              sizes="(min-width: 1024px) 28rem, 22rem"
-              className="object-cover"
-            />
-          </div>
+        <GsapReveal className="relative order-2 lg:order-1">
+          <GsapParallax speed={0.08}>
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-[2.5rem] lg:max-w-none">
+              <Image
+                src={imageUrl("denailss-about-studio")}
+                alt="Dela, owner dan nail artist Denailss, sedang mengerjakan nail art"
+                fill
+                loading="lazy"
+                sizes="(min-width: 1024px) 28rem, 22rem"
+                className="object-cover"
+              />
+            </div>
+          </GsapParallax>
           <div className="absolute -bottom-6 right-4 grid grid-cols-2 gap-3 sm:right-8">
             {STATS.map((stat) => (
               <div
@@ -33,9 +35,9 @@ export function AboutSection() {
               </div>
             ))}
           </div>
-        </Reveal>
+        </GsapReveal>
 
-        <Reveal delay={0.1} className="order-1 lg:order-2">
+        <GsapReveal delay={0.1} className="order-1 lg:order-2">
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Tentang Denailss
           </h2>
@@ -48,7 +50,7 @@ export function AboutSection() {
             Setiap booking dikerjakan satu artist, satu klien, jadi hasilnya selalu personal dan sesuai
             request, bukan sekadar template dari katalog.
           </p>
-        </Reveal>
+        </GsapReveal>
       </div>
     </section>
   );

@@ -6,7 +6,7 @@ import {
   MapPinIcon,
   ClockIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import { Reveal } from "@/components/motion/reveal";
+import { GsapReveal } from "@/components/motion/gsap-reveal";
 import { imageUrl } from "@/lib/images";
 import { SITE, whatsappLink } from "@/constants/site";
 import type { Settings } from "@/features/settings/types";
@@ -49,7 +49,7 @@ export async function ContactSection({ settings }: { settings: Settings }) {
   return (
     <section id="kontak" className="py-16 sm:py-20 lg:py-24">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:gap-16 lg:px-8">
-        <Reveal>
+        <GsapReveal>
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Ngobrol dulu atau langsung datang
           </h2>
@@ -81,9 +81,9 @@ export async function ContactSection({ settings }: { settings: Settings }) {
             <ClockIcon className="mt-0.5 size-4 shrink-0 text-primary" />
             <span>{SITE.hoursNote}</span>
           </div>
-        </Reveal>
+        </GsapReveal>
 
-        <Reveal delay={0.1} className="relative order-first lg:order-last">
+        <GsapReveal delay={0.1} className="relative order-first lg:order-last">
           <div className="relative aspect-[5/4] w-full overflow-hidden rounded-[2.5rem]">
             <Image
               src={imageUrl("denailss-contact-studio")}
@@ -94,7 +94,7 @@ export async function ContactSection({ settings }: { settings: Settings }) {
               className="object-cover"
             />
           </div>
-        </Reveal>
+        </GsapReveal>
       </div>
     </section>
   );
