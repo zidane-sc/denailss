@@ -8,6 +8,7 @@ import { useLiveServices } from "@/features/services/components/services-provide
 import { useLiveGalleryDesigns } from "@/features/gallery/components/gallery-designs-provider";
 import { useFindPromotionByCode } from "@/features/promotion/data/promotion-booking";
 import { useDepositConfig } from "@/features/booking/components/deposit-config-provider";
+import { useAvailabilityRefresh } from "@/features/booking/components/availability-provider";
 import { checkPromotion, calculateDeposit } from "@/features/booking/logic/pricing";
 import { freeAddonForService } from "@/features/booking/logic/free-addon";
 import { BookingStepper, type StepMeta } from "@/features/booking/components/booking-stepper";
@@ -46,6 +47,8 @@ export function BookingFlow({
   const [maxReachedIndex, setMaxReachedIndex] = useState(0);
   const [bookingCode, setBookingCode] = useState<string | null>(null);
   const [customerTouched, setCustomerTouched] = useState(false);
+
+  const refreshAvailability = useAvailabilityRefresh();
 
   const customerFormRef = useRef<{ submit: () => Promise<boolean> }>(null);
 
@@ -233,6 +236,9 @@ export function BookingFlow({
 
     if (response.ok) {
       const payload = (await response.json()) as { data: { id: string } };
+      // The new booking occupies its slot; refresh the availability + deposit
+      // providers so the calendar and slot picker reflect it immediately.
+      refreshAvailability();
       return payload.data.id;
     }
 

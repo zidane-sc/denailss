@@ -4,9 +4,9 @@ import { requireApiOwner } from "@/lib/supabase/api-auth";
 import { ApiError } from "@/lib/api/errors";
 import { apiFailure, apiSuccess, cachedApiSuccess } from "@/lib/api/response";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    return cachedApiSuccess(await listCatalogGalleryWithImages(), request);
+    return cachedApiSuccess(await listCatalogGalleryWithImages());
   } catch (error) {
     return apiFailure(error);
   }

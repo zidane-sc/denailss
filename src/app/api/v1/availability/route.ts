@@ -6,13 +6,13 @@ import { ApiError } from "@/lib/api/errors";
 import { apiFailure, apiSuccess, cachedApiSuccess } from "@/lib/api/response";
 import type { AvailabilityConfig } from "@/types";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const [config, occupiedSlotsByDate] = await Promise.all([
       getAvailabilityConfig(),
       getBookedSlotsByDate(),
     ]);
-    return cachedApiSuccess({ config, occupiedSlotsByDate }, request);
+    return cachedApiSuccess({ config, occupiedSlotsByDate });
   } catch (error) {
     return apiFailure(error);
   }

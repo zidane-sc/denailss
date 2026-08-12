@@ -38,10 +38,10 @@ async function defaultSettings() {
   };
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const settings = await getSettings();
-    return cachedApiSuccess(settings ?? (await defaultSettings()), request);
+    return cachedApiSuccess(settings ?? (await defaultSettings()));
   } catch (error) {
     return apiFailure(error);
   }

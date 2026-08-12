@@ -2,15 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  SparkleIcon,
-  ArrowRightIcon,
-  ArrowUpRightIcon,
-} from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { imageUrl } from "@/lib/images";
 import { useLiveServices } from "@/features/services/components/services-provider";
 import { servicePriceLine } from "@/features/services/logic/service";
+import { cn } from "@/lib/utils";
 
 const TILE_LABELS: Record<string, string> = {
   "gel-extension": "Gel Extension",
@@ -22,13 +19,38 @@ const TILE_LABELS: Record<string, string> = {
 };
 
 function PhotoTile({ slug, className }: { slug: string; className: string }) {
-  const service = useLiveServices().find((s) => s.slug === slug && s.active);
-  if (!service) return null;
+  const service = useLiveServices().find((s) => s.slug === slug);
+  if (!service) {
+    return (
+      <RevealItem className={className}>
+        <div className="relative flex h-full flex-col justify-end overflow-hidden rounded-3xl border border-dashed border-border/70 bg-card p-5 sm:p-6">
+          <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent" />
+          <div className="relative">
+            <p className="text-lg font-semibold text-muted-foreground/70 sm:text-xl">
+              {TILE_LABELS[slug] ?? "Layanan"}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground/50 tabular-nums">
+              Sedang nonaktif
+            </p>
+          </div>
+        </div>
+      </RevealItem>
+    );
+  }
+
+  const inactive = !service.active;
+
   return (
     <RevealItem className={className}>
       <Link
         href={`/services/${service.slug}`}
-        className="group relative flex h-full flex-col justify-end overflow-hidden rounded-3xl p-5 text-white sm:p-6"
+        aria-disabled={inactive}
+        className={cn(
+          "group relative flex h-full flex-col justify-end overflow-hidden rounded-3xl p-5 text-white shadow-lg shadow-black/10 sm:p-6",
+          inactive
+            ? "grayscale-[0.35] brightness-[0.72] saturate-[0.85]"
+            : "shadow-black/5 transition-shadow duration-300 hover:shadow-xl hover:shadow-black/15"
+        )}
       >
         <Image
           src={imageUrl(service.heroImage)}
@@ -43,6 +65,12 @@ function PhotoTile({ slug, className }: { slug: string; className: string }) {
           {TILE_LABELS[service.slug] ?? "Layanan"}
         </span>
 
+        {inactive && (
+          <span className="absolute left-4 top-4 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
+            Nonaktif
+          </span>
+        )}
+
         <div className="relative">
           <p className="text-lg font-semibold sm:text-xl">{service.name}</p>
           <p className="mt-1 text-sm font-medium text-white/80 tabular-nums">
@@ -50,44 +78,11 @@ function PhotoTile({ slug, className }: { slug: string; className: string }) {
           </p>
         </div>
 
-        <span className="absolute bottom-5 right-5 flex size-9 translate-y-1 items-center justify-center rounded-full bg-primary text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-          <ArrowUpRightIcon className="size-4" />
-        </span>
-      </Link>
-    </RevealItem>
-  );
-}
-
-type TileTint = "surface" | "secondary-soft" | "accent-soft";
-
-const TILE_SURFACES: Record<TileTint, string> = {
-  surface: "border-border/70 bg-card hover:border-primary/40",
-  "secondary-soft": "border-border/60 bg-secondary-soft hover:border-primary/40",
-  "accent-soft": "border-border/60 bg-accent-soft hover:border-primary/40",
-};
-
-function TintedTile({ slug, tint, className }: { slug: string; tint: TileTint; className?: string }) {
-  const service = useLiveServices().find((s) => s.slug === slug && s.active);
-  if (!service) return null;
-  return (
-    <RevealItem className={className}>
-      <Link
-        href={`/services/${service.slug}`}
-        className={`group flex h-full min-h-44 flex-col justify-between rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-1 active:scale-[0.99] sm:min-h-48 sm:p-6 ${
-          TILE_SURFACES[tint]
-        }`}
-      >
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-          <SparkleIcon weight="duotone" className="size-6" />
-        </span>
-        <div>
-          <p className="text-base font-semibold text-foreground">{service.name}</p>
-          <p className="mt-1 text-sm text-muted-foreground tabular-nums">{servicePriceLine(service)}</p>
-          <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-            Lihat detail
-            <ArrowRightIcon className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+        {!inactive && (
+          <span className="absolute bottom-5 right-5 flex size-9 translate-y-1 items-center justify-center rounded-full bg-primary text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <ArrowUpRightIcon className="size-4" />
           </span>
-        </div>
+        )}
       </Link>
     </RevealItem>
   );
@@ -126,14 +121,14 @@ export function ServicesSection() {
             slug="gel-extension"
             className="h-64 sm:h-auto sm:col-span-2 sm:row-span-2 lg:col-span-7"
           />
-          <TintedTile slug="manicure" tint="surface" className="lg:col-span-5" />
-          <TintedTile slug="pedicure" tint="secondary-soft" className="lg:col-span-5" />
+          <PhotoTile slug="manicure" className="h-40 sm:h-auto sm:col-span-1 lg:col-span-5" />
+          <PhotoTile slug="pedicure" className="h-40 sm:h-auto sm:col-span-1 lg:col-span-5" />
         </RevealGroup>
 
         <RevealGroup className="mt-4 grid gap-4 sm:grid-cols-3">
           <PhotoTile slug="nail-art" className="h-44 sm:h-52" />
           <PhotoTile slug="fake-nail" className="h-44 sm:h-52" />
-          <TintedTile slug="removal" tint="accent-soft" className="h-44 sm:h-52" />
+          <PhotoTile slug="removal" className="h-44 sm:h-52" />
         </RevealGroup>
       </div>
     </section>

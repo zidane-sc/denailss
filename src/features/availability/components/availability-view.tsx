@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useBackoffice } from "@/features/appointment/context/backoffice-context";
-import { dayNamesId } from "@/lib/format";
+import { dayNamesId, toDateKey, parseDateKey, formatDateId } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +10,15 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
+  CalendarXIcon,
   ClockIcon,
+  InfoIcon,
+  LockSimpleIcon,
   SlidersIcon,
   TrashIcon,
   PlusIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import type { TimeRange, PaymentMethod } from "@/types";
+import type { TimeRange, PaymentMethod, AvailabilityWeekday, AvailabilityConfig, DepositConfig } from "@/types";
 
 type TabName = "weekly" | "overrides" | "blocked" | "rules";
 
@@ -79,6 +82,35 @@ export function AvailabilityView() {
   const [newPmNumber, setNewPmNumber] = useState("");
   const [newPmOwner, setNewPmOwner] = useState("");
 
+  // Re-sync the rules/deposit form fields whenever the configs hydrate or change,
+  // so the forms never pin themselves to stale defaults from the initial mount.
+  const syncRulesForm = (cfg: AvailabilityConfig) => {
+    setRulesMinNotice(cfg.bookingRules.minimumNoticeHours);
+    setRulesWindow(cfg.bookingRules.bookingWindowDays);
+    setRulesMaxBookings(cfg.bookingRules.maxBookingsPerDay);
+    setRulesBuffer(cfg.bookingRules.bufferMinutes);
+  };
+
+  const syncDepositForm = (cfg: DepositConfig) => {
+    setDepEnabled(cfg.enabled);
+    setDepType(cfg.type);
+    setDepValue(cfg.value);
+    setDepNotes(cfg.notes ?? "");
+    setPaymentMethods(cfg.paymentMethods || []);
+  };
+
+  useEffect(() => {
+    if (!availabilityConfig) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    syncRulesForm(availabilityConfig);
+  }, [availabilityConfig]);
+
+  useEffect(() => {
+    if (!depositConfig) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    syncDepositForm(depositConfig);
+  }, [depositConfig]);
+
   // Availability + deposit configs hydrate from the API on mount; guard before any use.
   if (!availabilityConfig || !depositConfig) {
     return (
@@ -88,6 +120,82 @@ export function AvailabilityView() {
     );
   }
   const config = availabilityConfig;
+
+  // --- Derived summary metrics (for the header stat band + helper info) ---
+  const weekdaysAll = Object.keys(config.weeklyTemplate).map(Number) as AvailabilityWeekday[];
+  const openDays: number[] = weekdaysAll.filter((d) => (config.weeklyTemplate[d as AvailabilityWeekday] || []).length > 0);
+  const closedDays: number[] = weekdaysAll.filter((d) => (config.weeklyTemplate[d as AvailabilityWeekday] || []).length === 0);
+  const weeklyOpenCount = openDays.length;
+  const weeklyClosedCount = closedDays.length;
+
+  const totalWeeklyMinutes = openDays.reduce((sum, d) => {
+    const dayRanges = config.weeklyTemplate[d as AvailabilityWeekday] || [];
+    return (
+      sum +
+      dayRanges.reduce((s, r) => {
+        const [sh, sm] = r.start.split(":").map(Number);
+        const [eh, em] = r.end.split(":").map(Number);
+        return s + (eh * 60 + em - (sh * 60 + sm));
+      }, 0)
+    );
+  }, 0);
+
+  const formatHours = (minutes: number) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h === 0) return `${m} mnt`;
+    if (m === 0) return `${h} jam`;
+    return `${h} jam ${m} mnt`;
+  };
+
+  const overrideCount = Object.keys(config.overrides).length;
+  const vacationCount = config.vacations.length;
+  const blockedCount = config.blockedTimes.length;
+
+  const todayKey = toDateKey(new Date());
+  const todayOverride = config.overrides[todayKey];
+  const todayClosed = config.vacations.some((v) => todayKey >= v.start && todayKey <= v.end);
+  const todayWeekday = new Date().getDay() as AvailabilityWeekday;
+  const todayTemplate = config.weeklyTemplate[todayWeekday] || [];
+  const todayStatus = todayClosed
+    ? "libur"
+    : todayOverride
+      ? "buka (override)"
+      : todayTemplate.length > 0
+        ? "buka"
+        : "libur";
+
+  const precedenceItems = [
+    {
+      icon: LockSimpleIcon,
+      label: "Cuti",
+      desc: "Memblokir seluruh hari pada rentang tanggal. Tidak ada sesi yang bisa dibooking.",
+      tone: "text-destructive",
+    },
+    {
+      icon: CalendarXIcon,
+      label: "Override Tanggal Khusus",
+      desc: "Mengganti jam kerja hari itu sepenuhnya dengan jam yang kamu set, termasuk hari yang biasanya libur.",
+      tone: "text-primary",
+    },
+    {
+      icon: ClockIcon,
+      label: "Blokir Waktu",
+      desc: "Menyembunyikan slot tertentu di hari yang tetap buka (misal untuk istirahat atau keperluan lain).",
+      tone: "text-amber-600",
+    },
+    {
+      icon: SlidersIcon,
+      label: "Templat Mingguan",
+      desc: "Jam kerja standar per hari, dipakai kalau tidak ada aturan khusus di atas.",
+      tone: "text-muted-foreground",
+    },
+  ];
+
+  const formatEffectiveDate = (dateKey: string) => {
+    const date = parseDateKey(dateKey);
+    return `${formatDateId(date, { withWeekday: true })}`;
+  };
 
   // Weekly edit trigger
   const handleStartEditDay = (day: number) => {
@@ -232,6 +340,84 @@ export function AvailabilityView() {
         </p>
       </div>
 
+      {/* Summary stat band */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-card border border-border/70 rounded-2xl p-4 shadow-xs">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Hari Buka per Minggu</p>
+          <p className="font-heading text-2xl font-bold text-foreground/90 mt-1">
+            {weeklyOpenCount}<span className="text-sm font-semibold text-muted-foreground">/7</span>
+          </p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            {weeklyOpenCount === 0
+              ? "Belum ada hari yang diatur."
+              : weeklyClosedCount > 0
+                ? `Libur: ${weeklyClosedCount} hari.`
+                : "Buka setiap hari."}
+          </p>
+        </div>
+
+        <div className="bg-card border border-border/70 rounded-2xl p-4 shadow-xs">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Total Jam Buka</p>
+          <p className="font-heading text-2xl font-bold text-foreground/90 mt-1">
+            {formatHours(totalWeeklyMinutes)}
+          </p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Gabungan semua sesi dalam seminggu.</p>
+        </div>
+
+        <div className="bg-card border border-border/70 rounded-2xl p-4 shadow-xs">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Hari Ini</p>
+          <p className="font-heading text-2xl font-bold text-foreground/90 mt-1 capitalize">
+            {todayStatus}
+          </p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            {todayStatus === "buka (override)"
+              ? `${formatEffectiveDate(todayKey)} punya jadwal khusus.`
+              : todayStatus === "libur"
+                ? "Tidak ada sesi yang bisa dibooking hari ini."
+                : "Sesi aktif sesuai templat mingguan."}
+          </p>
+        </div>
+
+        <div className="bg-card border border-border/70 rounded-2xl p-4 shadow-xs">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Aturan Khusus</p>
+          <p className="font-heading text-2xl font-bold text-foreground/90 mt-1">
+            {overrideCount + vacationCount + blockedCount}
+          </p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            {overrideCount} override · {vacationCount} cuti · {blockedCount} blokir
+          </p>
+        </div>
+      </div>
+
+      {/* Precedence explainer */}
+      <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 shadow-xs">
+        <div className="flex items-start gap-3">
+          <InfoIcon className="size-4 text-primary mt-0.5 shrink-0" weight="fill" />
+          <div className="space-y-2.5 flex-1 min-w-0">
+            <div>
+              <p className="text-xs font-bold text-foreground/90">Bagaimana jam kerja ditentukan?</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Setiap hari, sistem memakai aturan paling spesifik yang berlaku. Urutan prioritas dari paling tinggi:
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {precedenceItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.label} className="flex items-start gap-2 bg-background/60 border border-border/50 rounded-xl px-3 py-2">
+                    <Icon className={cn("size-3.5 mt-0.5 shrink-0", item.tone)} weight="fill" />
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-bold text-foreground/90">{item.label}</p>
+                      <p className="text-[10px] text-muted-foreground leading-snug">{item.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Tabs list */}
       <div className="flex border-b border-border/75 gap-6">
         {(["weekly", "overrides", "blocked", "rules"] as TabName[]).map((tab) => (
@@ -261,17 +447,27 @@ export function AvailabilityView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           {/* Days List */}
           <section className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs space-y-4">
-            <h3 className="font-heading text-sm font-semibold text-foreground/90">
-              Templat Sesi Mingguan
-            </h3>
+            <div>
+              <h3 className="font-heading text-sm font-semibold text-foreground/90">
+                Templat Sesi Mingguan
+              </h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Jam kerja standar tiap hari. Hari tanpa sesi otomatis dianggap libur, kecuali ada override.
+              </p>
+            </div>
             
             <div className="divide-y divide-border/60">
               {dayNamesId.map((name, idx) => {
                 const ranges = availabilityConfig.weeklyTemplate[idx as 0 | 1 | 2 | 3 | 4 | 5 | 6] || [];
                 const isEditingThis = editingDay === idx;
+                const dayMinutes = ranges.reduce((s, r) => {
+                  const [sh, sm] = r.start.split(":").map(Number);
+                  const [eh, em] = r.end.split(":").map(Number);
+                  return s + (eh * 60 + em - (sh * 60 + sm));
+                }, 0);
 
                 return (
-                  <div key={idx} className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                  <div key={idx} className={cn("py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4", ranges.length === 0 && "opacity-75")}>
                     <div className="flex flex-col gap-1">
                       <span className="font-heading text-sm font-bold text-foreground">{name}</span>
                       <div className="flex flex-wrap gap-1.5 mt-1">
@@ -285,6 +481,11 @@ export function AvailabilityView() {
                           ))
                         )}
                       </div>
+                      {dayMinutes > 0 && (
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Total {formatHours(dayMinutes)}.
+                        </p>
+                      )}
                     </div>
 
                     <Button
@@ -390,12 +591,19 @@ export function AvailabilityView() {
           {/* Vacations section */}
           <div className="space-y-6">
             <section className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs space-y-4">
-              <h3 className="font-heading text-sm font-semibold text-foreground/90 flex items-center gap-1.5">
-                <span className="text-base">🏖️</span> Jadwal Cuti
-              </h3>
+              <div>
+                <h3 className="font-heading text-sm font-semibold text-foreground/90 flex items-center gap-1.5">
+                  <span className="text-base">🏖️</span> Jadwal Cuti
+                </h3>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Tutup sepenuhnya untuk satu rentang tanggal, misal libur Lebaran atau renovasi. Semua hari di dalamnya dianggap tidak beroperasi, dan ini mengalahkan override.
+                </p>
+              </div>
 
               {availabilityConfig.vacations.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">Belum ada cuti terdaftar.</p>
+                <div className="py-5 text-center text-xs text-muted-foreground italic bg-muted/10 border border-dashed rounded-xl">
+                  Belum ada cuti terdaftar. Tambahkan di bawah kalau ada periode tutup.
+                </div>
               ) : (
                 <div className="space-y-2">
                   {availabilityConfig.vacations.map((vac, idx) => (
@@ -405,6 +613,7 @@ export function AvailabilityView() {
                           {vac.start} s/d {vac.end}
                         </span>
                         <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Alasan: {vac.reason}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 italic">Memblokir seluruh hari di rentang ini.</p>
                       </div>
                       <Button
                         variant="ghost"
@@ -465,41 +674,62 @@ export function AvailabilityView() {
           {/* Overrides section */}
           <div className="space-y-6">
             <section className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs space-y-4">
-              <h3 className="font-heading text-sm font-semibold text-foreground/90 flex items-center gap-1.5">
-                <span className="text-base">📅</span> Override Tanggal Khusus
-              </h3>
+              <div>
+                <h3 className="font-heading text-sm font-semibold text-foreground/90 flex items-center gap-1.5">
+                  <span className="text-base">📅</span> Override Tanggal Khusus
+                </h3>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Beri jam kerja khusus untuk satu tanggal tertentu, termasuk hari yang biasanya libur. Mengganti total jadwal mingguan hari itu.
+                </p>
+              </div>
 
               {Object.keys(availabilityConfig.overrides).length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">Belum ada override tanggal khusus.</p>
+                <div className="py-5 text-center text-xs text-muted-foreground italic bg-muted/10 border border-dashed rounded-xl">
+                  Belum ada override tanggal khusus. Contoh: buka di hari Sabtu yang biasanya libur.
+                </div>
               ) : (
                 <div className="space-y-2">
-                  {Object.entries(availabilityConfig.overrides).map(([dateKey, ranges]) => (
-                    <div key={dateKey} className="p-3 bg-muted/20 border border-border/50 rounded-xl flex items-center justify-between gap-4">
-                      <div>
-                        <span className="text-xs font-bold text-foreground">
-                          {dateKey}
-                        </span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {ranges.map((r, ri) => (
-                            <Badge key={ri} variant="outline" className="text-[9px] bg-background">
-                              {r.start} - {r.end}
-                            </Badge>
-                          ))}
+                  {Object.entries(availabilityConfig.overrides).map(([dateKey, ranges]) => {
+                    const weekday = parseDateKey(dateKey).getDay() as AvailabilityWeekday;
+                    const normallyClosed = (availabilityConfig.weeklyTemplate[weekday] || []).length === 0;
+                    return (
+                      <div key={dateKey} className="p-3 bg-muted/20 border border-border/50 rounded-xl flex items-center justify-between gap-4">
+                        <div>
+                          <span className="text-xs font-bold text-foreground">
+                            {formatEffectiveDate(dateKey)}
+                          </span>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {ranges.map((r, ri) => (
+                              <Badge key={ri} variant="outline" className="text-[9px] bg-background">
+                                {r.start} - {r.end}
+                              </Badge>
+                            ))}
+                            {normallyClosed && (
+                              <Badge variant="secondary" className="text-[9px]">
+                                Hari ini biasanya libur
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-0.5 italic">
+                            {normallyClosed
+                              ? "Override ini membuka hari yang biasanya libur."
+                              : "Override ini mengganti jam kerja standar hari itu."}
+                          </p>
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-destructive hover:bg-destructive/5"
+                          onClick={() => {
+                            removeOverride(dateKey);
+                            toast.info("Override tanggal khusus dihapus.");
+                          }}
+                        >
+                          <TrashIcon className="size-4" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-destructive hover:bg-destructive/5"
-                        onClick={() => {
-                          removeOverride(dateKey);
-                          toast.info("Override tanggal khusus dihapus.");
-                        }}
-                      >
-                        <TrashIcon className="size-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
@@ -550,13 +780,18 @@ export function AvailabilityView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           {/* List of blocked times */}
           <section className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs space-y-4">
-            <h3 className="font-heading text-sm font-semibold text-foreground/90 flex items-center gap-1.5">
-              <span className="text-base">🔒</span> Daftar Waktu Diblokir
-            </h3>
+            <div>
+              <h3 className="font-heading text-sm font-semibold text-foreground/90 flex items-center gap-1.5">
+                <span className="text-base">🔒</span> Daftar Waktu Diblokir
+              </h3>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Sembunyikan slot tertentu di hari yang tetap buka, misal untuk istirahat atau keperluan pribadi.
+              </p>
+            </div>
 
             {availabilityConfig.blockedTimes.length === 0 ? (
-              <div className="py-6 text-center text-xs text-muted-foreground italic">
-                Belum ada waktu yang diblokir.
+              <div className="py-5 text-center text-xs text-muted-foreground italic bg-muted/10 border border-dashed rounded-xl">
+                Belum ada waktu yang diblokir. Slot tetap mengikuti jam kerja normal.
               </div>
             ) : (
               <div className="space-y-2">
@@ -564,7 +799,7 @@ export function AvailabilityView() {
                   <div key={idx} className="p-3 bg-muted/20 border border-border/50 rounded-xl flex items-center justify-between gap-4">
                     <div>
                       <span className="text-xs font-bold text-foreground">
-                        {block.date} · {block.range.start} - {block.range.end}
+                        {formatEffectiveDate(block.date)} · {block.range.start} - {block.range.end}
                       </span>
                       <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Alasan: {block.reason}</p>
                     </div>
@@ -648,10 +883,15 @@ export function AvailabilityView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start animate-in fade-in duration-200">
           {/* Column 1: Online Booking Rules */}
           <section className="bg-card border border-border/70 rounded-2xl p-6 shadow-xs">
-            <h3 className="font-heading text-base font-semibold text-foreground/90 mb-4 flex items-center gap-2">
-              <SlidersIcon className="size-4 text-primary" />
-              Aturan Reservasi Online
-            </h3>
+            <div className="mb-4">
+              <h3 className="font-heading text-base font-semibold text-foreground/90 flex items-center gap-2">
+                <SlidersIcon className="size-4 text-primary" />
+                Aturan Reservasi Online
+              </h3>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Batasan umum yang berlaku untuk semua layanan di alur booking customer.
+              </p>
+            </div>
 
             <form onSubmit={handleSaveRules} className="space-y-4">
               <div className="grid gap-1.5">

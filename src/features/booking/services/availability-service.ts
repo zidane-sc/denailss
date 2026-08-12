@@ -17,21 +17,52 @@ const DEFAULT_RULES: AvailabilityConfig["bookingRules"] = {
   bufferMinutes: 15,
 };
 
+/**
+ * In-process cache for the availability config. The config is admin-configured
+ * and changes rarely, but `GET /api/v1/availability` is called by many client
+ * providers at once; caching it keeps the endpoint at ~1 cheap DB read instead
+ * of 5 and prevents connection-pool exhaustion under concurrent loads.
+ */
+const CONFIG_TTL_MS = 30_000;
+let cachedConfig: { value: AvailabilityConfig; expiresAt: number } | undefined;
+let configLoad: Promise<AvailabilityConfig> | undefined;
+
+/** Postgres `time` columns come back as "HH:MM:SS"; the API schema wants "HH:MM". */
+function toHhMm(value: string): string {
+  return value.slice(0, 5);
+}
+
 /** Assemble the full `AvailabilityConfig` shape from the five DB sources. */
 export async function getAvailabilityConfig(): Promise<AvailabilityConfig> {
+  if (cachedConfig && cachedConfig.expiresAt > Date.now()) {
+    return cachedConfig.value;
+  }
+  // Deduplicate concurrent misses: while a cold-cache load is in flight, all
+  // callers share the same promise so only one request hits the DB.
+  if (!configLoad) {
+    configLoad = loadAvailabilityConfig();
+  }
+  try {
+    return await configLoad;
+  } finally {
+    configLoad = undefined;
+  }
+}
+
+async function loadAvailabilityConfig(): Promise<AvailabilityConfig> {
   const db = getDb();
-  const [templateRows, overrideRows, blockedRows, vacationRows, ruleRows] = await Promise.all([
-    db.select().from(availabilityTemplates).orderBy(asc(availabilityTemplates.weekday), asc(availabilityTemplates.startTime)),
-    db.select().from(availabilityOverrides),
-    db.select().from(blockedTimes),
-    db.select().from(availabilityVacations),
-    db.select().from(bookingRules),
-  ]);
+  // Run sequentially (not Promise.all): each request then holds one pool
+  // connection at a time, so concurrent requests can't exhaust the pooler.
+  const templateRows = await db.select().from(availabilityTemplates).orderBy(asc(availabilityTemplates.weekday), asc(availabilityTemplates.startTime));
+  const overrideRows = await db.select().from(availabilityOverrides);
+  const blockedRows = await db.select().from(blockedTimes);
+  const vacationRows = await db.select().from(availabilityVacations);
+  const ruleRows = await db.select().from(bookingRules);
 
   const weeklyTemplate = {} as Record<AvailabilityWeekday, TimeRange[]>;
   for (let day = 0; day <= 6; day++) weeklyTemplate[day as AvailabilityWeekday] = [];
   for (const row of templateRows) {
-    weeklyTemplate[row.weekday as AvailabilityWeekday].push({ start: row.startTime, end: row.endTime });
+    weeklyTemplate[row.weekday as AvailabilityWeekday].push({ start: toHhMm(row.startTime), end: toHhMm(row.endTime) });
   }
 
   const overrides: Record<string, TimeRange[]> = {};
@@ -40,11 +71,11 @@ export async function getAvailabilityConfig(): Promise<AvailabilityConfig> {
   }
 
   const ruleRow = ruleRows[0];
-  return {
+  const value: AvailabilityConfig = {
     weeklyTemplate,
     overrides,
     vacations: vacationRows.map((v) => ({ start: v.startDate, end: v.endDate, reason: v.reason })),
-    blockedTimes: blockedRows.map((b) => ({ date: b.date, range: { start: b.startTime, end: b.endTime }, reason: b.reason })),
+    blockedTimes: blockedRows.map((b) => ({ date: b.date, range: { start: toHhMm(b.startTime), end: toHhMm(b.endTime) }, reason: b.reason })),
     bookingRules: ruleRow
       ? {
           bookingWindowDays: ruleRow.bookingWindowDays,
@@ -54,6 +85,8 @@ export async function getAvailabilityConfig(): Promise<AvailabilityConfig> {
         }
       : DEFAULT_RULES,
   };
+  cachedConfig = { value, expiresAt: Date.now() + CONFIG_TTL_MS };
+  return value;
 }
 
 /** Transactional full-write of the availability config (replace-all per section). */
@@ -99,5 +132,7 @@ export async function saveAvailabilityConfig(input: AvailabilityConfig): Promise
       });
   });
 
+  // Invalidate the cache so the next read reflects the new config.
+  cachedConfig = undefined;
   return getAvailabilityConfig();
 }

@@ -409,9 +409,11 @@ export async function getBookedSlotsByDate(): Promise<Record<string, { start: st
   const byDate: Record<string, { start: string; end: string }[]> = {};
   for (const row of rows) {
     if (!row.date || !row.startTime) continue;
-    const end = toMinutes(row.startTime) + (row.durationMinutes ?? 0);
+    const startMinutes = toMinutes(row.startTime);
+    const end = startMinutes + (row.durationMinutes ?? 0);
     const endTime = `${String(Math.floor(end / 60)).padStart(2, "0")}:${String(end % 60).padStart(2, "0")}`;
-    (byDate[row.date] ??= []).push({ start: row.startTime, end: endTime });
+    const startTime = `${String(Math.floor(startMinutes / 60)).padStart(2, "0")}:${String(startMinutes % 60).padStart(2, "0")}`;
+    (byDate[row.date] ??= []).push({ start: startTime, end: endTime });
   }
   return byDate;
 }
