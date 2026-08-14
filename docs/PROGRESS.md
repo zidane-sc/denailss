@@ -1,6 +1,6 @@
 # Implementation Progress
 
-**Last updated:** 2026-08-11
+**Last updated:** 2026-08-14
 **Purpose:** Running memory of what's built, how it's built, and what's next. Read this before starting new work; update it when scope changes.
 
 ---

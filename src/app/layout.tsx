@@ -9,8 +9,6 @@ import { GalleryDesignsProvider } from "@/features/gallery/components/gallery-de
 import { ServicesProvider } from "@/features/services/components/services-provider";
 import { PromotionsProvider } from "@/features/promotion/components/promotions-provider";
 import { ReviewsProvider } from "@/features/reviews/components/reviews-provider";
-import { AvailabilityProvider } from "@/features/booking/components/availability-provider";
-import { DepositConfigProvider } from "@/features/booking/components/deposit-config-provider";
 import { getPublicSettings } from "@/features/settings/services/settings-public";
 import { imageUrl } from "@/lib/images";
 import { SITE } from "@/constants/site";
@@ -89,13 +87,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <ServicesProvider>
                 <PromotionsProvider>
                   <ReviewsProvider>
-                    <AvailabilityProvider>
-                      <DepositConfigProvider>
-                        <SiteHeader />
-                        <main className="flex-1">{children}</main>
-                        <SiteFooter />
-                      </DepositConfigProvider>
-                    </AvailabilityProvider>
+                    <SiteHeader />
+                    <main className="flex-1">{children}</main>
+                    <SiteFooter />
                   </ReviewsProvider>
                 </PromotionsProvider>
               </ServicesProvider>

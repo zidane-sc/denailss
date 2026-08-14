@@ -18,7 +18,7 @@ export function AvailabilityProvider({ children }: { children: React.ReactNode }
   const [occupiedSlotsByDate, setOccupiedSlotsByDate] = useState<Record<string, OccupiedSlot[]>>({});
 
   const refresh = useCallback(() => {
-    fetch("/api/v1/availability", { cache: "no-cache" })
+    fetch("/api/v1/availability")
       .then((res) => (res.ok ? res.json() : null))
       .then((payload: { data?: { config?: AvailabilityConfig; occupiedSlotsByDate?: Record<string, OccupiedSlot[]> } } | null) => {
         if (payload?.data?.config) setConfig(payload.data.config);

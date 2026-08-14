@@ -19,7 +19,7 @@ export function ReviewsProvider({ children }: { children: React.ReactNode }) {
   const [summary, setSummary] = useState<{ total: number; average: number } | null>(null);
 
   const refresh = useCallback(() => {
-    fetch("/api/v1/reviews", { cache: "no-cache" })
+    fetch("/api/v1/reviews")
       .then((res) => (res.ok ? res.json() : null))
       .then((payload: { data?: Review[]; meta?: { summary?: { total: number; average: number } } } | null) => {
         if (payload?.data) setReviews(payload.data);

@@ -18,7 +18,7 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const refresh = useCallback(() => {
-    fetch("/api/v1/services", { cache: "no-cache" })
+    fetch("/api/v1/services")
       .then((res) => (res.ok ? res.json() : null))
       .then((payload: { data?: Service[] } | null) => {
         if (payload?.data) setServices(payload.data);

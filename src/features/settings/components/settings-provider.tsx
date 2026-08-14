@@ -18,7 +18,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const refresh = useCallback(() => {
-    fetch("/api/v1/settings", { cache: "no-cache" })
+    fetch("/api/v1/settings")
       .then((res) => (res.ok ? res.json() : null))
       .then((payload: { data?: Settings } | null) => {
         if (payload?.data) setSettings(payload.data);

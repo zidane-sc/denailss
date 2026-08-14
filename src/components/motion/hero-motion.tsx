@@ -9,9 +9,9 @@ interface HeroMotionProps {
 }
 
 /**
- * Cinematic hero entrance: staggered rise of the text column and a gentle
- * drift-up of the visual composition, fired once on mount.
- * Honors prefers-reduced-motion by rendering content fully visible.
+ * Cinematic hero entrance: subtle, performance-optimized entrance that
+ * preserves fast First Contentful Paint & Largest Contentful Paint (LCP).
+ * Honors prefers-reduced-motion by keeping content in its natural state.
  */
 export function HeroMotion({ children }: HeroMotionProps) {
   const scope = useRef<HTMLDivElement>(null);
@@ -19,45 +19,75 @@ export function HeroMotion({ children }: HeroMotionProps) {
   useGSAP(
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      const el = scope.current!;
+      const el = scope.current;
+      if (!el) return;
 
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      const lines = el.querySelectorAll("[data-hero-line]");
+      const fades = el.querySelectorAll("[data-hero-fade]");
+      const visual = el.querySelector("[data-hero-visual]");
+      const floatA = el.querySelector("[data-hero-float-a]");
+      const floatB = el.querySelector("[data-hero-float-b]");
 
-      tl.fromTo(
-        el.querySelectorAll("[data-hero-line]"),
-        { opacity: 0, y: 34 },
-        { opacity: 1, y: 0, duration: 0.9, stagger: 0.12 }
-      )
-        .fromTo(
-          el.querySelectorAll("[data-hero-fade]"),
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.8, stagger: 0.1 },
-          "-=0.55"
-        )
-        .fromTo(
-          el.querySelector("[data-hero-visual]"),
-          { opacity: 0, y: 48, rotate: 1 },
-          { opacity: 1, y: 0, rotate: 0, duration: 1.1 },
-          "-=0.7"
+      const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+
+      if (lines.length) {
+        tl.from(lines, {
+          y: 18,
+          opacity: 0.4,
+          duration: 0.5,
+          stagger: 0.08,
+          clearProps: "all",
+        });
+      }
+
+      if (fades.length) {
+        tl.from(
+          fades,
+          {
+            y: 14,
+            opacity: 0.3,
+            duration: 0.4,
+            stagger: 0.06,
+            clearProps: "all",
+          },
+          "-=0.3"
         );
+      }
 
-      // Gentle floating loop on the two floating cards once entrance completes.
-      gsap.to(el.querySelector("[data-hero-float-a]"), {
-        y: -8,
-        duration: 2.6,
-        yoyo: true,
-        repeat: -1,
-        ease: "sine.inOut",
-        delay: 1.6,
-      });
-      gsap.to(el.querySelector("[data-hero-float-b]"), {
-        y: 8,
-        duration: 3.1,
-        yoyo: true,
-        repeat: -1,
-        ease: "sine.inOut",
-        delay: 1.6,
-      });
+      if (visual) {
+        tl.from(
+          visual,
+          {
+            y: 20,
+            opacity: 0.6,
+            duration: 0.6,
+            clearProps: "all",
+          },
+          "-=0.4"
+        );
+      }
+
+      // Gentle floating loop on the two detail cards
+      if (floatA) {
+        gsap.to(floatA, {
+          y: -6,
+          duration: 2.8,
+          yoyo: true,
+          repeat: -1,
+          ease: "sine.inOut",
+          delay: 0.8,
+        });
+      }
+      if (floatB) {
+        gsap.to(floatB, {
+          y: 6,
+          duration: 3.2,
+          yoyo: true,
+          repeat: -1,
+          ease: "sine.inOut",
+          delay: 0.8,
+        });
+      }
     },
     { scope }
   );
